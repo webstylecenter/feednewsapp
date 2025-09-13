@@ -15,10 +15,18 @@
         "symfony/yaml": "7.3.*"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.1"
+        "friendsofphp/php-cs-fixer": "^3.87",
+        "jetbrains/phpstorm-attributes": "^1.2",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "slevomat/coding-standard": "^8.22",
+        "squizlabs/php_codesniffer": "^3.13"
     },
     "config": {
         "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
             "php-http/discovery": true,
             "symfony/flex": true,
             "symfony/runtime": true
@@ -56,7 +64,9 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "phpstan": "vendor/bin/phpstan analyse src",
+        "phpcsfixer": "vendor/bin/php-cs-fixer fix"
     },
     "conflict": {
         "symfony/symfony": "*"
