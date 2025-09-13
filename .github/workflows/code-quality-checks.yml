@@ -2,8 +2,7 @@ name: Code Quality Checks
 
 on:
   push:
-    branches-ignore:
-      - main
+
 
 jobs:
   condig-standards:
