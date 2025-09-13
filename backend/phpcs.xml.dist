@@ -14,7 +14,6 @@
     <file>config/</file>
     <file>public/</file>
     <file>src/</file>
-    <file>tests/</file>
 
     <rule ref="SlevomatCodingStandard.Classes.RequireAbstractOrFinal">
         <exclude-pattern>./src/Entity/*.php</exclude-pattern>
@@ -25,7 +24,6 @@
             <exclude-pattern>./config/preload.php</exclude-pattern>
             <exclude-pattern>./public/index.php</exclude-pattern>
             <exclude-pattern>./src/Kernel.php</exclude-pattern>
-            <exclude-pattern>./tests/bootstrap.php</exclude-pattern>
         </rule>
 
         <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly.ReferenceViaFullyQualifiedName">
@@ -35,13 +33,11 @@
         <rule ref="PSR12.Operators.OperatorSpacing.NoSpaceBefore">
             <exclude-pattern>./config/preload.php</exclude-pattern>
             <exclude-pattern>./public/index.php</exclude-pattern>
-            <exclude-pattern>./tests/bootstrap.php</exclude-pattern>
         </rule>
 
         <rule ref="PSR12.Operators.OperatorSpacing.NoSpaceAfter">
             <exclude-pattern>./config/preload.php</exclude-pattern>
             <exclude-pattern>./public/index.php</exclude-pattern>
-            <exclude-pattern>./tests/bootstrap.php</exclude-pattern>
         </rule>
 
         <rule ref="SlevomatCodingStandard.Functions.StaticClosure.ClosureNotStatic">
