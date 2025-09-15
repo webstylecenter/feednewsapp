@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\FeedRepository;
@@ -18,7 +20,7 @@ final class Feed
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING)]
     private string $name;
 
     #[ORM\Column(type: Types::TEXT)]

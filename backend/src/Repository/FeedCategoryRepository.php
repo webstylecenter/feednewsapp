@@ -15,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method array<FeedCategoryRepository> findBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null, $limit = null, $offset = null)
  * @method FeedCategoryRepository|null findOneBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null)
  */
-class FeedCategoryRepository extends ServiceEntityRepository
+final class FeedCategoryRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,

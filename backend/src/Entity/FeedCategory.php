@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -16,7 +17,7 @@ final class FeedCategory
     #[ORM\Column(type: Types::INTEGER)]
     private int $id;
 
-    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, unique: true)]
     private string $name;
 
     public function __construct(string $name)

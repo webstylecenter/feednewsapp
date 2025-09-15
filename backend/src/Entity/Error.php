@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Entity\Enum\ErrorType;
@@ -19,7 +21,7 @@ final class Error
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\Column(type: Types::STRING, length: 255, enumType: ErrorType::class)]
+    #[ORM\Column(type: Types::STRING, enumType: ErrorType::class)]
     private ErrorType $type;
 
     private User $user;

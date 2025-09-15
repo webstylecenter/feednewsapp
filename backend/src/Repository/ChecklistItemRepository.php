@@ -15,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method array<ChecklistItem> findBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null, $limit = null, $offset = null)
  * @method ChecklistItem|null findOneBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null)
  */
-class ChecklistItemRepository extends ServiceEntityRepository
+final class ChecklistItemRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,

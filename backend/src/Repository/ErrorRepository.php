@@ -15,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method array<Error> findBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null, $limit = null, $offset = null)
  * @method Error|null findOneBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null)
  */
-class ErrorRepository extends ServiceEntityRepository
+final class ErrorRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry $registry,

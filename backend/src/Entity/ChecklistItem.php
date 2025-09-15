@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Entity\Enum\ErrorType;
@@ -19,7 +21,7 @@ final class ChecklistItem
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING)]
     private string $item;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]

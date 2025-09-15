@@ -8,7 +8,9 @@
     <arg name="colors"/>
     <arg name="extensions" value="php"/>
 
-    <rule ref="PSR12"/>
+    <rule ref="PSR12">
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
 
     <file>bin/</file>
     <file>config/</file>
@@ -43,4 +45,5 @@
         <rule ref="SlevomatCodingStandard.Functions.StaticClosure.ClosureNotStatic">
             <exclude-pattern>./public/index.php</exclude-pattern>
         </rule>
+
 </ruleset>
