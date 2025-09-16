@@ -145,7 +145,10 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
 
     public function addUserFeedItem(UserFeedItem $userFeedItem): UserFeed
     {
-        $this->items->add($userFeedItem);
+        if (!$this->items->contains($userFeedItem)) {
+            $this->items->add($userFeedItem);
+            $userFeedItem->setUserFeed($this);
+        }
         return $this;
     }
 }
