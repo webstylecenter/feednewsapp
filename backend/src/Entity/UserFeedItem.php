@@ -37,8 +37,18 @@ final class UserFeedItem
     private ?Tag $tag;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private bool $openedAt = false;
+    private ?\DateTimeImmutable $openedAt = null;
 
+    public function getOpenedAt(): ?\DateTimeImmutable
+    {
+        return $this->openedAt;
+    }
+
+    public function setOpenedAt(?\DateTimeImmutable $openedAt): UserFeedItem
+    {
+        $this->openedAt = $openedAt;
+        return $this;
+    }
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $viewed = false;
 
