@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Repository\NoteRepository;
 use App\Repository\TagRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,11 +27,11 @@ final class Tag
     private User $user;
 
     /**
-     * @var null|Collection<int, UserFeedItem>
+     * @var Collection<int, UserFeedItem>
      */
     #[ORM\OneToMany(targetEntity: UserFeedItem::class, mappedBy: 'tag')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
-    private ?Collection $userFeedItems;
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    private Collection $userFeedItems;
 
     #[ORM\Column(type: Types::STRING)]
     private string $name;
@@ -41,6 +41,7 @@ final class Tag
 
     public function __construct(User $user, string $name, string $color)
     {
+        $this->userFeedItems = new ArrayCollection();
         $this->user = $user;
         $this->name = $name;
         $this->color = $color;
@@ -78,10 +79,11 @@ final class Tag
 
     public function setUserFeedItems(UserFeedItem ...$userFeedItems): Tag
     {
-        $this->userFeedItems = [];
+        $this->userFeedItems = new ArrayCollection();
         foreach ($userFeedItems as $userFeedItem) {
             $this->addUserFeedItem($userFeedItem);
         }
+        return $this;
     }
 
     public function addUserFeedItem(UserFeedItem $userFeedItem): Tag

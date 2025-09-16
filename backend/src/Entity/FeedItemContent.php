@@ -7,7 +7,6 @@ namespace App\Entity;
 use App\Repository\FeedItemContentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: FeedItemContentRepository::class)]
 #[ORM\Table(name: 'feed_item_contents')]

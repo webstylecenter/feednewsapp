@@ -6,13 +6,10 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UserFeedRepository;
-use App\Repository\UserRepository;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
-use Gedmo\Timestampable\Traits\Timestampable;
+use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -127,6 +124,9 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this;
     }
 
+    /**
+     * @return Collection<int, UserFeedItem>
+     */
     public function getItems(): Collection
     {
         return $this->items;
@@ -134,10 +134,12 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
 
     public function setItems(UserFeedItem ...$items): UserFeed
     {
-        $this->items = [];
+        $this->items = new ArrayCollection();
+
         foreach ($items as $item) {
             $this->addUserFeedItem($item);
         }
+
         return $this;
     }
 

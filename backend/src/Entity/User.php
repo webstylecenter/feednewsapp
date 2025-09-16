@@ -7,8 +7,8 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use DateTimeImmutable;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -35,6 +35,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::STRING)]
     private ?string $avatar = null;
 
+    /** @var array<int, string> */
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
@@ -124,14 +125,29 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getRoles(): array
     {
         return $this->roles;
     }
 
-    public function setRoles(array $roles): User
+    public function setRoles(string ...$roles): User
     {
-        $this->roles = $roles;
+        foreach ($roles as $role) {
+            $this->addRole($role);
+        }
+        return $this;
+    }
+
+    public function addRole(string $role): User
+    {
+        if (in_array($role, $this->roles, true)) {
+            return $this;
+        }
+
+        $this->roles[] = $role;
         return $this;
     }
 

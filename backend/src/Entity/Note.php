@@ -41,6 +41,17 @@ final class Note
         $this->content = $content;
     }
 
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): Note
+    {
+        $this->id = $id;
+        return $this;
+    }
+
     public function getUser(): User
     {
         return $this->user;
