@@ -23,27 +23,26 @@ final class FeedItem
     #[ORM\Column(type: Types::STRING)]
     private string $title;
 
-    #[ORM\Column(type: Types::STRING)]
-    private string $description;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Feed::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
-    private Feed $feed;
+    private ?Feed $feed = null;
 
     #[ORM\Column(type: Types::STRING)]
     private string $guid;
 
-    #[ORM\OneToOne(targetEntity: FeedItemContent::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private FeedItemContent $content;
+    #[ORM\Column(type: Types::TEXT)]
+    private string $url;
 
-    public function __construct(string $title, string $description, Feed $feed, string $guid, FeedItemContent $content)
+    public function __construct(string $title, ?string $description, ?Feed $feed, string $guid, string $url)
     {
         $this->title = $title;
         $this->description = $description;
         $this->feed = $feed;
         $this->guid = $guid;
-        $this->content = $content;
+        $this->url = $url;
     }
 
     public function getId(): int
@@ -68,23 +67,23 @@ final class FeedItem
         return $this;
     }
 
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    public function setDescription(string $description): FeedItem
+    public function setDescription(?string $description): FeedItem
     {
         $this->description = $description;
         return $this;
     }
 
-    public function getFeed(): Feed
+    public function getFeed(): ?Feed
     {
         return $this->feed;
     }
 
-    public function setFeed(Feed $feed): FeedItem
+    public function setFeed(?Feed $feed): FeedItem
     {
         $this->feed = $feed;
         return $this;
@@ -101,14 +100,14 @@ final class FeedItem
         return $this;
     }
 
-    public function getContent(): FeedItemContent
+    public function getUrl(): string
     {
-        return $this->content;
+        return $this->url;
     }
 
-    public function setContent(FeedItemContent $content): FeedItem
+    public function setUrl(string $url): FeedItem
     {
-        $this->content = $content;
+        $this->url = $url;
         return $this;
     }
 }

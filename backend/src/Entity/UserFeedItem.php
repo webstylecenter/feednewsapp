@@ -29,8 +29,8 @@ final class UserFeedItem
     private FeedItem $feedItem;
 
     #[ORM\ManyToOne(targetEntity: UserFeed::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
-    private UserFeed $userFeed;
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    private ?UserFeed $userFeed = null;
 
     #[ORM\ManyToOne(targetEntity: Tag::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
@@ -45,12 +45,11 @@ final class UserFeedItem
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $pinned = false;
 
-    public function __construct(User $user, FeedItem $feedItem, UserFeed $userFeed, bool $pinned, ?Tag $tag)
+    public function __construct(User $user, FeedItem $feedItem, ?UserFeed $userFeed, ?Tag $tag)
     {
         $this->user = $user;
         $this->feedItem = $feedItem;
         $this->userFeed = $userFeed;
-        $this->pinned = $pinned;
         $this->tag = $tag;
     }
 
@@ -87,12 +86,12 @@ final class UserFeedItem
         return $this;
     }
 
-    public function getUserFeed(): UserFeed
+    public function getUserFeed(): ?UserFeed
     {
         return $this->userFeed;
     }
 
-    public function setUserFeed(UserFeed $userFeed): UserFeedItem
+    public function setUserFeed(?UserFeed $userFeed): UserFeedItem
     {
         $this->userFeed = $userFeed;
         return $this;

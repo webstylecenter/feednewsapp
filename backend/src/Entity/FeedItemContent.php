@@ -21,10 +21,10 @@ final class FeedItemContent
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
     private FeedItem $feedItem;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private string $content;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $content = null;
 
-    public function __construct(FeedItem $feedItem, string $content)
+    public function __construct(FeedItem $feedItem, ?string $content)
     {
         $this->feedItem = $feedItem;
         $this->content = $content;
@@ -52,12 +52,12 @@ final class FeedItemContent
         return $this;
     }
 
-    public function getContent(): string
+    public function getContent(): ?string
     {
         return $this->content;
     }
 
-    public function setContent(string $content): FeedItemContent
+    public function setContent(?string $content): FeedItemContent
     {
         $this->content = $content;
         return $this;

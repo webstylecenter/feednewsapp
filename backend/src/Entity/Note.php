@@ -24,16 +24,16 @@ final class Note
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
     private User $user;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: false)]
     private string $name;
 
     #[ORM\Column(type: Types::INTEGER, length: 6)]
     private int $position = 0;
 
-    #[ORM\Column(type: Types::TEXT)]
-    private string $content;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $content = null;
 
-    public function __construct(User $user, string $name, int $position, string $content)
+    public function __construct(User $user, string $name, int $position, ?string $content)
     {
         $this->user = $user;
         $this->name = $name;
@@ -85,12 +85,12 @@ final class Note
         return $this;
     }
 
-    public function getContent(): string
+    public function getContent(): ?string
     {
         return $this->content;
     }
 
-    public function setContent(string $content): Note
+    public function setContent(?string $content): Note
     {
         $this->content = $content;
         return $this;

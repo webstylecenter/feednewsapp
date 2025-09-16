@@ -37,7 +37,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
     private ?string $icon = null;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
-    private ?string $color;
+    private ?string $color = null;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $autoPin = false;

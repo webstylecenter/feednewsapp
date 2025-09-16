@@ -24,21 +24,26 @@ final class Error
     #[ORM\Column(type: Types::STRING, enumType: ErrorType::class)]
     private ErrorType $type;
 
-    private User $user;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    private ?User $user = null;
 
-    private Feed $feed;
+    #[ORM\ManyToOne(targetEntity: Feed::class)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    private ?Feed $feed = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: false)]
     private string $exception;
 
-    private int $occurrences = 0;
+    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => 1])]
+    private int $occurrences = 1;
 
-    public function __construct(ErrorType $type, User $user, Feed $feed, string $exception, int $occurrences)
+    public function __construct(ErrorType $type, ?User $user, ?Feed $feed, string $exception)
     {
         $this->type = $type;
         $this->user = $user;
         $this->feed = $feed;
         $this->exception = $exception;
-        $this->occurrences = $occurrences;
     }
 
     public function getId(): int
@@ -63,23 +68,23 @@ final class Error
         return $this;
     }
 
-    public function getUser(): User
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(User $user): Error
+    public function setUser(?User $user): Error
     {
         $this->user = $user;
         return $this;
     }
 
-    public function getFeed(): Feed
+    public function getFeed(): ?Feed
     {
         return $this->feed;
     }
 
-    public function setFeed(Feed $feed): Error
+    public function setFeed(?Feed $feed): Error
     {
         $this->feed = $feed;
         return $this;

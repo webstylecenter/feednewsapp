@@ -21,16 +21,16 @@ final class UserSetting
     private int $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     private User $user;
 
     #[ORM\Column(type: Types::STRING)]
     private string $setting;
 
-    #[ORM\Column(type: Types::STRING)]
-    private string $value;
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $value;
 
-    public function __construct(User $user, string $setting, string $value)
+    public function __construct(User $user, string $setting, ?string $value)
     {
         $this->user = $user;
         $this->setting = $setting;
@@ -70,12 +70,12 @@ final class UserSetting
         return $this;
     }
 
-    public function getValue(): string
+    public function getValue(): ?string
     {
         return $this->value;
     }
 
-    public function setValue(string $value): UserSetting
+    public function setValue(?string $value): UserSetting
     {
         $this->value = $value;
         return $this;

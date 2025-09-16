@@ -20,14 +20,15 @@ final class ChecklistItem
     #[ORM\Column(type: 'integer')]
     private int $id;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    private User $user;
+
     #[ORM\Column(type: Types::STRING)]
     private string $item;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private string $checked;
-
-    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
-    private User $user;
 
     public function __construct(string $item, string $checked)
     {

@@ -20,20 +20,25 @@ final class Feed
     #[ORM\Column(type: 'integer')]
     private int $id;
 
+    #[ORM\OneToMany(targetEntity: FeedCategory::class, mappedBy: 'feed')]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    private ?FeedCategory $category = null;
+
     #[ORM\Column(type: Types::STRING)]
     private string $name;
+
+    #[ORM\Column(type: Types::STRING, length: 191)]
+    private string $color;
 
     #[ORM\Column(type: Types::TEXT)]
     private string $url;
 
-    #[ORM\OneToMany(targetEntity: FeedCategory::class, mappedBy: 'feed')]
-    private FeedCategory $category;
-
-    public function __construct(string $name, string $url, FeedCategory $category)
+    public function __construct(?FeedCategory $category, string $name, string $color, string $url)
     {
-        $this->name = $name;
-        $this->url = $url;
         $this->category = $category;
+        $this->name = $name;
+        $this->color = $color;
+        $this->url = $url;
     }
 
     public function getId(): int
@@ -44,6 +49,17 @@ final class Feed
     public function setId(int $id): Feed
     {
         $this->id = $id;
+        return $this;
+    }
+
+    public function getCategory(): ?FeedCategory
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?FeedCategory $category): Feed
+    {
+        $this->category = $category;
         return $this;
     }
 
@@ -58,6 +74,17 @@ final class Feed
         return $this;
     }
 
+    public function getColor(): string
+    {
+        return $this->color;
+    }
+
+    public function setColor(string $color): Feed
+    {
+        $this->color = $color;
+        return $this;
+    }
+
     public function getUrl(): string
     {
         return $this->url;
@@ -66,17 +93,6 @@ final class Feed
     public function setUrl(string $url): Feed
     {
         $this->url = $url;
-        return $this;
-    }
-
-    public function getCategory(): FeedCategory
-    {
-        return $this->category;
-    }
-
-    public function setCategory(FeedCategory $category): Feed
-    {
-        $this->category = $category;
         return $this;
     }
 }

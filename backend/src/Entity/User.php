@@ -32,6 +32,9 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private bool $enabled = true;
 
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isAdmin = false;
+
     #[ORM\Column(type: Types::STRING)]
     private ?string $avatar = null;
 
@@ -111,6 +114,17 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEnabled(bool $enabled): User
     {
         $this->enabled = $enabled;
+        return $this;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->isAdmin;
+    }
+
+    public function setIsAdmin(bool $isAdmin): User
+    {
+        $this->isAdmin = $isAdmin;
         return $this;
     }
 
