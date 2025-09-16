@@ -24,7 +24,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $email;
 
     #[ORM\Column(type: Types::STRING, unique: false)]
-    private string $mame;
+    private string $name;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $hideXFrameNotice = false;
@@ -35,7 +35,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $isAdmin = false;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $avatar = null;
 
     /** @var array<int, string> */
@@ -56,7 +56,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         ?string $avatar = null,
     ) {
         $this->email = $email;
-        $this->mame = $mame;
+        $this->name = $mame;
         $this->hideXFrameNotice = $hideXFrameNotice;
         $this->enabled = $enabled;
         $this->avatar = $avatar;
@@ -84,14 +84,14 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getMame(): string
+    public function getName(): string
     {
-        return $this->mame;
+        return $this->name;
     }
 
-    public function setMame(string $mame): User
+    public function setName(string $name): User
     {
-        $this->mame = $mame;
+        $this->name = $name;
         return $this;
     }
 
