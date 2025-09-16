@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Repository;
+
+use App\Entity\ChecklistItem;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<ChecklistItem>
+ * @method ChecklistItem|null find($id, $lockMode = null, $lockVersion = null)
+ * @method array<ChecklistItem> findAll()
+ * @method array<ChecklistItem> findBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null, $limit = null, $offset = null)
+ * @method ChecklistItem|null findOneBy(array<string, mixed> $criteria, array<string, mixed> $orderBy = null)
+ */
+final class ChecklistItemRepository extends ServiceEntityRepository
+{
+    public function __construct(
+        ManagerRegistry $registry,
+    ) {
+        parent::__construct($registry, ChecklistItem::class);
+    }
+}
