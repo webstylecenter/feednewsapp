@@ -66,42 +66,42 @@ final class WeatherForecast
     #[ORM\Column(type: Types::FLOAT)]
     private float $tempIn5DaysMin;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
     private float $weatherIn1Days;
 
-    #[ORM\Column(type: Types::FLOAT)]
+    #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
     private float $weatherIn2Days;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
-    private float $weatherIn3Days;
+    private WeatherType $weatherIn3Days;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
-    private float $weatherIn4Days;
+    private WeatherType $weatherIn4Days;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
-    private float $weatherIn5Days;
+    private WeatherType $weatherIn5Days;
 
     public function __construct(
-        string $location,
-        float $CurrentTemp,
+        string      $location,
+        float       $CurrentTemp,
         WeatherType $currentWeather,
-        float $tempTodayMax,
-        float $tempTodayMin,
-        float $tempIn1DaysMax,
-        float $tempIn1DaysMin,
-        float $tempIn2DaysMax,
-        float $tempIn2DaysMin,
-        float $tempIn3DaysMax,
-        float $tempIn3DaysMin,
-        float $tempIn4DaysMax,
-        float $tempIn4DaysMin,
-        float $tempIn5DaysMax,
-        float $tempIn5DaysMin,
-        float $weatherIn1Days,
-        float $weatherIn2Days,
-        float $weatherIn3Days,
-        float $weatherIn4Days,
-        float $weatherIn5Days,
+        float       $tempTodayMax,
+        float       $tempTodayMin,
+        float       $tempIn1DaysMax,
+        float       $tempIn1DaysMin,
+        float       $tempIn2DaysMax,
+        float       $tempIn2DaysMin,
+        float       $tempIn3DaysMax,
+        float       $tempIn3DaysMin,
+        float       $tempIn4DaysMax,
+        float       $tempIn4DaysMin,
+        float       $tempIn5DaysMax,
+        float       $tempIn5DaysMin,
+        float       $weatherIn1Days,
+        float       $weatherIn2Days,
+        WeatherType $weatherIn3Days,
+        WeatherType $weatherIn4Days,
+        WeatherType $weatherIn5Days
     ) {
         $this->location = $location;
         $this->CurrentTemp = $CurrentTemp;
@@ -323,34 +323,34 @@ final class WeatherForecast
         return $this;
     }
 
-    public function getWeatherIn3Days(): float
+    public function getWeatherIn3Days(): WeatherType
     {
         return $this->weatherIn3Days;
     }
 
-    public function setWeatherIn3Days(float $weatherIn3Days): WeatherForecast
+    public function setWeatherIn3Days(WeatherType $weatherIn3Days): WeatherForecast
     {
         $this->weatherIn3Days = $weatherIn3Days;
         return $this;
     }
 
-    public function getWeatherIn4Days(): float
+    public function getWeatherIn4Days(): WeatherType
     {
         return $this->weatherIn4Days;
     }
 
-    public function setWeatherIn4Days(float $weatherIn4Days): WeatherForecast
+    public function setWeatherIn4Days(WeatherType $weatherIn4Days): WeatherForecast
     {
         $this->weatherIn4Days = $weatherIn4Days;
         return $this;
     }
 
-    public function getWeatherIn5Days(): float
+    public function getWeatherIn5Days(): WeatherType
     {
         return $this->weatherIn5Days;
     }
 
-    public function setWeatherIn5Days(float $weatherIn5Days): WeatherForecast
+    public function setWeatherIn5Days(WeatherType $weatherIn5Days): WeatherForecast
     {
         $this->weatherIn5Days = $weatherIn5Days;
         return $this;

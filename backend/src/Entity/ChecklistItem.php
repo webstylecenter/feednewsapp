@@ -28,9 +28,9 @@ final class ChecklistItem
     private string $item;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
-    private string $checked;
+    private bool $checked;
 
-    public function __construct(string $item, string $checked)
+    public function __construct(string $item, bool $checked)
     {
         $this->item = $item;
         $this->checked = $checked;
@@ -58,12 +58,12 @@ final class ChecklistItem
         return $this;
     }
 
-    public function getChecked(): string
+    public function getChecked(): bool
     {
         return $this->checked;
     }
 
-    public function setChecked(string $checked): ChecklistItem
+    public function setChecked(bool $checked): ChecklistItem
     {
         $this->checked = $checked;
         return $this;
