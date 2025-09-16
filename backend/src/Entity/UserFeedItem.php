@@ -8,6 +8,7 @@ use App\Repository\UserFeedItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: UserFeedItemRepository::class)]
 #[ORM\Table(name: 'user_feed_items')]
@@ -37,18 +38,8 @@ final class UserFeedItem
     private ?Tag $tag;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $openedAt = null;
+    private ?DateTimeImmutable $openedAt = null;
 
-    public function getOpenedAt(): ?\DateTimeImmutable
-    {
-        return $this->openedAt;
-    }
-
-    public function setOpenedAt(?\DateTimeImmutable $openedAt): UserFeedItem
-    {
-        $this->openedAt = $openedAt;
-        return $this;
-    }
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $viewed = false;
 
@@ -118,12 +109,12 @@ final class UserFeedItem
         return $this;
     }
 
-    public function isOpenedAt(): bool
+    public function getOpenedAt(): ?DateTimeImmutable
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(bool $openedAt): UserFeedItem
+    public function setOpenedAt(?DateTimeImmutable $openedAt): UserFeedItem
     {
         $this->openedAt = $openedAt;
         return $this;
