@@ -20,10 +20,9 @@ final class Feed
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\OneToMany(targetEntity: FeedCategory::class, mappedBy: 'feed')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: FeedCategory::class)]
+    #[ORM\JoinColumn(name: 'category_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?FeedCategory $category = null;
-
     #[ORM\Column(type: Types::STRING)]
     private string $name;
 
