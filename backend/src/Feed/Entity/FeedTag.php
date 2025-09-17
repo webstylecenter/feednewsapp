@@ -43,12 +43,6 @@ class FeedTag
         return $this->id;
     }
 
-    public function setId(int $id): FeedTag
-    {
-        $this->id = $id;
-        return $this;
-    }
-
     public function getUser(): User
     {
         return $this->user;

@@ -73,12 +73,6 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
         return $this->id;
     }
 
-    public function setId(int $id): FeedUser
-    {
-        $this->id = $id;
-        return $this;
-    }
-
     public function getUser(): User
     {
         return $this->user;

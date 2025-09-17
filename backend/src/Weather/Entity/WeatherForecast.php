@@ -67,10 +67,10 @@ class WeatherForecast
     private float $tempIn5DaysMin;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
-    private float $weatherIn1Days;
+    private WeatherType $weatherIn1Days;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
-    private float $weatherIn2Days;
+    private WeatherType $weatherIn2Days;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
     private WeatherType $weatherIn3Days;
@@ -97,8 +97,8 @@ class WeatherForecast
         float $tempIn4DaysMin,
         float $tempIn5DaysMax,
         float $tempIn5DaysMin,
-        float $weatherIn1Days,
-        float $weatherIn2Days,
+        WeatherType $weatherIn1Days,
+        WeatherType $weatherIn2Days,
         WeatherType $weatherIn3Days,
         WeatherType $weatherIn4Days,
         WeatherType $weatherIn5Days
@@ -128,12 +128,6 @@ class WeatherForecast
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function setId(int $id): WeatherForecast
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getLocation(): string
@@ -301,23 +295,23 @@ class WeatherForecast
         return $this;
     }
 
-    public function getWeatherIn1Days(): float
+    public function getWeatherIn1Days(): WeatherType
     {
         return $this->weatherIn1Days;
     }
 
-    public function setWeatherIn1Days(float $weatherIn1Days): WeatherForecast
+    public function setWeatherIn1Days(WeatherType $weatherIn1Days): WeatherForecast
     {
         $this->weatherIn1Days = $weatherIn1Days;
         return $this;
     }
 
-    public function getWeatherIn2Days(): float
+    public function getWeatherIn2Days(): WeatherType
     {
         return $this->weatherIn2Days;
     }
 
-    public function setWeatherIn2Days(float $weatherIn2Days): WeatherForecast
+    public function setWeatherIn2Days(WeatherType $weatherIn2Days): WeatherForecast
     {
         $this->weatherIn2Days = $weatherIn2Days;
         return $this;

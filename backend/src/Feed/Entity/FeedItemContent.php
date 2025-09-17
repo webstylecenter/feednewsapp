@@ -18,7 +18,7 @@ class FeedItemContent
     private int $id;
 
     #[ORM\OneToOne(targetEntity: FeedItem::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     private FeedItem $feedItem;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -33,12 +33,6 @@ class FeedItemContent
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function setId(int $id): FeedItemContent
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getFeedItem(): FeedItem

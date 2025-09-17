@@ -45,12 +45,6 @@ class Feed
         return $this->id;
     }
 
-    public function setId(int $id): Feed
-    {
-        $this->id = $id;
-        return $this;
-    }
-
     public function getCategory(): ?FeedCategory
     {
         return $this->category;
