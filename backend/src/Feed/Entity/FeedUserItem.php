@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Feed\Entity;
 
-use App\Repository\UserFeedItemRepository;
+use App\Entity\User;
+use App\Feed\Repository\UserFeedItemRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
-use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: UserFeedItemRepository::class)]
 #[ORM\Table(name: 'user_feed_items')]
-final class UserFeedItem
+final class FeedUserItem
 {
     use TimestampableEntity;
 
@@ -29,13 +30,13 @@ final class UserFeedItem
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     private FeedItem $feedItem;
 
-    #[ORM\ManyToOne(targetEntity: UserFeed::class)]
+    #[ORM\ManyToOne(targetEntity: FeedUser::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
-    private ?UserFeed $userFeed = null;
+    private ?FeedUser $userFeed = null;
 
-    #[ORM\ManyToOne(targetEntity: Tag::class)]
+    #[ORM\ManyToOne(targetEntity: FeedTag::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
-    private ?Tag $tag;
+    private ?FeedTag $tag;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $openedAt = null;
@@ -46,7 +47,7 @@ final class UserFeedItem
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $pinned = false;
 
-    public function __construct(User $user, FeedItem $feedItem, ?UserFeed $userFeed, ?Tag $tag)
+    public function __construct(User $user, FeedItem $feedItem, ?FeedUser $userFeed, ?FeedTag $tag)
     {
         $this->user = $user;
         $this->feedItem = $feedItem;
@@ -59,7 +60,7 @@ final class UserFeedItem
         return $this->id;
     }
 
-    public function setId(int $id): UserFeedItem
+    public function setId(int $id): FeedUserItem
     {
         $this->id = $id;
         return $this;
@@ -70,7 +71,7 @@ final class UserFeedItem
         return $this->user;
     }
 
-    public function setUser(User $user): UserFeedItem
+    public function setUser(User $user): FeedUserItem
     {
         $this->user = $user;
         return $this;
@@ -81,29 +82,29 @@ final class UserFeedItem
         return $this->feedItem;
     }
 
-    public function setFeedItem(FeedItem $feedItem): UserFeedItem
+    public function setFeedItem(FeedItem $feedItem): FeedUserItem
     {
         $this->feedItem = $feedItem;
         return $this;
     }
 
-    public function getUserFeed(): ?UserFeed
+    public function getUserFeed(): ?FeedUser
     {
         return $this->userFeed;
     }
 
-    public function setUserFeed(?UserFeed $userFeed): UserFeedItem
+    public function setUserFeed(?FeedUser $userFeed): FeedUserItem
     {
         $this->userFeed = $userFeed;
         return $this;
     }
 
-    public function getTag(): ?Tag
+    public function getTag(): ?FeedTag
     {
         return $this->tag;
     }
 
-    public function setTag(?Tag $tag): UserFeedItem
+    public function setTag(?FeedTag $tag): FeedUserItem
     {
         $this->tag = $tag;
         return $this;
@@ -114,7 +115,7 @@ final class UserFeedItem
         return $this->openedAt;
     }
 
-    public function setOpenedAt(?DateTimeImmutable $openedAt): UserFeedItem
+    public function setOpenedAt(?DateTimeImmutable $openedAt): FeedUserItem
     {
         $this->openedAt = $openedAt;
         return $this;
@@ -125,7 +126,7 @@ final class UserFeedItem
         return $this->viewed;
     }
 
-    public function setViewed(bool $viewed): UserFeedItem
+    public function setViewed(bool $viewed): FeedUserItem
     {
         $this->viewed = $viewed;
         return $this;
@@ -136,7 +137,7 @@ final class UserFeedItem
         return $this->pinned;
     }
 
-    public function setPinned(bool $pinned): UserFeedItem
+    public function setPinned(bool $pinned): FeedUserItem
     {
         $this->pinned = $pinned;
         return $this;

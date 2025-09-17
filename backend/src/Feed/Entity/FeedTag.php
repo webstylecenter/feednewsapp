@@ -2,18 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Feed\Entity;
 
-use App\Repository\TagRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Entity\User;
+use App\Feed\Repository\FeedTagRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[ORM\Entity(repositoryClass: TagRepository::class)]
+#[ORM\Entity(repositoryClass: FeedTagRepository::class)]
 #[ORM\Table(name: 'tags')]
-final class Tag
+final class FeedTag
 {
     use TimestampableEntity;
 
@@ -26,13 +25,6 @@ final class Tag
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
     private User $user;
 
-    /**
-     * @var Collection<int, UserFeedItem>
-     */
-    #[ORM\OneToMany(targetEntity: UserFeedItem::class, mappedBy: 'tag')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
-    private Collection $userFeedItems;
-
     #[ORM\Column(type: Types::STRING)]
     private string $name;
 
@@ -41,7 +33,6 @@ final class Tag
 
     public function __construct(User $user, string $name, string $color)
     {
-        $this->userFeedItems = new ArrayCollection();
         $this->user = $user;
         $this->name = $name;
         $this->color = $color;
@@ -52,7 +43,7 @@ final class Tag
         return $this->id;
     }
 
-    public function setId(int $id): Tag
+    public function setId(int $id): FeedTag
     {
         $this->id = $id;
         return $this;
@@ -63,32 +54,9 @@ final class Tag
         return $this->user;
     }
 
-    public function setUser(User $user): Tag
+    public function setUser(User $user): FeedTag
     {
         $this->user = $user;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, UserFeedItem>
-     */
-    public function getUserFeedItems(): Collection
-    {
-        return $this->userFeedItems;
-    }
-
-    public function setUserFeedItems(UserFeedItem ...$userFeedItems): Tag
-    {
-        $this->userFeedItems = new ArrayCollection();
-        foreach ($userFeedItems as $userFeedItem) {
-            $this->addUserFeedItem($userFeedItem);
-        }
-        return $this;
-    }
-
-    public function addUserFeedItem(UserFeedItem $userFeedItem): Tag
-    {
-        $this->userFeedItems[] = $userFeedItem;
         return $this;
     }
 
@@ -97,7 +65,7 @@ final class Tag
         return $this->name;
     }
 
-    public function setName(string $name): Tag
+    public function setName(string $name): FeedTag
     {
         $this->name = $name;
         return $this;
@@ -108,7 +76,7 @@ final class Tag
         return $this->color;
     }
 
-    public function setColor(string $color): Tag
+    public function setColor(string $color): FeedTag
     {
         $this->color = $color;
         return $this;

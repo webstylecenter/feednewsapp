@@ -3,9 +3,10 @@
 declare(strict_types=1);
 
 // src/Entity/User.php
-namespace App\Entity;
+namespace App\Feed\Entity;
 
-use App\Repository\UserFeedRepository;
+use App\Entity\User;
+use App\Feed\Repository\UserFeedRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -16,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserFeedRepository::class)]
 #[ORM\Table(name: 'user_feeds')]
-abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInterface
+abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use TimestampableEntity;
 
@@ -43,9 +44,9 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
     private bool $autoPin = false;
 
     /**
-     * @var Collection<int, UserFeedItem>
+     * @var Collection<int, FeedUserItem>
      */
-    #[ORM\OneToMany(targetEntity: UserFeedItem::class, mappedBy: 'userFeed', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: FeedUserItem::class, mappedBy: 'userFeed', cascade: ['persist', 'remove'])]
     private Collection $items;
 
     public function __construct(User $user, Feed $feed, ?string $icon, ?string $color, bool $autoPin)
@@ -63,7 +64,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this->id;
     }
 
-    public function setId(int $id): UserFeed
+    public function setId(int $id): FeedUser
     {
         $this->id = $id;
         return $this;
@@ -74,7 +75,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this->user;
     }
 
-    public function setUser(User $user): UserFeed
+    public function setUser(User $user): FeedUser
     {
         $this->user = $user;
         return $this;
@@ -85,7 +86,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this->feed;
     }
 
-    public function setFeed(Feed $feed): UserFeed
+    public function setFeed(Feed $feed): FeedUser
     {
         $this->feed = $feed;
         return $this;
@@ -96,7 +97,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this->icon;
     }
 
-    public function setIcon(?string $icon): UserFeed
+    public function setIcon(?string $icon): FeedUser
     {
         $this->icon = $icon;
         return $this;
@@ -107,7 +108,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this->color;
     }
 
-    public function setColor(?string $color): UserFeed
+    public function setColor(?string $color): FeedUser
     {
         $this->color = $color;
         return $this;
@@ -118,21 +119,21 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this->autoPin;
     }
 
-    public function setAutoPin(bool $autoPin): UserFeed
+    public function setAutoPin(bool $autoPin): FeedUser
     {
         $this->autoPin = $autoPin;
         return $this;
     }
 
     /**
-     * @return Collection<int, UserFeedItem>
+     * @return Collection<int, FeedUserItem>
      */
     public function getItems(): Collection
     {
         return $this->items;
     }
 
-    public function setItems(UserFeedItem ...$items): UserFeed
+    public function setItems(FeedUserItem ...$items): FeedUser
     {
         $this->items = new ArrayCollection();
 
@@ -143,7 +144,7 @@ abstract class UserFeed implements UserInterface, PasswordAuthenticatedUserInter
         return $this;
     }
 
-    public function addUserFeedItem(UserFeedItem $userFeedItem): UserFeed
+    public function addUserFeedItem(FeedUserItem $userFeedItem): FeedUser
     {
         if (!$this->items->contains($userFeedItem)) {
             $this->items->add($userFeedItem);

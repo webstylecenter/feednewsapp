@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Feed\Entity;
 
-use App\Repository\FeedCategoryRepository;
+use App\Feed\Repository\FeedCategoryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Feed\Entity;
 
 use App\Entity\Enum\ErrorType;
-use App\Repository\ErrorRepository;
+use App\Entity\User;
+use App\Feed\Repository\FeedErrorRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[ORM\Entity(repositoryClass: ErrorRepository::class)]
+#[ORM\Entity(repositoryClass: FeedErrorRepository::class)]
 #[ORM\Table(name: 'errors')]
-final class Error
+final class FeedError
 {
     use TimestampableEntity;
 
@@ -51,7 +52,7 @@ final class Error
         return $this->id;
     }
 
-    public function setId(int $id): Error
+    public function setId(int $id): FeedError
     {
         $this->id = $id;
         return $this;
@@ -62,7 +63,7 @@ final class Error
         return $this->type;
     }
 
-    public function setType(ErrorType $type): Error
+    public function setType(ErrorType $type): FeedError
     {
         $this->type = $type;
         return $this;
@@ -73,7 +74,7 @@ final class Error
         return $this->user;
     }
 
-    public function setUser(?User $user): Error
+    public function setUser(?User $user): FeedError
     {
         $this->user = $user;
         return $this;
@@ -84,7 +85,7 @@ final class Error
         return $this->feed;
     }
 
-    public function setFeed(?Feed $feed): Error
+    public function setFeed(?Feed $feed): FeedError
     {
         $this->feed = $feed;
         return $this;
@@ -95,7 +96,7 @@ final class Error
         return $this->exception;
     }
 
-    public function setException(string $exception): Error
+    public function setException(string $exception): FeedError
     {
         $this->exception = $exception;
         return $this;
@@ -106,7 +107,7 @@ final class Error
         return $this->occurrences;
     }
 
-    public function setOccurrences(int $occurrences): Error
+    public function setOccurrences(int $occurrences): FeedError
     {
         $this->occurrences = $occurrences;
         return $this;

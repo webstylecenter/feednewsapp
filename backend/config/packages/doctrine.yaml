@@ -19,11 +19,15 @@ doctrine:
         auto_mapping: true
         mappings:
             App:
-                type: attribute
-                is_bundle: false
                 dir: '%kernel.project_dir%/src/Entity'
                 prefix: 'App\Entity'
-                alias: App
+                type: attribute
+                is_bundle: false
+            AppFeed:
+                dir: '%kernel.project_dir%/src/Feed/Entity'
+                prefix: 'App\Feed\Entity'
+                type: attribute
+                is_bundle: false
         controller_resolver:
             auto_mapping: false
 
