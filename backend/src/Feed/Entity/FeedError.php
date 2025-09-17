@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Feed\Entity;
 
-use App\Entity\Enum\ErrorType;
+use App\Feed\Enum\FeedErrorType;
 use App\Feed\Repository\FeedErrorRepository;
 use App\User\Entity\User;
 use Doctrine\DBAL\Types\Types;
@@ -22,8 +22,8 @@ final class FeedError
     #[ORM\Column(type: 'integer')]
     private int $id;
 
-    #[ORM\Column(type: Types::STRING, enumType: ErrorType::class)]
-    private ErrorType $type;
+    #[ORM\Column(type: Types::STRING, enumType: FeedErrorType::class)]
+    private FeedErrorType $type;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
@@ -39,7 +39,7 @@ final class FeedError
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => 1])]
     private int $occurrences = 1;
 
-    public function __construct(ErrorType $type, ?User $user, ?Feed $feed, string $exception)
+    public function __construct(FeedErrorType $type, ?User $user, ?Feed $feed, string $exception)
     {
         $this->type = $type;
         $this->user = $user;
@@ -58,12 +58,12 @@ final class FeedError
         return $this;
     }
 
-    public function getType(): ErrorType
+    public function getType(): FeedErrorType
     {
         return $this->type;
     }
 
-    public function setType(ErrorType $type): FeedError
+    public function setType(FeedErrorType $type): FeedError
     {
         $this->type = $type;
         return $this;

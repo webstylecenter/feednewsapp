@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\Weather\Entity;
 
-use App\Entity\Enum\WeatherType;
-use App\Repository\WeatherForecastRepository;
+use App\Weather\Enum\WeatherType;
+use App\Weather\Repository\WeatherForecastRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;

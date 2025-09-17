@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Entity\Enum;
+namespace App\Feed\Enum;
 
-enum ErrorType: string
+enum FeedErrorType: string
 {
     case MESSAGE = 'message';
     case WARNING = 'warning';

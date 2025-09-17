@@ -33,6 +33,11 @@ doctrine:
                 prefix: 'App\User\Entity'
                 type: attribute
                 is_bundle: false
+            AppWeather:
+                dir: '%kernel.project_dir%/src/Weather/Entity'
+                prefix: 'App\Weather\Entity'
+                type: attribute
+                is_bundle: false
         controller_resolver:
             auto_mapping: false
 
