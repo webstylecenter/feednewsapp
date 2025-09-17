@@ -14,7 +14,7 @@ final class Version20250917182707 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Rename database tables to more domain driven name setup';
     }
 
     public function up(Schema $schema): void

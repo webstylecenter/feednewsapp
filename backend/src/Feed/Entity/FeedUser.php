@@ -16,7 +16,16 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserFeedRepository::class)]
-#[ORM\Table(name: 'feed_user')]
+#[ORM\Table(
+    name: 'feed_user',
+    indexes: [
+        new ORM\Index(name: 'idx_feed_user_user', columns: ['user_id']),
+        new ORM\Index(name: 'idx_feed_user_feed', columns: ['feed_id'])
+    ],
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(name: 'uniq_feed_user_user_feed', columns: ['user_id','feed_id'])
+    ]
+)]
 abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use TimestampableEntity;

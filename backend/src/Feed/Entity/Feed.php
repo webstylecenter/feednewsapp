@@ -11,7 +11,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: FeedRepository::class)]
 #[ORM\Table(name: 'feed')]
-final class Feed
+class Feed
 {
     use TimestampableEntity;
 

@@ -13,7 +13,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: FeedErrorRepository::class)]
 #[ORM\Table(name: 'feed_error')]
-final class FeedError
+class FeedError
 {
     use TimestampableEntity;
 

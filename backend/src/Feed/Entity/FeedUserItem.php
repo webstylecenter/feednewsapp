@@ -10,10 +10,22 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use InvalidArgumentException;
 
 #[ORM\Entity(repositoryClass: UserFeedItemRepository::class)]
-#[ORM\Table(name: 'feed_user_item')]
-final class FeedUserItem
+#[ORM\Table(
+    name: 'feed_user_item',
+    indexes: [
+        new ORM\Index(name: 'idx_fui_user', columns: ['user_id']),
+        new ORM\Index(name: 'idx_fui_feed_item', columns: ['feed_item_id']),
+        new ORM\Index(name: 'idx_fui_user_feed', columns: ['user_feed_id']),
+        new ORM\Index(name: 'idx_fui_tag', columns: ['tag_id'])
+    ],
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(name: 'uniq_fui_user_feeditem', columns: ['user_id','feed_item_id'])
+    ]
+)]
+class FeedUserItem
 {
     use TimestampableEntity;
 
@@ -53,6 +65,10 @@ final class FeedUserItem
         $this->feedItem = $feedItem;
         $this->userFeed = $userFeed;
         $this->tag = $tag;
+
+        if ($userFeed !== null && $userFeed->getUser() !== $user) {
+            throw new InvalidArgumentException('userFeed.user must equal user');
+        }
     }
 
     public function getId(): int
@@ -96,6 +112,11 @@ final class FeedUserItem
     public function setUserFeed(?FeedUser $userFeed): FeedUserItem
     {
         $this->userFeed = $userFeed;
+
+        if ($userFeed !== null && $userFeed->getUser() !== $this->user) {
+            throw new InvalidArgumentException('userFeed.user must equal user');
+        }
+
         return $this;
     }
 

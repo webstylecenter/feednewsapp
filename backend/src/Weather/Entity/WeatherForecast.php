@@ -12,7 +12,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: WeatherForecastRepository::class)]
 #[ORM\Table(name: 'weather_forecast')]
-final class WeatherForecast
+class WeatherForecast
 {
     use TimestampableEntity;
 

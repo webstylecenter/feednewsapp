@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedItemContentRepository::class)]
 #[ORM\Table(name: 'feed_item_content')]
-final class FeedItemContent
+class FeedItemContent
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

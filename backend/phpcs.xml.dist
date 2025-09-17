@@ -46,4 +46,9 @@
             <exclude-pattern>./public/index.php</exclude-pattern>
         </rule>
 
+        <rule ref="SlevomatCodingStandard.Classes.RequireAbstractOrFinal">
+            <exclude-pattern>src/Entity/*</exclude-pattern>
+            <exclude-pattern>src/*/Entity/*</exclude-pattern>
+        </rule>
+
 </ruleset>

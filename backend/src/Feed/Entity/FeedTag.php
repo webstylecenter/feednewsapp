@@ -12,7 +12,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: FeedTagRepository::class)]
 #[ORM\Table(name: 'feed_tag')]
-final class FeedTag
+class FeedTag
 {
     use TimestampableEntity;
 
@@ -22,7 +22,7 @@ final class FeedTag
     private int $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     private User $user;
 
     #[ORM\Column(type: Types::STRING)]

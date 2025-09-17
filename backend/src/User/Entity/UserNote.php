@@ -11,7 +11,7 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: UserNoteRepository::class)]
 #[ORM\Table(name: 'user_note')]
-final class UserNote
+class UserNote
 {
     use TimestampableEntity;
 
