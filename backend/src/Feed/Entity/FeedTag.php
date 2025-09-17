@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: FeedTagRepository::class)]
-#[ORM\Table(name: 'tags')]
+#[ORM\Table(name: 'feed_tag')]
 final class FeedTag
 {
     use TimestampableEntity;

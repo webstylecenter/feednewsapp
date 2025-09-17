@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: UserFeedItemRepository::class)]
-#[ORM\Table(name: 'user_feed_items')]
+#[ORM\Table(name: 'feed_user_item')]
 final class FeedUserItem
 {
     use TimestampableEntity;

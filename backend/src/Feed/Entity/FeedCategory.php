@@ -9,7 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedCategoryRepository::class)]
-#[ORM\Table(name: 'feed_categories')]
+#[ORM\Table(name: 'feed_category')]
 final class FeedCategory
 {
     #[ORM\Id]

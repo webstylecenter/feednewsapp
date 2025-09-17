@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: WeatherForecastRepository::class)]
-#[ORM\Table(name: 'weather_forecasts')]
+#[ORM\Table(name: 'weather_forecast')]
 final class WeatherForecast
 {
     use TimestampableEntity;

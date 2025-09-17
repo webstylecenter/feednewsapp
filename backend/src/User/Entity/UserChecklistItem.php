@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: UserChecklistItemRepository::class)]
-#[ORM\Table(name: 'checklist_items')]
+#[ORM\Table(name: 'user_checklist_item')]
 final class UserChecklistItem
 {
     use TimestampableEntity;

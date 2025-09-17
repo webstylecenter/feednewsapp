@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
 #[ORM\Entity(repositoryClass: UserNoteRepository::class)]
-#[ORM\Table(name: 'notes')]
+#[ORM\Table(name: 'user_note')]
 final class UserNote
 {
     use TimestampableEntity;
