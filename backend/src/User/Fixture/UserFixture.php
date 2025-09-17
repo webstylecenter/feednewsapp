@@ -18,14 +18,12 @@ final class UserFixture extends Fixture implements FixtureGroupInterface
         $userAdmin = new User(
             email: 'admin@feednews.dev',
             name: 'Admin',
-            password: 'temporary', // will be replaced below
+            password: 'xwy0eth!PTX_tft-fcn',
             hideXFrameNotice: false,
             enabled: true,
             avatar: null,
         );
-        $userAdmin->setPassword(
-            $this->passwordHasher->hashPassword($userAdmin, 'xwy0eth!PTX_tft-fcn')
-        );
+
         $manager->persist($userAdmin);
         $manager->flush();
 
