@@ -5,8 +5,8 @@ declare(strict_types=1);
 // src/Entity/User.php
 namespace App\Feed\Entity;
 
-use App\Entity\User;
 use App\Feed\Repository\UserFeedRepository;
+use App\User\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

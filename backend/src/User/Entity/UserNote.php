@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\User\Entity;
 
-use App\Repository\NoteRepository;
+use App\User\Repository\UserNoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[ORM\Entity(repositoryClass: NoteRepository::class)]
+#[ORM\Entity(repositoryClass: UserNoteRepository::class)]
 #[ORM\Table(name: 'notes')]
-final class Note
+final class UserNote
 {
     use TimestampableEntity;
 
@@ -46,7 +46,7 @@ final class Note
         return $this->id;
     }
 
-    public function setId(int $id): Note
+    public function setId(int $id): UserNote
     {
         $this->id = $id;
         return $this;
@@ -57,7 +57,7 @@ final class Note
         return $this->user;
     }
 
-    public function setUser(User $user): Note
+    public function setUser(User $user): UserNote
     {
         $this->user = $user;
         return $this;
@@ -68,7 +68,7 @@ final class Note
         return $this->name;
     }
 
-    public function setName(string $name): Note
+    public function setName(string $name): UserNote
     {
         $this->name = $name;
         return $this;
@@ -79,7 +79,7 @@ final class Note
         return $this->position;
     }
 
-    public function setPosition(int $position): Note
+    public function setPosition(int $position): UserNote
     {
         $this->position = $position;
         return $this;
@@ -90,7 +90,7 @@ final class Note
         return $this->content;
     }
 
-    public function setContent(?string $content): Note
+    public function setContent(?string $content): UserNote
     {
         $this->content = $content;
         return $this;

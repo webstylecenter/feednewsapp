@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Entity;
+namespace App\User\Entity;
 
-use App\Repository\ChecklistItemRepository;
+use App\User\Repository\UserChecklistItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 
-#[ORM\Entity(repositoryClass: ChecklistItemRepository::class)]
+#[ORM\Entity(repositoryClass: UserChecklistItemRepository::class)]
 #[ORM\Table(name: 'checklist_items')]
-final class ChecklistItem
+final class UserChecklistItem
 {
     use TimestampableEntity;
 
@@ -41,7 +41,7 @@ final class ChecklistItem
         return $this->id;
     }
 
-    public function setId(int $id): ChecklistItem
+    public function setId(int $id): UserChecklistItem
     {
         $this->id = $id;
         return $this;
@@ -52,7 +52,7 @@ final class ChecklistItem
         return $this->item;
     }
 
-    public function setItem(string $item): ChecklistItem
+    public function setItem(string $item): UserChecklistItem
     {
         $this->item = $item;
         return $this;
@@ -63,7 +63,7 @@ final class ChecklistItem
         return $this->checked;
     }
 
-    public function setChecked(bool $checked): ChecklistItem
+    public function setChecked(bool $checked): UserChecklistItem
     {
         $this->checked = $checked;
         return $this;
@@ -74,7 +74,7 @@ final class ChecklistItem
         return $this->user;
     }
 
-    public function setUser(User $user): ChecklistItem
+    public function setUser(User $user): UserChecklistItem
     {
         $this->user = $user;
         return $this;

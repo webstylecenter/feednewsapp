@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Feed\Entity;
 
-use App\Entity\User;
 use App\Feed\Repository\UserFeedItemRepository;
+use App\User\Entity\User;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
