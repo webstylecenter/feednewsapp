@@ -21,7 +21,7 @@ class UserNote
     private int $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
     private User $user;
 
     #[ORM\Column(type: Types::STRING, nullable: false)]
@@ -44,12 +44,6 @@ class UserNote
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function setId(int $id): UserNote
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getUser(): User

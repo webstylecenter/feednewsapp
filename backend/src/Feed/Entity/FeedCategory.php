@@ -30,12 +30,6 @@ class FeedCategory
         return $this->id;
     }
 
-    public function setId(int $id): FeedCategory
-    {
-        $this->id = $id;
-        return $this;
-    }
-
     public function getName(): string
     {
         return $this->name;

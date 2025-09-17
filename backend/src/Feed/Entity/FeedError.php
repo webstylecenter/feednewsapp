@@ -52,12 +52,6 @@ class FeedError
         return $this->id;
     }
 
-    public function setId(int $id): FeedError
-    {
-        $this->id = $id;
-        return $this;
-    }
-
     public function getType(): FeedErrorType
     {
         return $this->type;

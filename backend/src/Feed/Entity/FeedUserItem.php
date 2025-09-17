@@ -76,12 +76,6 @@ class FeedUserItem
         return $this->id;
     }
 
-    public function setId(int $id): FeedUserItem
-    {
-        $this->id = $id;
-        return $this;
-    }
-
     public function getUser(): User
     {
         return $this->user;

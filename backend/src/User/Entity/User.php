@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\User\Entity;
 
+use App\Feed\Entity\FeedUser;
 use App\User\Repository\UserRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
@@ -22,9 +24,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    private int $id;
+    private ?int $id = null;
 
-    /** @var non-empty-string */
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     private string $email;
 
@@ -53,6 +54,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $lastLogin = null;
 
+    /** @var Collection<int, FeedUser> */
+    #[ORM\OneToMany(targetEntity: FeedUser::class, mappedBy: 'user', orphanRemoval: false)]
+    private Collection $userFeeds;
+
     public function __construct(
         string $email,
         string $name,
@@ -73,15 +78,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->avatar = $avatar;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function setId(int $id): User
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getEmail(): string
@@ -209,6 +208,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
+        if ($this->email === '') {
+            throw new InvalidArgumentException('Email cannot be empty.');
+        }
+
         return $this->email;
+    }
+
+    /**
+     * @return Collection<int, FeedUser>
+     */
+    public function getUserFeeds(): Collection
+    {
+        return $this->userFeeds;
+    }
+
+    /**
+     * @param Collection<int, FeedUser> $userFeeds
+     */
+    public function setUserFeeds(Collection $userFeeds): User
+    {
+        $this->userFeeds = $userFeeds;
+        return $this;
+    }
+
+    public function addUserFeed(FeedUser $userFeed): User
+    {
+        $this->userFeeds->add($userFeed);
+        return $this;
     }
 }
