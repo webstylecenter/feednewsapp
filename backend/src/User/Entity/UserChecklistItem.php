@@ -30,8 +30,9 @@ class UserChecklistItem
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private bool $checked;
 
-    public function __construct(string $item, bool $checked)
+    public function __construct(User $user, string $item, bool $checked)
     {
+        $this->user = $user;
         $this->item = $item;
         $this->checked = $checked;
     }
@@ -44,6 +45,17 @@ class UserChecklistItem
     public function setId(int $id): UserChecklistItem
     {
         $this->id = $id;
+        return $this;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): UserChecklistItem
+    {
+        $this->user = $user;
         return $this;
     }
 
@@ -66,17 +78,6 @@ class UserChecklistItem
     public function setChecked(bool $checked): UserChecklistItem
     {
         $this->checked = $checked;
-        return $this;
-    }
-
-    public function getUser(): User
-    {
-        return $this->user;
-    }
-
-    public function setUser(User $user): UserChecklistItem
-    {
-        $this->user = $user;
         return $this;
     }
 }
