@@ -10,7 +10,11 @@ return function (array $context) {
     }
 
     if (!is_bool($context['APP_DEBUG'])) {
-        throw new RuntimeException('APP_DEBUG must be a boolean');
+        if (is_string($context['APP_DEBUG'])) {
+            $context['APP_DEBUG'] = $context['APP_DEBUG'] === '1';
+        } else {
+            throw new RuntimeException('APP_DEBUG must be a bool');
+        }
     }
 
     return new Kernel($context['APP_ENV'], $context['APP_DEBUG']);

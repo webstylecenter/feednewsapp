@@ -1,6 +1,6 @@
 name: feednews
 type: symfony
-docroot: frontend/
+docroot: backend/public/
 php_version: "8.3"
 webserver_type: nginx-fpm
 xdebug_enabled: true
