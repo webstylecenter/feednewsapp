@@ -30,7 +30,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
      * @param Operation $operation
      * @param array<string, mixed> $uriVariables
      * @param array<string, mixed> $context
-     * @return array<int, UserResponse>
+     * @return array<mixed>
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
