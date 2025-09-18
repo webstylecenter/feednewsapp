@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// src/Entity/User.php
 namespace App\Feed\Entity;
 
 use App\Feed\Repository\UserFeedRepository;
@@ -12,8 +11,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserFeedRepository::class)]
 #[ORM\Table(
@@ -26,7 +23,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
         new ORM\UniqueConstraint(name: 'uniq_feed_user_user_feed', columns: ['user_id','feed_id'])
     ]
 )]
-abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInterface
+class FeedUser
 {
     use TimestampableEntity;
 
