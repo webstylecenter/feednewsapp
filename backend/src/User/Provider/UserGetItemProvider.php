@@ -35,13 +35,23 @@ final readonly class UserGetItemProvider implements ProviderInterface
         array $uriVariables = [],
         array $context = [],
     ): UserItemResponse {
-        if (array_key_exists('id', $uriVariables) === false || !is_int($uriVariables['id'])) {
-            throw new InvalidArgumentException('Id must me an integer');
+        if (!array_key_exists('id', $uriVariables)) {
+            throw new InvalidArgumentException('id is required');
+        }
+
+        $rawId = $uriVariables['id'];
+        if (is_string($rawId)) {
+            if ($rawId === '' || !ctype_digit($rawId)) {
+                throw new InvalidArgumentException('id must be a positive integer');
+            }
+            $uriVariables['id'] = (int) $rawId;
+        } elseif (!is_int($rawId) || $rawId < 1) {
+            throw new InvalidArgumentException('id must be a positive integer');
         }
 
         $user = $this->itemProvider->provide($operation, $uriVariables, $context);
         return $user instanceof User
             ? $this->userMapper->toItemResponse($user)
-            : throw new EntityNotFoundException('User not found');
+            : throw new NotFoundHttpException('User not found');
     }
 }
