@@ -25,7 +25,7 @@ class WeatherForecast
     private string $location;
 
     #[ORM\Column(type: Types::FLOAT)]
-    private float $CurrentTemp;
+    private float $currentTemp;
 
     #[ORM\Column(type: Types::STRING, enumType: WeatherType::class)]
     private WeatherType $currentWeather;
@@ -83,7 +83,7 @@ class WeatherForecast
 
     public function __construct(
         string $location,
-        float $CurrentTemp,
+        float $currentTemp,
         WeatherType $currentWeather,
         float $tempTodayMax,
         float $tempTodayMin,
@@ -104,7 +104,7 @@ class WeatherForecast
         WeatherType $weatherIn5Days
     ) {
         $this->location = $location;
-        $this->CurrentTemp = $CurrentTemp;
+        $this->currentTemp = $currentTemp;
         $this->currentWeather = $currentWeather;
         $this->tempTodayMax = $tempTodayMax;
         $this->tempTodayMin = $tempTodayMin;
@@ -143,12 +143,12 @@ class WeatherForecast
 
     public function getCurrentTemp(): float
     {
-        return $this->CurrentTemp;
+        return $this->currentTemp;
     }
 
-    public function setCurrentTemp(float $CurrentTemp): WeatherForecast
+    public function setCurrentTemp(float $currentTemp): WeatherForecast
     {
-        $this->CurrentTemp = $CurrentTemp;
+        $this->currentTemp = $currentTemp;
         return $this;
     }
 
