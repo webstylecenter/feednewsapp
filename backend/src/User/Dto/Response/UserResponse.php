@@ -6,7 +6,7 @@ namespace App\User\Dto\Response;
 
 use DateTimeImmutable;
 
-final class UserResponse
+final readonly class UserResponse
 {
     public int $id;
     public string $name;

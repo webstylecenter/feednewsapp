@@ -13,7 +13,7 @@ final readonly class UserMapper
     public function toResponse(User $user): UserResponse
     {
         if ($user->getId() === null) {
-            throw new RuntimeException('Non existing user');
+            throw new RuntimeException('User has no identifier (id is null)');
         }
 
         return new UserResponse(
