@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// src/Entity/User.php
 namespace App\Feed\Entity;
 
 use App\Feed\Repository\UserFeedRepository;
@@ -12,8 +11,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserFeedRepository::class)]
 #[ORM\Table(
@@ -26,7 +23,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
         new ORM\UniqueConstraint(name: 'uniq_feed_user_user_feed', columns: ['user_id','feed_id'])
     ]
 )]
-abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInterface
+class FeedUser
 {
     use TimestampableEntity;
 
@@ -36,11 +33,11 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userFeeds')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private User $user;
 
     #[ORM\ManyToOne(targetEntity: Feed::class, cascade: ['persist'])]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Feed $feed;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
@@ -55,11 +52,21 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
     /**
      * @var Collection<int, FeedUserItem>
      */
-    #[ORM\OneToMany(targetEntity: FeedUserItem::class, mappedBy: 'userFeed', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(
+        targetEntity: FeedUserItem::class,
+        mappedBy: 'userFeed',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
     private Collection $items;
 
-    public function __construct(User $user, Feed $feed, ?string $icon, ?string $color, bool $autoPin)
-    {
+    public function __construct(
+        User $user,
+        Feed $feed,
+        bool $autoPin = false,
+        ?string $icon = null,
+        ?string $color = null,
+    ) {
         $this->items = new ArrayCollection();
         $this->user = $user;
         $this->feed = $feed;
@@ -138,8 +145,9 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
 
     public function setItems(FeedUserItem ...$items): FeedUser
     {
-        $this->items = new ArrayCollection();
-
+        foreach ($this->items as $existing) {
+            $this->removeUserFeedItem($existing);
+        }
         foreach ($items as $item) {
             $this->addUserFeedItem($item);
         }
@@ -152,6 +160,14 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
         if (!$this->items->contains($userFeedItem)) {
             $this->items->add($userFeedItem);
             $userFeedItem->setUserFeed($this);
+        }
+        return $this;
+    }
+
+    public function removeUserFeedItem(FeedUserItem $userFeedItem): FeedUser
+    {
+        if ($this->items->contains($userFeedItem)) {
+            $this->items->removeElement($userFeedItem);
         }
         return $this;
     }
