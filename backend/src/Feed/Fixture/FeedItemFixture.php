@@ -7,7 +7,6 @@ namespace App\Feed\Fixture;
 use App\Feed\Entity\Feed;
 use App\Feed\Entity\FeedItem;
 use DateInterval;
-use DateInvalidOperationException;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -18,7 +17,6 @@ use Exception;
 final class FeedItemFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
     /**
-     * @throws DateInvalidOperationException
      * @throws Exception
      */
     public function load(ObjectManager $manager): void
@@ -26,7 +24,8 @@ final class FeedItemFixture extends Fixture implements FixtureGroupInterface, De
         $now = new DateTime();
         $iRef = 0;
 
-        for ($f = 0; $f < count(FeedFixture::FEEDS); $f++) {
+        $count = count(FeedFixture::FEEDS);
+        for ($f = 0; $f < $count; $f++) {
             /** @var Feed $feed */
             $feed = $this->getReference('feed-' . $f, Feed::class);
 

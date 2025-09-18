@@ -18,7 +18,8 @@ final class FeedUserItemFixture extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager): void
     {
         $totalItems = 0;
-        for ($f = 0; $f < count(FeedFixture::FEEDS); $f++) {
+        $count = count(FeedFixture::FEEDS);
+        for ($f = 0; $f < $count; $f++) {
             $totalItems += 8;
         }
 

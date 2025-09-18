@@ -39,7 +39,7 @@ final class FeedErrorFixture extends Fixture implements FixtureGroupInterface, D
 
     public static function getGroups(): array
     {
-        return ['feed'];
+        return ['feed', 'user'];
     }
 
     public function getDependencies(): array

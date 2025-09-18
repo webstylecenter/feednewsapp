@@ -33,11 +33,11 @@ class FeedUser
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userFeeds')]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private User $user;
 
     #[ORM\ManyToOne(targetEntity: Feed::class, cascade: ['persist'])]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Feed $feed;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
@@ -52,11 +52,21 @@ class FeedUser
     /**
      * @var Collection<int, FeedUserItem>
      */
-    #[ORM\OneToMany(targetEntity: FeedUserItem::class, mappedBy: 'userFeed', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(
+        targetEntity: FeedUserItem::class,
+        mappedBy: 'userFeed',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
     private Collection $items;
 
-    public function __construct(User $user, Feed $feed, ?string $icon, ?string $color, bool $autoPin)
-    {
+    public function __construct(
+        User $user,
+        Feed $feed,
+        bool $autoPin = false,
+        ?string $icon = null,
+        ?string $color = null,
+    ) {
         $this->items = new ArrayCollection();
         $this->user = $user;
         $this->feed = $feed;
@@ -135,8 +145,9 @@ class FeedUser
 
     public function setItems(FeedUserItem ...$items): FeedUser
     {
-        $this->items = new ArrayCollection();
-
+        foreach ($this->items as $existing) {
+            $this->removeUserFeedItem($existing);
+        }
         foreach ($items as $item) {
             $this->addUserFeedItem($item);
         }
@@ -149,6 +160,14 @@ class FeedUser
         if (!$this->items->contains($userFeedItem)) {
             $this->items->add($userFeedItem);
             $userFeedItem->setUserFeed($this);
+        }
+        return $this;
+    }
+
+    public function removeUserFeedItem(FeedUserItem $userFeedItem): FeedUser
+    {
+        if ($this->items->contains($userFeedItem)) {
+            $this->items->removeElement($userFeedItem);
         }
         return $this;
     }

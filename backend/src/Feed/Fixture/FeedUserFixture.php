@@ -20,7 +20,8 @@ final class FeedUserFixture extends Fixture implements FixtureGroupInterface, De
         /** @var User $admin */
         $admin = $this->getReference(UserFixture::ADMIN_USER_REFERENCE, User::class);
 
-        for ($f = 0; $f < count(FeedFixture::FEEDS); $f++) {
+        $count = count(FeedFixture::FEEDS);
+        for ($f = 0; $f < $count; $f++) {
             /** @var Feed $feed */
             $feed = $this->getReference('feed-' . $f, Feed::class);
 
