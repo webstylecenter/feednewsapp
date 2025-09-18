@@ -18,6 +18,7 @@ use ArrayIterator;
 use Doctrine\ORM\EntityNotFoundException;
 use InvalidArgumentException;
 use RuntimeException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @implements ProviderInterface<UserItemResponse>

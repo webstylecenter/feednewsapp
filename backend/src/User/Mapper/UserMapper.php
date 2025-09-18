@@ -9,9 +9,15 @@ use App\User\Dto\Response\UserCollectionResponse;
 use App\User\Dto\Response\UserItemResponse;
 use App\User\Entity\User;
 use RuntimeException;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 final readonly class UserMapper
 {
+    public function __construct(
+        private PasswordHasherFactoryInterface $passwordHasherFactory,
+    ) {
+    }
+
     public function toCollectionResponse(User $user): UserCollectionResponse
     {
         if ($user->getId() === null) {
@@ -47,17 +53,6 @@ final readonly class UserMapper
         );
     }
 
-use App\User\Entity\User;
-use RuntimeException;
-use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
-
-final readonly class UserMapper
-{
-    public function __construct(
-        private PasswordHasherFactoryInterface $passwordHasherFactory,
-    ) {
-    }
-
     public function toEntity(UserRequest $userRequest): User
     {
         $hashed = $this->passwordHasherFactory
@@ -73,5 +68,4 @@ final readonly class UserMapper
             avatar: $userRequest->avatar,
         );
     }
-}
 }
