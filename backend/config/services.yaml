@@ -23,3 +23,8 @@ services:
             $collectionProvider: '@api_platform.doctrine.orm.state.collection_provider'
         autowire: true
         autoconfigure: true
+    App\User\Provider\UserGetItemProvider:
+        arguments:
+            $itemProvider: '@api_platform.doctrine.orm.state.item_provider'
+        autowire: true
+        autoconfigure: true

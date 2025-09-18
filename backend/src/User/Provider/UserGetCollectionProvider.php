@@ -9,14 +9,14 @@ use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
-use App\User\Dto\Response\UserResponse;
+use App\User\Dto\Response\UserCollectionResponse;
 use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
 use ArrayIterator;
 use RuntimeException;
 
 /**
- * @implements ProviderInterface<UserResponse>
+ * @implements ProviderInterface<UserCollectionResponse>
  */
 final readonly class UserGetCollectionProvider implements ProviderInterface
 {
@@ -36,7 +36,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
     {
         $entities = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
-        /** @var array<int, UserResponse> $output */
+        /** @var array<int, UserCollectionResponse> $output */
         $output = [];
 
         foreach ($entities as $user) {
@@ -44,7 +44,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
                 throw new RuntimeException('Entity not of type ' . User::class);
             }
 
-            $output[] = $this->userMapper->toResponse($user);
+            $output[] = $this->userMapper->toCollectionResponse($user);
         }
 
         if ($entities instanceof Paginator) {
