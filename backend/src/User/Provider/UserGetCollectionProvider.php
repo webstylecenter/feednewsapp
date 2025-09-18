@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\User\Provider;
 
+use ApiPlatform\Doctrine\Orm\Paginator;
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use App\User\Dto\Response\UserResponse;
 use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
+use ArrayIterator;
 use RuntimeException;
 
 /**
@@ -42,6 +45,15 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
             }
 
             $output[] = $this->userMapper->toResponse($user);
+        }
+
+        if ($entities instanceof Paginator) {
+            return iterator_to_array(new TraversablePaginator(
+                new ArrayIterator($output),
+                $entities->getCurrentPage(),
+                $entities->getItemsPerPage(),
+                $entities->getTotalItems(),
+            ));
         }
 
         return $output;
