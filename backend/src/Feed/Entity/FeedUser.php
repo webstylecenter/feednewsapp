@@ -33,7 +33,7 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userFeeds')]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -68,7 +68,7 @@ abstract class FeedUser implements UserInterface, PasswordAuthenticatedUserInter
         $this->autoPin = $autoPin;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

@@ -18,7 +18,7 @@ final class UserNoteFixture extends Fixture implements FixtureGroupInterface, De
         $note = new UserNote(
             user: $this->getReference(UserFixture::ADMIN_USER_REFERENCE, User::class),
             name: 'Example note by Admin user',
-            position: 0,
+            position: 1,
             content: 'This is example note by Admin user.',
         );
 

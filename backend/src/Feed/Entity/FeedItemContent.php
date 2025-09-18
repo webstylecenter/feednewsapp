@@ -15,7 +15,7 @@ class FeedItemContent
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\OneToOne(targetEntity: FeedItem::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -30,7 +30,7 @@ class FeedItemContent
         $this->content = $content;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

@@ -18,7 +18,7 @@ class Feed
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: FeedCategory::class)]
     #[ORM\JoinColumn(name: 'category_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
@@ -40,7 +40,7 @@ class Feed
         $this->url = $url;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

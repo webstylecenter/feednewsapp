@@ -27,7 +27,7 @@ final class UserFixture extends Fixture implements FixtureGroupInterface
         $manager->persist($userAdmin);
         $manager->flush();
 
-        // other fixtures can get this object using the UserFixtures::ADMIN_USER_REFERENCE constant
+        // other fixtures can get this object using the UserFixture::ADMIN_USER_REFERENCE constant
         $this->addReference(self::ADMIN_USER_REFERENCE, $userAdmin);
     }
 

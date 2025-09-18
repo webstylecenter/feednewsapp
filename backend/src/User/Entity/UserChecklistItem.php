@@ -18,7 +18,7 @@ class UserChecklistItem
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -37,7 +37,7 @@ class UserChecklistItem
         $this->checked = $checked;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

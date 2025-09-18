@@ -19,7 +19,7 @@ class WeatherForecast
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING)]
     private string $location;
@@ -125,7 +125,7 @@ class WeatherForecast
         $this->weatherIn5Days = $weatherIn5Days;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

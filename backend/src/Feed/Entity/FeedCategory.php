@@ -15,7 +15,7 @@ class FeedCategory
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, unique: true)]
     private string $name;
@@ -25,7 +25,7 @@ class FeedCategory
         $this->name = $name;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

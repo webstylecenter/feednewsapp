@@ -20,7 +20,7 @@ class FeedError
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, enumType: FeedErrorType::class)]
     private FeedErrorType $type;
@@ -47,7 +47,7 @@ class FeedError
         $this->exception = $exception;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

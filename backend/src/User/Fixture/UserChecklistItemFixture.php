@@ -6,7 +6,6 @@ namespace App\User\Fixture;
 
 use App\User\Entity\User;
 use App\User\Entity\UserChecklistItem;
-use App\User\Entity\UserNote;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -18,7 +17,7 @@ final class UserChecklistItemFixture extends Fixture implements FixtureGroupInte
     {
         $checklistItem = new UserChecklistItem(
             user: $this->getReference(UserFixture::ADMIN_USER_REFERENCE, User::class),
-            item: 'Old hecklist item',
+            item: 'Old checklist item',
             checked: true,
         );
 
