@@ -47,15 +47,31 @@ final readonly class UserMapper
         );
     }
 
+use App\User\Entity\User;
+use RuntimeException;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+
+final readonly class UserMapper
+{
+    public function __construct(
+        private PasswordHasherFactoryInterface $passwordHasherFactory,
+    ) {
+    }
+
     public function toEntity(UserRequest $userRequest): User
     {
+        $hashed = $this->passwordHasherFactory
+            ->getPasswordHasher(User::class)
+            ->hash($userRequest->password);
+
         return new User(
             email: $userRequest->email,
             name: $userRequest->name,
-            password: $userRequest->password,
+            password: $hashed,
             hideXFrameNotice: false,
             enabled: true,
             avatar: $userRequest->avatar,
         );
     }
+}
 }
