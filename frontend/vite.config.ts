@@ -3,11 +3,11 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
-    server: {
-        allowedHosts: ['feednews.ddev.site'],
-        host: true,
-        port: 5173,
-        strictPort: true
-    }
+  plugins: [tailwindcss(), sveltekit()],
+  server: {
+    allowedHosts: ['feednews.ddev.site'],
+    host: true,
+    port: 5173,
+    strictPort: true,
+  },
 });
