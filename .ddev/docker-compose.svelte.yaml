@@ -1,0 +1,18 @@
+services:
+  svelte:
+    container_name: ddev-${DDEV_SITENAME}-frontend
+    image: node:22-alpine
+    working_dir: /var/www/html/frontend
+    volumes:
+      - ..:/var/www/html:cached
+    # install deps then start dev server on 0.0.0.0 so nginx can proxy to it
+    command: >
+      sh -lc "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
+    expose:
+      - "5173"
+    environment:
+      - NODE_ENV=development
+    # Keep it on the ddev network (inherited from ddev)
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
