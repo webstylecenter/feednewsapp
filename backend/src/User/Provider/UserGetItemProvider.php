@@ -19,6 +19,7 @@ use Doctrine\ORM\EntityNotFoundException;
 use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Override;
 
 /**
  * @implements ProviderInterface<UserItemResponse>
@@ -31,6 +32,7 @@ final readonly class UserGetItemProvider implements ProviderInterface
     ) {
     }
 
+    #[Override]
     public function provide(
         Operation $operation,
         array $uriVariables = [],

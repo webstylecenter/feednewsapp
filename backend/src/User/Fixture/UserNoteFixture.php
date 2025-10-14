@@ -10,9 +10,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class UserNoteFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         $note = new UserNote(
@@ -34,11 +36,13 @@ final class UserNoteFixture extends Fixture implements FixtureGroupInterface, De
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['user'];
     }
 
+    #[Override]
     public function getDependencies(): array
     {
         return [

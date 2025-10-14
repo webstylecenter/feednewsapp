@@ -10,9 +10,11 @@ use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class WeatherForecastFixture extends Fixture implements FixtureGroupInterface
 {
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         $cities = [
@@ -51,6 +53,7 @@ final class WeatherForecastFixture extends Fixture implements FixtureGroupInterf
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['weather'];

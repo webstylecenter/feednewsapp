@@ -10,9 +10,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class UserChecklistItemFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         $checklistItem = new UserChecklistItem(
@@ -32,11 +34,13 @@ final class UserChecklistItemFixture extends Fixture implements FixtureGroupInte
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['user'];
     }
 
+    #[Override]
     public function getDependencies(): array
     {
         return [

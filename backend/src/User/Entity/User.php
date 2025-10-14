@@ -15,6 +15,7 @@ use InvalidArgumentException;
 use SensitiveParameter;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Override;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -156,6 +157,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return array<int, string>
      */
+    #[Override]
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -181,6 +183,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Override]
     public function getPassword(): string
     {
         return $this->password;
@@ -203,11 +206,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Override]
     public function eraseCredentials(): void
     {
         // TODO: Implement eraseCredentials() method.
     }
 
+    #[Override]
     public function getUserIdentifier(): string
     {
         if ($this->email === '') {
