@@ -14,7 +14,7 @@ final class WeatherForecastTest extends TestCase
     public function testForecastDaysAreManagedBidirectionally(): void
     {
         $forecast = new WeatherForecast('Amsterdam', 12.5, WeatherType::SUN);
-        $day = new WeatherForecastDay(1, 18.0, 10.0, WeatherType::CLOUD);
+        $day = new WeatherForecastDay($forecast, 1, 18.0, 10.0, WeatherType::CLOUD);
 
         $forecast->addForecastDay($day);
 
@@ -22,8 +22,6 @@ final class WeatherForecastTest extends TestCase
         self::assertTrue($forecast->getForecastDays()->contains($day));
 
         $forecast->removeForecastDay($day);
-
-        self::assertNull($day->getForecast());
         self::assertFalse($forecast->getForecastDays()->contains($day));
     }
 }

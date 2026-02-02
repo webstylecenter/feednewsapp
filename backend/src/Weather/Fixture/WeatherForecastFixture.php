@@ -35,12 +35,12 @@ final class WeatherForecastFixture extends Fixture implements FixtureGroupInterf
             );
 
             $weatherForecast->setForecastDays(
-                new WeatherForecastDay(0, 18 + random_int(0, 7), 10 + random_int(-2, 3), $weather),
-                new WeatherForecastDay(1, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::PARTLY_CLOUD),
-                new WeatherForecastDay(2, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::RAIN),
-                new WeatherForecastDay(3, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::CLOUD),
-                new WeatherForecastDay(4, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::SUN),
-                new WeatherForecastDay(5, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::SUN),
+                new WeatherForecastDay($weatherForecast, 0, 18 + random_int(0, 7), 10 + random_int(-2, 3), $weather),
+                new WeatherForecastDay($weatherForecast, 1, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::PARTLY_CLOUD),
+                new WeatherForecastDay($weatherForecast, 2, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::RAIN),
+                new WeatherForecastDay($weatherForecast, 3, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::CLOUD),
+                new WeatherForecastDay($weatherForecast, 4, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::SUN),
+                new WeatherForecastDay($weatherForecast, 5, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::SUN),
             );
 
             $manager->persist($weatherForecast);

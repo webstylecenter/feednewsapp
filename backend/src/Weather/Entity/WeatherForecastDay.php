@@ -42,11 +42,13 @@ class WeatherForecastDay
     private WeatherType $weather;
 
     public function __construct(
+        WeatherForecast $forecast,
         int $dayOffset,
         float $tempMax,
         float $tempMin,
         WeatherType $weather
     ) {
+        $this->forecast = $forecast;
         $this->dayOffset = $dayOffset;
         $this->tempMax = $tempMax;
         $this->tempMin = $tempMin;
@@ -58,7 +60,7 @@ class WeatherForecastDay
         return $this->id;
     }
 
-    public function getForecast(): ?WeatherForecast
+    public function getForecast(): WeatherForecast
     {
         return $this->forecast;
     }
