@@ -8,6 +8,7 @@ use App\User\Repository\UserNoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserNoteRepository::class)]
 #[ORM\Table(name: 'user_note')]
@@ -19,6 +20,9 @@ class UserNote
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -35,6 +39,7 @@ class UserNote
 
     public function __construct(User $user, string $name, int $position, ?string $content)
     {
+        $this->uuid = Uuid::v4();
         $this->user = $user;
         $this->name = $name;
         $this->position = $position;
@@ -44,6 +49,11 @@ class UserNote
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getUser(): User

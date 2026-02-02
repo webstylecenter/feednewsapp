@@ -4,49 +4,53 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "api-platform/core": "*",
+        "api-platform/core": ">=4.2.15",
         "api-platform/doctrine-orm": "^4.1",
         "api-platform/symfony": "^4.1",
-        "doctrine/dbal": "^3",
-        "doctrine/doctrine-bundle": "^2.16",
-        "doctrine/doctrine-migrations-bundle": "^3.4",
-        "doctrine/orm": "^3.5",
-        "gedmo/doctrine-extensions": "^3.20",
-        "nelmio/cors-bundle": "^2.5",
-        "phpdocumentor/reflection-docblock": "^5.6",
-        "phpstan/phpdoc-parser": "^2.3",
-        "stof/doctrine-extensions-bundle": "^1.14",
-        "symfony/asset": "7.3.*",
-        "symfony/console": "7.3.*",
-        "symfony/dotenv": "7.3.*",
-        "symfony/expression-language": "7.3.*",
-        "symfony/flex": "^2",
-        "symfony/framework-bundle": "7.3.*",
-        "symfony/property-access": "7.3.*",
-        "symfony/property-info": "7.3.*",
-        "symfony/runtime": "7.3.*",
-        "symfony/security-bundle": "7.3.*",
-        "symfony/serializer": "7.3.*",
-        "symfony/twig-bundle": "7.3.*",
-        "symfony/validator": "7.3.*",
-        "symfony/yaml": "7.3.*"
+        "doctrine/dbal": "^3.10.4",
+        "doctrine/doctrine-bundle": "^2.18.2",
+        "doctrine/doctrine-migrations-bundle": "^3.7",
+        "doctrine/orm": "^3.6.2",
+        "gedmo/doctrine-extensions": "^3.22",
+        "nelmio/cors-bundle": "^2.6.1",
+        "phpdocumentor/reflection-docblock": "^5.6.6",
+        "phpstan/phpdoc-parser": "^2.3.2",
+        "stof/doctrine-extensions-bundle": "^1.15.3",
+        "symfony/asset": "7.4.*",
+        "symfony/console": "7.4.*",
+        "symfony/dotenv": "7.4.*",
+        "symfony/expression-language": "7.4.*",
+        "symfony/flex": "^2.10",
+        "symfony/framework-bundle": "7.4.*",
+        "symfony/property-access": "7.4.*",
+        "symfony/property-info": "7.4.*",
+        "symfony/runtime": "7.4.*",
+        "symfony/security-bundle": "7.4.*",
+        "symfony/serializer": "7.4.*",
+        "symfony/twig-bundle": "7.4.*",
+        "symfony/uid": "7.4.*",
+        "symfony/validator": "7.4.*",
+        "symfony/yaml": "7.4.*"
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "^4.1",
-        "friendsofphp/php-cs-fixer": "^3.87",
+        "doctrine/doctrine-fixtures-bundle": "^4.3.1",
+        "friendsofphp/php-cs-fixer": "^3.93.1",
         "jetbrains/phpstorm-attributes": "^1.2",
-        "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-doctrine": "^2.0",
-        "phpstan/phpstan-strict-rules": "^2.0",
-        "phpstan/phpstan-symfony": "^2.0",
-        "psalm/plugin-symfony": "^5.2",
-        "slevomat/coding-standard": "^8.22",
-        "squizlabs/php_codesniffer": "^3.13",
-        "symfony/web-profiler-bundle": "7.3.*",
-        "vimeo/psalm": "^6.13"
+        "phpstan/phpstan": "^2.1.38",
+        "phpstan/phpstan-doctrine": "^2.0.14",
+        "phpstan/phpstan-strict-rules": "^2.0.8",
+        "phpstan/phpstan-symfony": "^2.0.12",
+        "phpunit/phpunit": "^12.5",
+        "psalm/plugin-symfony": "^5.2.8",
+        "slevomat/coding-standard": "^8.22.1",
+        "squizlabs/php_codesniffer": "^3.13.5",
+        "symfony/browser-kit": "7.4.*",
+        "symfony/css-selector": "7.4.*",
+        "symfony/web-profiler-bundle": "7.4.*",
+        "vimeo/psalm": "^6.15"
     },
     "config": {
         "allow-plugins": {
@@ -91,7 +95,8 @@
         ],
         "phpstan": "vendor/bin/phpstan analyse src",
         "phpcsfixer": "vendor/bin/php-cs-fixer fix",
-        "psalm": "vendor/bin/psalm"
+        "psalm": "vendor/bin/psalm",
+        "test": "php bin/phpunit"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -99,7 +104,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "7.3.*"
+            "require": "7.4.*"
         }
     }
 }

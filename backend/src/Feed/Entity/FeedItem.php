@@ -8,6 +8,7 @@ use App\Feed\Repository\FeedItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: FeedItemRepository::class)]
 #[ORM\Table(name: 'feed_item')]
@@ -19,6 +20,9 @@ class FeedItem
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
 
     #[ORM\Column(type: Types::STRING)]
     private string $title;
@@ -38,6 +42,7 @@ class FeedItem
 
     public function __construct(string $title, ?string $description, ?Feed $feed, string $guid, string $url)
     {
+        $this->uuid = Uuid::v4();
         $this->title = $title;
         $this->description = $description;
         $this->feed = $feed;
@@ -48,6 +53,11 @@ class FeedItem
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getTitle(): string

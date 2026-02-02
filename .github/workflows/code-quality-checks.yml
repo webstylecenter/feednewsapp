@@ -59,3 +59,7 @@ jobs:
         working-directory: backend
         run: |
           php vendor/bin/phpstan
+      - name: PHPUnit
+        working-directory: backend
+        run: |
+          php bin/phpunit

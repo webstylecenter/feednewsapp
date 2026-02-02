@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace App\Weather\Fixture;
 
 use App\Weather\Entity\WeatherForecast;
+use App\Weather\Entity\WeatherForecastDay;
 use App\Weather\Enum\WeatherType;
-use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Override;
+use Random\RandomException;
 
 final class WeatherForecastFixture extends Fixture implements FixtureGroupInterface
 {
+    /**
+     * @throws RandomException
+     */
     #[Override]
     public function load(ObjectManager $manager): void
     {
@@ -26,25 +30,17 @@ final class WeatherForecastFixture extends Fixture implements FixtureGroupInterf
         foreach ($cities as [$city, $weather]) {
             $weatherForecast = new WeatherForecast(
                 location: $city,
-                currentTemp: 14 + rand(-3, 6),
+                currentTemp: 14 + random_int(-3, 6),
                 currentWeather: $weather,
-                tempTodayMax: 18 + rand(0, 7),
-                tempTodayMin: 10 + rand(-2, 3),
-                tempIn1DaysMax: 18 + rand(0, 7),
-                tempIn1DaysMin: 10 + rand(-2, 3),
-                tempIn2DaysMax: 18 + rand(0, 7),
-                tempIn2DaysMin: 10 + rand(-2, 3),
-                tempIn3DaysMax: 18 + rand(0, 7),
-                tempIn3DaysMin: 10 + rand(-2, 3),
-                tempIn4DaysMax: 18 + rand(0, 7),
-                tempIn4DaysMin: 10 + rand(-2, 3),
-                tempIn5DaysMax: 18 + rand(0, 7),
-                tempIn5DaysMin: 10 + rand(-2, 3),
-                weatherIn1Days: WeatherType::PARTLY_CLOUD,
-                weatherIn2Days: WeatherType::RAIN,
-                weatherIn3Days: WeatherType::CLOUD,
-                weatherIn4Days: WeatherType::SUN,
-                weatherIn5Days: WeatherType::SUN,
+            );
+
+            $weatherForecast->setForecastDays(
+                new WeatherForecastDay(0, 18 + random_int(0, 7), 10 + random_int(-2, 3), $weather),
+                new WeatherForecastDay(1, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::PARTLY_CLOUD),
+                new WeatherForecastDay(2, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::RAIN),
+                new WeatherForecastDay(3, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::CLOUD),
+                new WeatherForecastDay(4, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::SUN),
+                new WeatherForecastDay(5, 18 + random_int(0, 7), 10 + random_int(-2, 3), WeatherType::SUN),
             );
 
             $manager->persist($weatherForecast);
