@@ -4,21 +4,15 @@ declare(strict_types=1);
 
 namespace App\User\Provider;
 
-use ApiPlatform\Doctrine\Orm\Paginator;
-use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
-use App\User\Dto\Response\UserCollectionResponse;
 use App\User\Dto\Response\UserItemResponse;
 use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
-use ArrayIterator;
-use Doctrine\ORM\EntityNotFoundException;
 use InvalidArgumentException;
-use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Override;
 
 /**
  * @implements ProviderInterface<UserItemResponse>
@@ -31,6 +25,7 @@ final readonly class UserGetItemProvider implements ProviderInterface
     ) {
     }
 
+    #[Override]
     public function provide(
         Operation $operation,
         array $uriVariables = [],

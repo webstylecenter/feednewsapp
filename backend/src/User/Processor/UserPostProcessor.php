@@ -11,6 +11,7 @@ use App\User\Dto\Request\UserRequest;
 use App\User\Dto\Response\UserItemResponse;
 use App\User\Mapper\UserMapper;
 use Symfony\Component\HttpFoundation\Request;
+use Override;
 
 /**
  * @implements ProcessorInterface<UserRequest, UserItemResponse>
@@ -30,6 +31,7 @@ final readonly class UserPostProcessor implements ProcessorInterface
      * @param array<string, mixed>&array{request?: Request, previous_data?: mixed, resource_class?: string|null, original_data?: mixed} $context
      * @return UserItemResponse
      */
+    #[Override]
     public function process(
         mixed $data,
         Operation $operation,

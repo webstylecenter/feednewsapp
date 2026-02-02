@@ -7,6 +7,7 @@ namespace App\User\Entity;
 use App\Feed\Entity\FeedUser;
 use App\User\Repository\UserRepository;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,6 +16,8 @@ use InvalidArgumentException;
 use SensitiveParameter;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Override;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -25,6 +28,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
+
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
 
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     private string $email;
@@ -66,6 +72,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         bool $enabled,
         ?string $avatar = null,
     ) {
+        $this->uuid = Uuid::v4();
+        $this->userFeeds = new ArrayCollection();
+
         if ($email === '') {
             throw new InvalidArgumentException('Email cannot be empty.');
         }
@@ -81,6 +90,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getEmail(): string
@@ -156,6 +170,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return array<int, string>
      */
+    #[Override]
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -181,6 +196,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Override]
     public function getPassword(): string
     {
         return $this->password;
@@ -203,11 +219,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Override]
     public function eraseCredentials(): void
     {
         // TODO: Implement eraseCredentials() method.
     }
 
+    #[Override]
     public function getUserIdentifier(): string
     {
         if ($this->email === '') {
@@ -236,7 +254,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function addUserFeed(FeedUser $userFeed): User
     {
-        $this->userFeeds->add($userFeed);
+        if (!$this->userFeeds->contains($userFeed)) {
+            $this->userFeeds->add($userFeed);
+        }
+
+        if ($userFeed->getUser() !== $this) {
+            $userFeed->setUser($this);
+        }
+
         return $this;
     }
 }

@@ -15,7 +15,7 @@ jobs:
 
       matrix:
         php-version:
-          - "8.3"
+          - "8.5"
 
         dependencies:
           - "locked"
@@ -40,8 +40,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: 'backend/vendor'
-          # Use composer.json for key, if composer.lock is not committed.
-          # key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
           key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
@@ -59,3 +57,7 @@ jobs:
         working-directory: backend
         run: |
           php vendor/bin/phpstan
+      - name: PHPUnit
+        working-directory: backend
+        run: |
+          php bin/phpunit

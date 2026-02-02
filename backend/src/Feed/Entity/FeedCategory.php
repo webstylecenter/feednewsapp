@@ -7,6 +7,7 @@ namespace App\Feed\Entity;
 use App\Feed\Repository\FeedCategoryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: FeedCategoryRepository::class)]
 #[ORM\Table(name: 'feed_category')]
@@ -17,17 +18,26 @@ class FeedCategory
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
+
     #[ORM\Column(type: Types::STRING, unique: true)]
     private string $name;
 
     public function __construct(string $name)
     {
+        $this->uuid = Uuid::v4();
         $this->name = $name;
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getName(): string

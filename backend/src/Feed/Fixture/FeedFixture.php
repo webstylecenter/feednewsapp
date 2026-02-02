@@ -10,6 +10,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class FeedFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
@@ -40,6 +41,7 @@ final class FeedFixture extends Fixture implements FixtureGroupInterface, Depend
             'category' => 5],
     ];
 
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         foreach (self::FEEDS as $i => $data) {
@@ -59,11 +61,13 @@ final class FeedFixture extends Fixture implements FixtureGroupInterface, Depend
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['feed'];
     }
 
+    #[Override]
     public function getDependencies(): array
     {
         return [FeedCategoryFixture::class];

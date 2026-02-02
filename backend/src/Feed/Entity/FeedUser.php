@@ -159,15 +159,21 @@ class FeedUser
     {
         if (!$this->items->contains($userFeedItem)) {
             $this->items->add($userFeedItem);
+        }
+
+        if ($userFeedItem->getUserFeed() !== $this) {
             $userFeedItem->setUserFeed($this);
         }
+
         return $this;
     }
 
     public function removeUserFeedItem(FeedUserItem $userFeedItem): FeedUser
     {
-        if ($this->items->contains($userFeedItem)) {
-            $this->items->removeElement($userFeedItem);
+        if ($this->items->removeElement($userFeedItem)) {
+            if ($userFeedItem->getUserFeed() === $this) {
+                $userFeedItem->setUserFeed(null);
+            }
         }
         return $this;
     }

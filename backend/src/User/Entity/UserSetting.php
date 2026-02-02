@@ -8,6 +8,7 @@ use App\User\Repository\UserSettingRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserSettingRepository::class)]
 #[ORM\Table(name: 'user_setting')]
@@ -19,6 +20,9 @@ class UserSetting
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -32,6 +36,7 @@ class UserSetting
 
     public function __construct(User $user, string $setting, ?string $value)
     {
+        $this->uuid = Uuid::v4();
         $this->user = $user;
         $this->setting = $setting;
         $this->value = $value;
@@ -40,6 +45,11 @@ class UserSetting
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getUser(): User

@@ -26,6 +26,7 @@ use App\User\Provider\UserGetItemProvider;
     uriTemplate: '/users',
     paginationClientEnabled: false,
     paginationClientItemsPerPage: false,
+    security: "is_granted('ROLE_ADMIN')",
     provider: UserGetCollectionProvider::class,
 )]
 #[Get(
@@ -37,12 +38,14 @@ use App\User\Provider\UserGetItemProvider;
         ),
     ],
     requirements: ['id' => '\d+'],
+    security: "is_granted('ROLE_ADMIN')",
     output: UserItemResponse::class,
     provider: UserGetItemProvider::class,
 )]
 #[Post(
     uriTemplate: '/users',
     denormalizationContext: ['groups' => ['user:write']],
+    security: "is_granted('PUBLIC_ACCESS')",
     input: UserRequest::class,
     output: UserItemResponse::class,
     read: false,

@@ -12,9 +12,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class FeedUserItemFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         $totalItems = 0;
@@ -57,11 +59,13 @@ final class FeedUserItemFixture extends Fixture implements FixtureGroupInterface
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['feed'];
     }
 
+    #[Override]
     public function getDependencies(): array
     {
         return [

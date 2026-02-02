@@ -14,6 +14,7 @@ use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
 use ArrayIterator;
 use RuntimeException;
+use Override;
 
 /**
  * @implements ProviderInterface<UserCollectionResponse>
@@ -32,6 +33,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
      * @param array<string, mixed> $context
      * @return array<int, UserCollectionResponse>
      */
+    #[Override]
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
         $entities = $this->collectionProvider->provide($operation, $uriVariables, $context);

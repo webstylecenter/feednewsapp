@@ -8,11 +8,13 @@ use App\User\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class UserFixture extends Fixture implements FixtureGroupInterface
 {
     public const ADMIN_USER_REFERENCE = 'admin-user';
 
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         $userAdmin = new User(
@@ -31,6 +33,7 @@ final class UserFixture extends Fixture implements FixtureGroupInterface
         $this->addReference(self::ADMIN_USER_REFERENCE, $userAdmin);
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['user'];

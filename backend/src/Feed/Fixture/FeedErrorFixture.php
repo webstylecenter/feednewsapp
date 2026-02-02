@@ -13,9 +13,11 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class FeedErrorFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         /** @var User $admin */
@@ -37,11 +39,13 @@ final class FeedErrorFixture extends Fixture implements FixtureGroupInterface, D
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['feed', 'user'];
     }
 
+    #[Override]
     public function getDependencies(): array
     {
         return [UserFixture::class, FeedFixture::class];

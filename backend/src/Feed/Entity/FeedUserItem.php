@@ -11,6 +11,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
 use InvalidArgumentException;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserFeedItemRepository::class)]
 #[ORM\Table(
@@ -33,6 +34,9 @@ class FeedUserItem
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -61,6 +65,7 @@ class FeedUserItem
 
     public function __construct(User $user, FeedItem $feedItem, ?FeedUser $userFeed, ?FeedTag $tag)
     {
+        $this->uuid = Uuid::v4();
         $this->user = $user;
         $this->feedItem = $feedItem;
         $this->userFeed = $userFeed;
@@ -74,6 +79,11 @@ class FeedUserItem
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getUser(): User
@@ -105,10 +115,25 @@ class FeedUserItem
 
     public function setUserFeed(?FeedUser $userFeed): FeedUserItem
     {
-        $this->userFeed = $userFeed;
+        if ($this->userFeed === $userFeed) {
+            return $this;
+        }
+
+        if ($this->userFeed !== null) {
+            $previous = $this->userFeed;
+            $this->userFeed = null;
+            if ($previous->getItems()->contains($this)) {
+                $previous->getItems()->removeElement($this);
+            }
+        }
 
         if ($userFeed !== null && $userFeed->getUser() !== $this->user) {
             throw new InvalidArgumentException('userFeed.user must equal user');
+        }
+
+        $this->userFeed = $userFeed;
+        if ($userFeed !== null && !$userFeed->getItems()->contains($this)) {
+            $userFeed->getItems()->add($this);
         }
 
         return $this;

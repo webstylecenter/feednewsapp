@@ -13,12 +13,14 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Exception;
+use Override;
 
 final class FeedItemFixture extends Fixture implements FixtureGroupInterface, DependentFixtureInterface
 {
     /**
      * @throws Exception
      */
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         $now = new DateTime();
@@ -53,11 +55,13 @@ final class FeedItemFixture extends Fixture implements FixtureGroupInterface, De
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['feed'];
     }
 
+    #[Override]
     public function getDependencies(): array
     {
         return [FeedFixture::class];

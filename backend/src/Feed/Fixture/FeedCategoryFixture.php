@@ -8,11 +8,13 @@ use App\Feed\Entity\FeedCategory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Override;
 
 final class FeedCategoryFixture extends Fixture implements FixtureGroupInterface
 {
     public const CATEGORIES = ['Tech', 'News', 'Gaming', 'Business', 'Science', 'Lifestyle'];
 
+    #[Override]
     public function load(ObjectManager $manager): void
     {
         foreach (self::CATEGORIES as $i => $name) {
@@ -24,6 +26,7 @@ final class FeedCategoryFixture extends Fixture implements FixtureGroupInterface
         $manager->flush();
     }
 
+    #[Override]
     public static function getGroups(): array
     {
         return ['feed'];

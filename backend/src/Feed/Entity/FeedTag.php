@@ -9,6 +9,7 @@ use App\User\Entity\User;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: FeedTagRepository::class)]
 #[ORM\Table(name: 'feed_tag')]
@@ -20,6 +21,9 @@ class FeedTag
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
+
+    #[ORM\Column(type: 'uuid', unique: true)]
+    private Uuid $uuid;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
@@ -33,6 +37,7 @@ class FeedTag
 
     public function __construct(User $user, string $name, string $color)
     {
+        $this->uuid = Uuid::v4();
         $this->user = $user;
         $this->name = $name;
         $this->color = $color;
@@ -41,6 +46,11 @@ class FeedTag
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): Uuid
+    {
+        return $this->uuid;
     }
 
     public function getUser(): User
