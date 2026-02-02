@@ -4,7 +4,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "api-platform/core": ">=4.2.15",
@@ -96,7 +96,9 @@
         "phpstan": "vendor/bin/phpstan analyse src",
         "phpcsfixer": "vendor/bin/php-cs-fixer fix",
         "psalm": "vendor/bin/psalm",
-        "test": "php bin/phpunit"
+        "test": "php bin/phpunit",
+        "phpcs": "php vendor/bin/phpcs",
+        "phpcbf": "php vendor/bin/phpcbf"
     },
     "conflict": {
         "symfony/symfony": "*"
