@@ -51,4 +51,6 @@
             <exclude-pattern>src/*/Entity/*</exclude-pattern>
         </rule>
 
+        <exclude-pattern>config/reference.php</exclude-pattern>
+
 </ruleset>
