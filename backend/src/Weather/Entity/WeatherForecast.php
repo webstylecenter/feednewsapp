@@ -127,12 +127,7 @@ class WeatherForecast
 
     public function removeForecastDay(WeatherForecastDay $day): WeatherForecast
     {
-        if ($this->forecastDays->removeElement($day)) {
-            if ($day->getForecast() === $this) {
-                $day->setForecast(null);
-            }
-        }
-
+        $this->forecastDays->removeElement($day);
         return $this;
     }
 }

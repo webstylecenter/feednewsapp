@@ -31,7 +31,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
      * @param Operation $operation
      * @param array<string, mixed> $uriVariables
      * @param array<string, mixed> $context
-     * @return iterable<UserCollectionResponse>
+     * @return array<int, UserCollectionResponse>
      */
     #[Override]
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
@@ -50,7 +50,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
         }
 
         if ($entities instanceof Paginator) {
-            return iterator_to_array(new TraversablePaginator(
+            $output = iterator_to_array(new TraversablePaginator(
                 new ArrayIterator($output),
                 $entities->getCurrentPage(),
                 $entities->getItemsPerPage(),
@@ -58,6 +58,7 @@ final readonly class UserGetCollectionProvider implements ProviderInterface
             ));
         }
 
+        /** @var array<int, UserCollectionResponse> $output */
         return $output;
     }
 }

@@ -27,7 +27,7 @@ class WeatherForecastDay
 
     #[ORM\ManyToOne(targetEntity: WeatherForecast::class, inversedBy: 'forecastDays')]
     #[ORM\JoinColumn(name: 'forecast_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?WeatherForecast $forecast = null;
+    private WeatherForecast $forecast;
 
     #[ORM\Column(type: Types::SMALLINT)]
     private int $dayOffset;
@@ -63,24 +63,9 @@ class WeatherForecastDay
         return $this->forecast;
     }
 
-    public function setForecast(?WeatherForecast $forecast): WeatherForecastDay
+    public function setForecast(WeatherForecast $forecast): WeatherForecastDay
     {
-        if ($this->forecast === $forecast) {
-            return $this;
-        }
-
-        if ($this->forecast !== null) {
-            $previous = $this->forecast;
-            $this->forecast = null;
-            if ($previous->getForecastDays()->contains($this)) {
-                $previous->getForecastDays()->removeElement($this);
-            }
-        }
-
-
-        if ($forecast !== null && !$forecast->getForecastDays()->contains($this)) {
-            $forecast->getForecastDays()->add($this);
-        }
+        $forecast->getForecastDays()->add($this);
         $this->forecast = $forecast;
 
         return $this;
