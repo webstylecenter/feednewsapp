@@ -26,6 +26,7 @@ use App\Feed\Processor\PageMetadataProcessor;
 use App\Feed\Processor\ToggleFeedItemPinProcessor;
 use App\Feed\Provider\FeedHistoryProvider;
 use App\Feed\Provider\FeedItemsProvider;
+use App\Feed\Provider\FeedPinnedProvider;
 use App\Feed\Provider\FeedOverviewProvider;
 use App\Feed\Provider\FeedSearchProvider;
 use App\Feed\Provider\FeedTagItemsProvider;
@@ -37,6 +38,11 @@ use App\Shared\Dto\Response\StatusResponse;
         uriTemplate: '/feed/items',
         output: FeedItemsPageResponse::class,
         provider: FeedItemsProvider::class,
+    ),
+    new Get(
+        uriTemplate: '/feed/pinned',
+        output: FeedItemsResponse::class,
+        provider: FeedPinnedProvider::class,
     ),
     new Get(
         uriTemplate: '/feed/history',

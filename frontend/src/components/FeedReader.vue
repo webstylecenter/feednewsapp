@@ -10,6 +10,10 @@ const props = defineProps({ user: { type: Object, required: true } });
 const emit = defineEmits(['navigate', 'logout']);
 
 const items = ref([]);
+const pinnedItems = ref([]);
+const pinnedCount = ref(0);
+const showAllPinned = ref(false);
+const pinnedLoading = ref(false);
 const tags = ref([]);
 const activeTab = ref('recent');
 const selectedTag = ref('');
@@ -46,12 +50,20 @@ let pointerStartX = 0;
 let pointerSwiped = false;
 
 const hasContent = computed(() => currentUrl.value !== '' || readerSource.value !== null || readerLoading.value || readerError.value !== '');
+const visibleItems = computed(() => [...pinnedItems.value, ...items.value]);
 
 function randomTagColor() {
     const bytes = new Uint8Array(3);
     window.crypto.getRandomValues(bytes);
 
     return `#${Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('')}`;
+}
+
+
+function resetPinnedState() {
+    pinnedItems.value = [];
+    pinnedCount.value = 0;
+    showAllPinned.value = false;
 }
 
 function youtubeEmbedUrl(url) {
@@ -91,9 +103,14 @@ async function loadRecent(reset = false) {
         if (reset) {
             page.value = 0;
             items.value = [];
+            resetPinnedState();
         }
         const data = await api(`/api/feed/items?page=${page.value}&limit=50`);
         items.value.push(...data.items);
+        if (page.value === 0) {
+            pinnedItems.value = data.pinnedItems || [];
+            pinnedCount.value = data.pinnedCount || 0;
+        }
         nextPage.value = data.nextPage;
         if (data.nextPage !== null) page.value = data.nextPage;
     } finally {
@@ -105,6 +122,8 @@ async function switchTab(tab) {
     activeTab.value = tab;
     selectedTag.value = '';
     if (tab === 'recent') return loadRecent(true);
+
+    resetPinnedState();
     if (tab === 'history') {
         items.value = (await api('/api/feed/history')).items;
         nextPage.value = null;
@@ -115,6 +134,7 @@ async function doSearch() {
     if (search.value.trim().length < 2) return;
     activeTab.value = 'search';
     selectedTag.value = '';
+    resetPinnedState();
     items.value = (await api(`/api/feed/search?q=${encodeURIComponent(search.value.trim())}`)).items;
     nextPage.value = null;
 }
@@ -122,6 +142,7 @@ async function doSearch() {
 async function filterTag() {
     if (!selectedTag.value) return loadRecent(true);
     activeTab.value = 'tag';
+    resetPinnedState();
     items.value = (await api(`/api/feed/tag/${selectedTag.value}`)).items;
     nextPage.value = null;
 }
@@ -162,8 +183,27 @@ async function openItem(item) {
 }
 
 async function togglePin(item) {
-    const result = await api(`/api/feed/items/${item.id}/pin`, { method: 'PATCH' });
-    item.pinned = result.currentState;
+    await api(`/api/feed/items/${item.id}/pin`, { method: 'PATCH' });
+    await loadRecent(true);
+}
+
+async function togglePinnedList() {
+    if (showAllPinned.value) {
+        showAllPinned.value = false;
+        pinnedItems.value = pinnedItems.value.slice(0, 3);
+        return;
+    }
+
+    if (pinnedItems.value.length < pinnedCount.value) {
+        pinnedLoading.value = true;
+        try {
+            pinnedItems.value = (await api('/api/feed/pinned')).items;
+        } finally {
+            pinnedLoading.value = false;
+        }
+    }
+
+    showAllPinned.value = true;
 }
 
 function openExternal(item) {
@@ -237,8 +277,8 @@ async function createTag() {
 }
 
 async function addItem() {
-    const result = await api('/api/feed/items', { method: 'POST', body: addForm.value });
-    items.value.unshift(result.item);
+    await api('/api/feed/items', { method: 'POST', body: addForm.value });
+    await loadRecent(true);
     addForm.value = { url: '', title: '', description: '' };
     addDialog.value?.close();
 }
@@ -285,8 +325,8 @@ async function importFromQuery() {
     window.history.replaceState({}, '', window.location.pathname);
     if (params.get('save') === '1') {
         try {
-            const result = await api('/api/feed/items', { method: 'POST', body: { url: importedUrl } });
-            items.value.unshift(result.item);
+            await api('/api/feed/items', { method: 'POST', body: { url: importedUrl } });
+            await loadRecent(true);
             return;
         } catch {
             // Fall back to the editable dialog when metadata fetching or saving fails.
@@ -378,9 +418,8 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="feed-list" aria-live="polite">
+                <template v-for="(item, index) in visibleItems" :key="item.uuid">
                 <article
-                    v-for="item in items"
-                    :key="item.uuid"
                     class="feed-item"
                     :class="{ pinned: item.pinned }"
                     :style="{ '--feed-color': item.color }"
@@ -424,9 +463,18 @@ onBeforeUnmount(() => {
                         <button title="Open in new tab" @click="openExternal(item)">↗</button>
                     </div>
                 </article>
+                <button
+                    v-if="index === pinnedItems.length - 1 && pinnedCount > 3"
+                    class="pinned-toggle"
+                    :disabled="pinnedLoading"
+                    @click="togglePinnedList"
+                >
+                    {{ pinnedLoading ? 'Loading…' : (showAllPinned ? 'Show only 3 pinned items' : `Show all ${pinnedCount} pinned items`) }}
+                </button>
+                </template>
                 <div ref="sentinel" class="sentinel"></div>
                 <p v-if="loading" class="muted loading-row">Loading…</p>
-                <p v-if="!loading && items.length === 0" class="empty-state">Nothing to show.</p>
+                <p v-if="!loading && visibleItems.length === 0" class="empty-state">Nothing to show.</p>
             </div>
 
             <nav class="tab-bar">

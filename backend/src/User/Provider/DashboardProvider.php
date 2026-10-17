@@ -59,16 +59,16 @@ final readonly class DashboardProvider implements ProviderInterface
             $this->checklistRepository->findForUser($user),
         );
 
-        $feeds = [];
-        foreach ($this->feedRepository->findForUser($user) as $subscription) {
-            $feeds[] = new DashboardFeedResponse(
-                id: $subscription->getId(),
-                name: $subscription->getFeed()->getName(),
-                color: $subscription->getColor() ?? $subscription->getFeed()->getColor(),
-                icon: $subscription->getIcon() ?? '',
-                itemCount: $subscription->getItems()->count(),
-            );
-        }
+        $feeds = array_map(
+            static fn (array $row): DashboardFeedResponse => new DashboardFeedResponse(
+                id: $row['id'],
+                name: $row['name'],
+                color: $row['color'],
+                icon: $row['icon'],
+                itemCount: $row['itemCount'],
+            ),
+            $this->feedRepository->findDashboardRowsForUser($user),
+        );
 
         $weather = $this->weatherService->current();
 

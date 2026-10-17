@@ -31,18 +31,21 @@ final readonly class TagCollectionProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): TagCollectionResponse
     {
         $user = $this->currentUser->get();
+        $counts = $this->itemRepository->countForTags($user);
         $items = [];
+
         foreach ($this->tagRepository->findForUser($user) as $tag) {
             $id = $tag->getId();
             if ($id === null) {
                 continue;
             }
+
             $items[] = new TagResponse(
                 id: $id,
                 uuid: $tag->getUuid()->toRfc4122(),
                 name: $tag->getName(),
                 color: $tag->getColor(),
-                count: $this->itemRepository->countForTag($user, $tag),
+                count: $counts[$id] ?? 0,
             );
         }
 

@@ -1789,3 +1789,19 @@ th, td {
         font-size: 2rem;
     }
 }
+
+.pinned-toggle {
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    padding: .6rem .8rem;
+    background: var(--surface-soft);
+    color: var(--blue);
+    font-size: .82rem;
+    text-align: center;
+}
+
+.pinned-toggle:hover {
+    background: color-mix(in srgb, var(--blue) 7%, var(--surface-soft));
+}

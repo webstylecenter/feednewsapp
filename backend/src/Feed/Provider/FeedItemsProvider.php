@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\RequestStack;
 /** @implements ProviderInterface<FeedItemsPageResponse> */
 final readonly class FeedItemsProvider implements ProviderInterface
 {
+    private const int INITIAL_PINNED_LIMIT = 3;
+
     public function __construct(
         private RequestStack $requestStack,
         private CurrentUser $currentUser,
@@ -34,10 +36,20 @@ final readonly class FeedItemsProvider implements ProviderInterface
         $request = $this->requestStack->getCurrentRequest();
         $page = max(0, $request?->query->getInt('page') ?? 0);
         $limit = max(1, min(100, $request?->query->getInt('limit', 50) ?? 50));
-        $items = $this->feedService->recent($this->currentUser->get(), $page, $limit);
+        $user = $this->currentUser->get();
+        $items = $this->feedService->recent($user, $page, $limit);
+
+        $pinnedItems = [];
+        $pinnedCount = 0;
+        if ($page === 0) {
+            $pinnedItems = $this->feedService->pinned($user, self::INITIAL_PINNED_LIMIT);
+            $pinnedCount = $this->feedService->pinnedCount($user);
+        }
 
         return new FeedItemsPageResponse(
             items: $this->mapper->toResponses($items),
+            pinnedItems: $this->mapper->toResponses($pinnedItems),
+            pinnedCount: $pinnedCount,
             nextPage: count($items) === $limit ? $page + 1 : null,
         );
     }

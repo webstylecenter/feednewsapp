@@ -191,18 +191,23 @@ final readonly class FeedService
         $limit = max(1, min(100, $limit));
         $items = $this->userFeedItemRepository->findRecentForUser($user, $limit, $page * $limit);
 
-        $changed = false;
-        foreach ($items as $item) {
-            if ($item->isViewed() === false) {
-                $item->setViewed(true);
-                $changed = true;
-            }
-        }
-        if ($changed) {
-            $this->entityManager->flush();
-        }
+        $this->markViewed($items);
 
         return $items;
+    }
+
+    /** @return list<FeedUserItem> */
+    public function pinned(User $user, ?int $limit = null): array
+    {
+        $items = $this->userFeedItemRepository->findPinnedForUser($user, $limit);
+        $this->markViewed($items);
+
+        return $items;
+    }
+
+    public function pinnedCount(User $user): int
+    {
+        return $this->userFeedItemRepository->countPinnedForUser($user);
     }
 
     public function togglePin(User $user, int $id): FeedUserItem
@@ -294,6 +299,24 @@ final readonly class FeedService
         $item->setPinned($pinned);
         $subscription->addUserFeedItem($item);
         $this->entityManager->persist($item);
+    }
+
+    /** @param list<FeedUserItem> $items */
+    private function markViewed(array $items): void
+    {
+        $changed = false;
+        foreach ($items as $item) {
+            if ($item->isViewed()) {
+                continue;
+            }
+
+            $item->setViewed(true);
+            $changed = true;
+        }
+
+        if ($changed) {
+            $this->entityManager->flush();
+        }
     }
 
     private function normalizeGuid(string $guid): string

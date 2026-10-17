@@ -20,7 +20,10 @@ use Symfony\Component\Uid\Uuid;
         new ORM\Index(name: 'idx_fui_user', columns: ['user_id']),
         new ORM\Index(name: 'idx_fui_feed_item', columns: ['feed_item_id']),
         new ORM\Index(name: 'idx_fui_user_feed', columns: ['user_feed_id']),
-        new ORM\Index(name: 'idx_fui_tag', columns: ['tag_id'])
+        new ORM\Index(name: 'idx_fui_tag', columns: ['tag_id']),
+        new ORM\Index(name: 'idx_fui_user_pinned_created', columns: ['user_id', 'pinned', 'created_at', 'id']),
+        new ORM\Index(name: 'idx_fui_user_tag', columns: ['user_id', 'tag_id']),
+        new ORM\Index(name: 'idx_fui_user_opened', columns: ['user_id', 'opened_at', 'id'])
     ],
     uniqueConstraints: [
         new ORM\UniqueConstraint(name: 'uniq_fui_user_feeditem', columns: ['user_id','feed_item_id'])
