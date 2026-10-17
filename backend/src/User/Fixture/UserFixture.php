@@ -9,10 +9,15 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Override;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class UserFixture extends Fixture implements FixtureGroupInterface
 {
     public const ADMIN_USER_REFERENCE = 'admin-user';
+
+    public function __construct(private readonly UserPasswordHasherInterface $passwordHasher)
+    {
+    }
 
     #[Override]
     public function load(ObjectManager $manager): void
@@ -20,11 +25,13 @@ final class UserFixture extends Fixture implements FixtureGroupInterface
         $userAdmin = new User(
             email: 'admin@feednews.dev',
             name: 'Admin',
-            password: 'xwy0eth!PTX_tft-fcn',
+            password: '',
             hideXFrameNotice: false,
             enabled: true,
             avatar: null,
         );
+        $userAdmin->setPassword($this->passwordHasher->hashPassword($userAdmin, 'feednews-admin'));
+        $userAdmin->setIsAdmin(true);
 
         $manager->persist($userAdmin);
         $manager->flush();

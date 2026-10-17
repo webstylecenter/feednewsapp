@@ -50,6 +50,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\Column(type: Types::STRING, length: 45, nullable: true)]
+    private ?string $lastIpAddress = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $lastUserAgent = null;
+
     /** @var array<int, string> */
     #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
@@ -167,6 +173,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getLastIpAddress(): ?string
+    {
+        return $this->lastIpAddress;
+    }
+
+    public function setLastIpAddress(?string $lastIpAddress): User
+    {
+        $this->lastIpAddress = $lastIpAddress;
+        return $this;
+    }
+
+    public function getLastUserAgent(): ?string
+    {
+        return $this->lastUserAgent;
+    }
+
+    public function setLastUserAgent(?string $lastUserAgent): User
+    {
+        $this->lastUserAgent = $lastUserAgent;
+        return $this;
+    }
+
     /**
      * @return array<int, string>
      */
@@ -175,6 +203,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
+        if ($this->isAdmin) {
+            $roles[] = 'ROLE_ADMIN';
+        }
         return array_values(array_unique($roles));
     }
 
@@ -222,7 +253,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Override]
     public function eraseCredentials(): void
     {
-        // TODO: Implement eraseCredentials() method.
     }
 
     #[Override]

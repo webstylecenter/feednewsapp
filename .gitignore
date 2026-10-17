@@ -1,54 +1,42 @@
-# Cache and logs (Symfony2)
-/app/cache/*
-/app/logs/*
-!app/cache/.gitkeep
-!app/logs/.gitkeep
+# IDE / OS
+.idea/
+.DS_Store
+Thumbs.db
 
-# Email spool folder
-/app/spool/*
-
-# Cache, session files and logs (Symfony3)
-/var/cache/*
-/var/logs/*
-/var/sessions/*
-!var/cache/.gitkeep
-!var/logs/.gitkeep
-!var/sessions/.gitkeep
-
-# Logs (Symfony4)
-/var/log/*
-!var/log/.gitkeep
-
-# Parameters
-/app/config/parameters.yml
-/app/config/parameters.ini
-
-# Managed by Composer
-/app/bootstrap.php.cache
-/var/bootstrap.php.cache
-/bin/*
-!bin/console
-!bin/symfony_requirements
-/vendor/
-
-# Assets and user uploads
-/web/bundles/
-/web/uploads/
-
-# PHPUnit
-/app/phpunit.xml
-/phpunit.xml
-
-# Build data
-/build/
-
-# Composer PHAR
-/composer.phar
-
-# Backup entities generated with doctrine:generate:entities command
-**/Entity/*~
-
-# Embedded web-server pid file
-/.web-server-pid
-.idea
+# Local environment and secrets
 .env.local
+.env.*.local
+backend/.env.local
+backend/.env.*.local
+backend/config/secrets/prod/prod.decrypt.private.php
+
+# PHP / Symfony
+backend/vendor/
+backend/var/*
+!backend/var/cache/
+!backend/var/cache/.gitkeep
+!backend/var/log/
+!backend/var/log/.gitkeep
+backend/.phpunit.cache/
+backend/.php-cs-fixer.cache
+backend/.phpcs-cache
+backend/phpstan.neon
+backend/phpcs.xml
+backend/phpunit.xml
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# DDEV generated/local state
+.ddev/.ddev-docker-*.yaml
+.ddev/.downloads/
+.ddev/db_snapshots/
+.ddev/traefik/certs/
+.ddev/traefik/config/
+.ddev/config.local.yaml
+.ddev/config.*.local.yaml
+
+# Build/editor metadata
+.aiassistant/local/

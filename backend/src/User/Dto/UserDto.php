@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\User\Dto;
 
+use ApiPlatform\Doctrine\Orm\State\Options as DoctrineOrmStateOptions;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Doctrine\Orm\State\Options as DoctrineOrmStateOptions;
 use ApiPlatform\Metadata\Link;
-use ApiPlatform\Metadata\Post;
-use App\User\Dto\Request\UserRequest;
 use App\User\Dto\Response\UserCollectionResponse;
 use App\User\Dto\Response\UserItemResponse;
 use App\User\Entity\User;
-use App\User\Processor\UserPostProcessor;
 use App\User\Provider\UserGetCollectionProvider;
 use App\User\Provider\UserGetItemProvider;
 
@@ -37,19 +34,10 @@ use App\User\Provider\UserGetItemProvider;
             identifiers: ['id'],
         ),
     ],
-    requirements: ['id' => '\d+'],
+    requirements: ['id' => '\\d+'],
     security: "is_granted('ROLE_ADMIN')",
     output: UserItemResponse::class,
     provider: UserGetItemProvider::class,
-)]
-#[Post(
-    uriTemplate: '/users',
-    denormalizationContext: ['groups' => ['user:write']],
-    security: "is_granted('PUBLIC_ACCESS')",
-    input: UserRequest::class,
-    output: UserItemResponse::class,
-    read: false,
-    processor: UserPostProcessor::class,
 )]
 final readonly class UserDto
 {

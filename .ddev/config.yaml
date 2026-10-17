@@ -3,18 +3,19 @@ type: symfony
 docroot: backend/public
 php_version: "8.5"
 webserver_type: nginx-fpm
-xdebug_enabled: true
+xdebug_enabled: false
 additional_hostnames: []
 additional_fqdns: []
 database:
     type: mariadb
     version: "11.8"
 use_dns_when_possible: true
-timezone: Europe/Berlin
+timezone: Europe/Amsterdam
 composer_root: backend/
 composer_version: "2"
 web_environment: []
 corepack_enable: true
+nodejs_version: "22"
 
 # Key features of DDEV's config.yaml:
 

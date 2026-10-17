@@ -11,7 +11,12 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserSettingRepository::class)]
-#[ORM\Table(name: 'user_setting')]
+#[ORM\Table(
+    name: 'user_setting',
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(name: 'uniq_user_setting_user_key', columns: ['user_id', 'setting'])
+    ]
+)]
 class UserSetting
 {
     use TimestampableEntity;
@@ -31,7 +36,7 @@ class UserSetting
     #[ORM\Column(type: Types::STRING)]
     private string $setting;
 
-    #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $value;
 
     public function __construct(User $user, string $setting, ?string $value)

@@ -7,7 +7,7 @@
         "php": ">=8.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "api-platform/core": ">=4.2.15",
+        "api-platform/core": "^4.2.15",
         "api-platform/doctrine-orm": "^4.1",
         "api-platform/symfony": "^4.1",
         "doctrine/dbal": "^3.10.4",
@@ -16,8 +16,6 @@
         "doctrine/orm": "^3.6.2",
         "gedmo/doctrine-extensions": "^3.22",
         "nelmio/cors-bundle": "^2.6.1",
-        "phpdocumentor/reflection-docblock": "^5.6.6",
-        "phpstan/phpdoc-parser": "^2.3.2",
         "stof/doctrine-extensions-bundle": "^1.15.3",
         "symfony/asset": "7.4.*",
         "symfony/console": "7.4.*",
@@ -33,24 +31,22 @@
         "symfony/twig-bundle": "7.4.*",
         "symfony/uid": "7.4.*",
         "symfony/validator": "7.4.*",
-        "symfony/yaml": "7.4.*"
+        "symfony/yaml": "7.4.*",
+        "ext-dom": "*",
+        "ext-mbstring": "*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
-        "friendsofphp/php-cs-fixer": "^3.93.1",
-        "jetbrains/phpstorm-attributes": "^1.2",
         "phpstan/phpstan": "^2.1.38",
         "phpstan/phpstan-doctrine": "^2.0.14",
         "phpstan/phpstan-strict-rules": "^2.0.8",
         "phpstan/phpstan-symfony": "^2.0.12",
         "phpunit/phpunit": "^12.5",
-        "psalm/plugin-symfony": "^5.2.8",
         "slevomat/coding-standard": "^8.22.1",
         "squizlabs/php_codesniffer": "^3.13.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
-        "symfony/web-profiler-bundle": "7.4.*",
-        "vimeo/psalm": "^6.15"
+        "symfony/web-profiler-bundle": "7.4.*"
     },
     "config": {
         "allow-plugins": {
@@ -93,12 +89,15 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
-        "phpstan": "vendor/bin/phpstan analyse src",
-        "phpcsfixer": "vendor/bin/php-cs-fixer fix",
-        "psalm": "vendor/bin/psalm",
+        "phpstan": "vendor/bin/phpstan analyse",
         "test": "php bin/phpunit",
         "phpcs": "php vendor/bin/phpcs",
-        "phpcbf": "php vendor/bin/phpcbf"
+        "phpcbf": "php vendor/bin/phpcbf",
+        "quality": [
+            "@phpstan",
+            "@phpcs",
+            "@test"
+        ]
     },
     "conflict": {
         "symfony/symfony": "*"

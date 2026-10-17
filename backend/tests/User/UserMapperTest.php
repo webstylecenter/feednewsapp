@@ -4,45 +4,41 @@ declare(strict_types=1);
 
 namespace App\Tests\User;
 
-use App\User\Dto\Request\UserRequest;
+use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
-use Symfony\Component\PasswordHasher\PasswordHasherInterface;
+use ReflectionProperty;
 
 final class UserMapperTest extends TestCase
 {
-    public function testToEntityHashesPasswordAndMapsFields(): void
+    public function testMapsUserToAdminApiResponses(): void
     {
-        $hasher = $this->createMock(PasswordHasherInterface::class);
-        $hasher
-            ->expects(self::once())
-            ->method('hash')
-            ->with('plain-password')
-            ->willReturn('hashed-password');
-
-        $factory = $this->createMock(PasswordHasherFactoryInterface::class);
-        $factory
-            ->expects(self::once())
-            ->method('getPasswordHasher')
-            ->willReturn($hasher);
-
-        $mapper = new UserMapper($factory);
-
-        $request = new UserRequest(
-            name: 'Test User',
+        $user = new User(
             email: 'test@example.com',
-            password: 'plain-password',
+            name: 'Test User',
+            password: 'hashed-password',
+            hideXFrameNotice: true,
+            enabled: true,
             avatar: 'https://example.com/avatar.png',
         );
+        $user->setIsAdmin(true);
+        $user->setLastLogin(new DateTimeImmutable('2026-10-17 12:00:00'));
 
-        $entity = $mapper->toEntity($request);
+        $id = new ReflectionProperty(User::class, 'id');
+        $id->setValue($user, 42);
 
-        self::assertSame('test@example.com', $entity->getEmail());
-        self::assertSame('Test User', $entity->getName());
-        self::assertSame('hashed-password', $entity->getPassword());
-        self::assertSame('https://example.com/avatar.png', $entity->getAvatar());
-        self::assertTrue($entity->isEnabled());
-        self::assertFalse($entity->isHideXFrameNotice());
+        $mapper = new UserMapper();
+        $collection = $mapper->toCollectionResponse($user);
+        $item = $mapper->toItemResponse($user);
+
+        self::assertSame(42, $collection->id);
+        self::assertSame('Test User', $collection->name);
+        self::assertTrue($collection->isAdmin);
+
+        self::assertSame(42, $item->id);
+        self::assertSame('test@example.com', $item->email);
+        self::assertTrue($item->hideXFrameNotice);
+        self::assertContains('ROLE_ADMIN', $item->roles);
     }
 }

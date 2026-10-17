@@ -28,3 +28,7 @@ services:
             $itemProvider: '@api_platform.doctrine.orm.state.item_provider'
         autowire: true
         autoconfigure: true
+
+    App\User\Security\LoginThrottle:
+        arguments:
+            $cache: '@cache.app'

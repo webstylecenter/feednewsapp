@@ -1,70 +1,125 @@
-#  FeedNews
-A powerful dashboard tool to keep track of your favorite news sites, daily tasks, reminders, and so much more. FeedNews, previously called "It's my Homepage" brings you a site that you can set as startpage of your browser, or use Electron to run it as an app. I personally use it all day, with my news sources like Neowin, iDownloadblog and many more next to my Youtube subscriptions, todo-list and weather updates all in one place.
+# FeedNews
 
-# Use online version
-In case you wish to use the functionality, or just have a look around but you don't want to go through all the installation hussle. Visit [Feednews](http://feednews.petervdam.nl) and create a account.
+FeedNews is a Symfony 7.4 + Vue 3 application for reading RSS/Atom feeds, saving links, pinning and tagging articles, keeping notes/todos, viewing weather information and sharing saved items.
 
-# Functionality
-- Read and manage RSS Feeds
-    - Assign colors to different sources
-    - Assign FontAwesome icons to each source (optional)
-    - Search items
-    - Pin items to read later
-    - Add pages to view later
-    - Share a page with friends
-    - Youtube support (theme switches to dark mode when watching video)
+This repository is the modernized successor to the original Laravel FeedNews application. The backend is Symfony/PHP 8.5 and the browser UI is Vue 3. jQuery, Svelte, Hammer, Handlebars and Spectrum are not required.
 
-- Screensaver functionality (image at the bottom of this readme)
-    - Set [yourdomain]/screensaver/ as screensaver to any OS and display random images with your news
-    - Option to combine images from services like Unsplash with your own image gallery services
-    - Show current weather condition and temperature
+## Main functionality
 
-- Todo list
-    - Need to keep track of things? Simply use the searchbar to add items, or use the todo page to manage your list. Quick and easy
+- Account registration, login/logout and optional Google/Facebook OAuth.
+- Login throttling: five failed attempts per ten-minute window per IP/e-mail combination.
+- RSS/Atom feed discovery, follow/unfollow, update, color/icon configuration and automatic refresh.
+- Recent items, opened-item history, search, tags, pinning and manually saved links.
+- Metadata extraction for manually saved links.
+- Reader iframe with X-Frame/CSP detection, safe external fallback, YouTube embed mode, focus mode and floating reader.
+- Public share links using non-sequential UUIDs.
+- Browser-extension and Android import flows.
+- Notes with autosave and checklist/todo management.
+- Weather forecast and Dutch precipitation radar.
+- Dashboard, introduction, settings, feedback/privacy/offline pages and screensaver.
+- Admin user overview/removal for `ROLE_ADMIN` users.
+- Responsive mobile UI without jQuery gesture libraries.
 
-- Weather radar
-    - It currently displays just weather of the Netherlands, but  will add support for more countries later
-    - Show the current weather conditions of your location (set up in config)
+## Requirements
 
-- Image share functionality
-    - Share an image with a shortlink from mobile or from clipboard (soon available)
-    - View and remove shared images
-    - Share previous shared images
+- PHP 8.5+
+- Composer 2
+- MariaDB 11.8+ (the included DDEV setup uses 11.8)
+- Node.js 22+
+- npm
 
-- Notes
-    - Add one or more notes with autosaving. It's saved while you type.
+DDEV is configured with these runtime versions.
 
+## Local installation with DDEV
 
-# Wishlist
-- Plugins
-    - Some options might not be interesting for the public. For that a plugin way of adding icons without git's interference would be a nice addition, and adds flexibility for those who like to use this tool.
-    - Plugin share aka Play Store?
-- Themes
-    - Design always has a different taste with each and everyone. So adding theme support would be nice.
-- Documentation
+```bash
+ddev start
+ddev composer update
+ddev exec php backend/bin/console doctrine:migrations:migrate --no-interaction
+ddev exec -s frontend npm install
+```
 
+The dedicated `frontend` service starts Vite automatically and DDEV proxies the normal project URL to it. Symfony API/public routes continue to be handled by PHP-FPM.
 
-# Installation
-Use the .env file in the backend directory to create your personal config file. You need to set your database config and enter you openWeatherMap API key. This is a required step for now.
+Copy backend environment overrides to `backend/.env.local` as needed. At minimum configure `DATABASE_URL` outside DDEV when a different database is used. OAuth is optional:
 
-After saving your config, make sure to run the following commands from your terminal. Currently, all commands need to run on both dev and production env. This will probably change in the future.
+```dotenv
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
 
-- fill .env file with server settings
-- ddev ssh
-- cd backend
-- composer install
-- php bin/console d:m:m
+WEATHER_LOCATION=Eindhoven,NL
+WEATHER_LATITUDE=51.4416
+WEATHER_LONGITUDE=5.4697
+```
 
-If you want to change styling, also run:
-- TODO
+Open-Meteo is used for forecast data and does not require an API key.
 
-# Mobile support
-FeedNews is fully responsive. On Android (Chrome) or iOS (Safari), save the page to your home screen for a fullscreen experience. This is especially handy for features like the shopping-list–style to-do list.
+## Dependency lock
 
-# Contributing
-Ideas, feedback, and contributions are welcome. If you’d like to help, fork the repository and submit a pull request. New ideas and improvements are always appreciated.
+The stale Composer lock from the unfinished migration was deliberately removed because it pinned Symfony 7.4.5. Run `ddev composer update` once in an internet-enabled environment and commit the newly generated `backend/composer.lock` before deploying. The Symfony requirements remain on the maintained 7.4 LTS branch, while API Platform is constrained to the compatible 4.x series.
 
-# Docker
-Run `ddev start` command from a terminal to launch this app in a docker environment
+## Production frontend build
 
-[![StackShare](https://img.shields.io/badge/tech-stack-0690fa.svg?style=flat)](https://stackshare.io/webstylecenter/homepage)
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+Vite writes the production bundle and `index.html` to `backend/public`. The Symfony SPA fallback serves that generated file for browser routes.
+
+For production, configure the web server with `backend/public` as the document root and route unknown browser paths through `index.php`; static `/build`, `/images` and `/downloads` assets should be served directly.
+
+## Scheduled feed/weather updates
+
+The original Laravel scheduler behavior maps to two Symfony commands:
+
+```bash
+php backend/bin/console feed:update --env=prod
+php backend/bin/console weather:update --env=prod
+```
+
+Equivalent cron entries are:
+
+```cron
+*/10 * * * * cd /path/to/feednews && php backend/bin/console feed:update --env=prod >/dev/null 2>&1
+*/30 * * * * cd /path/to/feednews && php backend/bin/console weather:update --env=prod >/dev/null 2>&1
+```
+
+## Code quality
+
+Backend quality configuration is included for PHPStan level 10 and PHP_CodeSniffer/PSR-12 + Slevomat. After the initial `composer update` has generated `backend/composer.lock`:
+
+```bash
+cd backend
+composer phpstan
+composer phpcs
+composer test
+```
+
+Frontend build validation:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Security changes compared with the Laravel version
+
+- User-supplied URLs are restricted to HTTP(S) public addresses before server-side fetching to reduce SSRF exposure.
+- HTTP fetching has size/redirect limits and TLS verification.
+- Mutating JSON API requests require a session CSRF token.
+- Public share links use UUIDs instead of enumerable numeric IDs.
+- Admin endpoints require `ROLE_ADMIN`.
+- Embedded content runs in a sandboxed iframe where compatible; sites that prohibit framing are opened externally.
+- Passwords continue to use Symfony's password hasher and existing supported hashes can be rehashed on login when necessary.
+
+## Legacy database note
+
+The Symfony project uses Doctrine-managed table/entity names and migrations. These migrations create/upgrade the Symfony schema; they are **not** an in-place Laravel-schema conversion script. If an existing production Laravel database must be retained, migrate its data into the new schema from a backup rather than running the Symfony migration chain directly against that database without first testing the conversion.
+
+## Browser extension
+
+`frontend/public/downloads/chrome-extension.zip` contains the migrated Manifest V3 extension. It opens FeedNews with the URL in the new import flow instead of posting to the removed Laravel `/feed/chrome-import/` endpoint.
