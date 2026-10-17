@@ -62,12 +62,14 @@ final readonly class FeedDiscoveryService
 
             $rel = strtolower($link->getAttribute('rel'));
             $type = strtolower($link->getAttribute('type'));
-            if (!str_contains($rel, 'alternate') || !in_array($type, [
+            if (
+                !str_contains($rel, 'alternate') || !in_array($type, [
                 'application/rss+xml',
                 'application/atom+xml',
                 'text/xml',
                 'application/xml',
-            ], true)) {
+                ], true)
+            ) {
                 continue;
             }
 

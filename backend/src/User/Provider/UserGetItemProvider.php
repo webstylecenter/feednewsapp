@@ -25,6 +25,10 @@ final readonly class UserGetItemProvider implements ProviderInterface
     ) {
     }
 
+    /**
+     * @param array<string, mixed> $uriVariables
+     * @param array<string, mixed> $context
+     */
     #[Override]
     public function provide(
         Operation $operation,

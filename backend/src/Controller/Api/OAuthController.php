@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
-use App\User\Entity\User;
 use App\User\OAuth\OAuthService;
-use App\User\Repository\UserRepository;
+use App\User\OAuth\OAuthUserService;
 use App\User\Service\UserLoginTracker;
-use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -44,9 +41,7 @@ final class OAuthController extends AbstractController
         string $provider,
         Request $request,
         OAuthService $oauthService,
-        UserRepository $userRepository,
-        UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager,
+        OAuthUserService $oauthUserService,
         Security $security,
         UserLoginTracker $loginTracker,
     ): RedirectResponse {
@@ -66,15 +61,7 @@ final class OAuthController extends AbstractController
             );
             $profile = $oauthService->fetchProfile($provider, $code, $clientId, $clientSecret, $redirectUri);
 
-            $user = $userRepository->findOneBy(['email' => strtolower($profile->email)]);
-            if (!$user instanceof User) {
-                $user = new User(strtolower($profile->email), $profile->name, '', false, true, $profile->avatar);
-                $user->setPassword($passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));
-                $entityManager->persist($user);
-            } else {
-                $user->setName($profile->name)->setAvatar($profile->avatar);
-            }
-            $entityManager->flush();
+            $user = $oauthUserService->findOrCreate($profile);
 
             $security->login($user);
             $loginTracker->track($user, $request);
