@@ -552,7 +552,7 @@ label {
 
 .content-toolbar {
     height: 42px;
-    position: absolute;
+    position: sticky;
     z-index: 5;
     top: 0;
     left: 0;
@@ -568,6 +568,8 @@ label {
 }
 
 .content-toolbar strong {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -581,8 +583,7 @@ label {
 }
 
 .content-toolbar + iframe {
-    padding-top: 42px;
-    box-sizing: border-box;
+    height: calc(100% - 42px);
 }
 
 .dashboard {
@@ -1140,7 +1141,7 @@ th, td {
         transition: transform .2s ease;
     }
 
-    .content-pane:has(iframe) {
+    .content-pane.has-content {
         transform: translateX(0);
     }
 
@@ -1394,7 +1395,9 @@ th, td {
 
 .content-toolbar-actions {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
+    gap: .15rem;
 }
 
 .floating-reader {
@@ -1596,4 +1599,193 @@ th, td {
 
 .dashboard-page > .dashboard {
     min-height: calc(100vh - 76px);
+}
+
+.reader-loading,
+.reader-error {
+    width: min(620px, calc(100% - 2rem));
+    margin: 5rem auto 2rem;
+}
+
+.reader-loading {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    color: var(--muted);
+}
+
+.reader-error {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.reader-error h2 {
+    margin-top: 0;
+}
+
+.reader-article {
+    width: min(820px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 2rem 0 4rem;
+    color: var(--text);
+    font-size: 1.05rem;
+    line-height: 1.75;
+}
+
+.reader-article-header {
+    margin-bottom: 2rem;
+}
+
+.reader-source {
+    margin: 0 0 .6rem;
+    color: var(--blue);
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.reader-article h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    line-height: 1.08;
+    letter-spacing: -.025em;
+}
+
+.reader-byline {
+    margin: 1rem 0 0;
+    color: var(--muted);
+    font-size: .92rem;
+}
+
+.reader-excerpt {
+    margin: 1.2rem 0 0;
+    color: var(--muted);
+    font-size: 1.15rem;
+    line-height: 1.55;
+}
+
+.reader-main-image {
+    display: block;
+    width: 100%;
+    max-height: 70vh;
+    margin: 0 0 2rem;
+    border-radius: 10px;
+    object-fit: contain;
+}
+
+.reader-article-content {
+    overflow-wrap: anywhere;
+}
+
+.reader-article-content h2,
+.reader-article-content h3,
+.reader-article-content h4 {
+    margin: 2rem 0 .75rem;
+    line-height: 1.25;
+}
+
+.reader-article-content p,
+.reader-article-content ul,
+.reader-article-content ol,
+.reader-article-content blockquote,
+.reader-article-content figure,
+.reader-article-content pre,
+.reader-article-content table {
+    margin: 0 0 1.4rem;
+}
+
+.reader-article-content img,
+.reader-article-content picture,
+.reader-article-content video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1.6rem auto;
+    border-radius: 8px;
+}
+
+.reader-article-content figure {
+    max-width: 100%;
+}
+
+.reader-article-content figcaption {
+    margin-top: -.9rem;
+    color: var(--muted);
+    font-size: .82rem;
+    text-align: center;
+}
+
+.reader-article-content blockquote {
+    padding-left: 1.2rem;
+    border-left: 4px solid var(--border);
+    color: var(--muted);
+}
+
+.reader-article-content pre {
+    max-width: 100%;
+    overflow: auto;
+    padding: 1rem;
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.reader-article-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.reader-article-content a {
+    color: var(--blue);
+}
+
+.reader-unavailable {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.reader-unavailable h2 {
+    margin-top: 0;
+}
+
+.reader-original-link {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.reader-original-link .button-link {
+    color: #fff;
+    text-decoration: none;
+}
+
+.floating-reader-content {
+    height: calc(100% - 42px);
+    overflow: auto;
+    background: var(--surface-soft);
+}
+
+.reader-article.compact {
+    width: min(680px, calc(100% - 1.5rem));
+    padding: 1.5rem 0 2.5rem;
+    font-size: .95rem;
+}
+
+.reader-article.compact h1 {
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+}
+
+@media (max-width: 800px) {
+    .reader-article {
+        width: min(100% - 1.2rem, 820px);
+        padding-top: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .reader-article h1 {
+        font-size: 2rem;
+    }
 }

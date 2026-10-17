@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { api } from '../api.js';
 import { applyTheme } from '../theme.js';
 import Dashboard from './Dashboard.vue';
+import ArticleReader from './ArticleReader.vue';
 import { feedIcon, weatherIcon } from '../presentation.js';
 
 const props = defineProps({ user: { type: Object, required: true } });
@@ -21,11 +22,13 @@ const currentTitle = ref('');
 const currentItem = ref(null);
 const weather = ref(null);
 const preferences = ref({});
-const skipFrameCheck = ref(false);
 const weatherOpen = ref(false);
 const calendarOpen = ref(false);
-const frameBlocked = ref(false);
+const readerSource = ref(null);
+const readerLoading = ref(false);
+const readerError = ref('');
 const pictureInPictureUrl = ref('');
+const pictureInPictureSource = ref(null);
 const pictureInPictureTitle = ref('');
 const focusMode = ref(false);
 const videoMode = ref(false);
@@ -42,7 +45,7 @@ let refreshTimer;
 let pointerStartX = 0;
 let pointerSwiped = false;
 
-const hasContent = computed(() => currentUrl.value !== '');
+const hasContent = computed(() => currentUrl.value !== '' || readerSource.value !== null || readerLoading.value || readerError.value !== '');
 
 function randomTagColor() {
     const bytes = new Uint8Array(3);
@@ -74,7 +77,9 @@ function closeCurrent() {
     currentUrl.value = '';
     currentItem.value = null;
     currentTitle.value = '';
-    frameBlocked.value = false;
+    readerSource.value = null;
+    readerLoading.value = false;
+    readerError.value = '';
     videoMode.value = false;
     focusMode.value = false;
 }
@@ -133,31 +138,27 @@ async function openItem(item) {
 
     currentTitle.value = item.title;
     currentItem.value = item;
+    currentUrl.value = '';
+    readerSource.value = null;
+    readerError.value = '';
     await api(`/api/feed/items/${item.id}/opened`, { method: 'POST' });
 
     const youtubeUrl = youtubeEmbedUrl(item.url);
     if (youtubeUrl) {
-        frameBlocked.value = false;
         videoMode.value = true;
         currentUrl.value = youtubeUrl;
         return;
     }
 
     videoMode.value = false;
-    if (skipFrameCheck.value) {
-        frameBlocked.value = false;
-        currentUrl.value = item.url;
-        return;
+    readerLoading.value = true;
+    try {
+        readerSource.value = await api(`/api/feed/reader?url=${encodeURIComponent(item.url)}`);
+    } catch (error) {
+        readerError.value = error instanceof Error ? error.message : 'Het artikel kon niet worden geladen.';
+    } finally {
+        readerLoading.value = false;
     }
-
-    const policy = await api('/api/feed/frame-policy', { method: 'POST', body: { url: item.url } });
-    frameBlocked.value = policy.blocked;
-    if (policy.blocked) {
-        window.open(item.url, '_blank', 'noopener,noreferrer');
-        closeCurrent();
-        return;
-    }
-    currentUrl.value = item.url;
 }
 
 async function togglePin(item) {
@@ -169,13 +170,27 @@ function openExternal(item) {
     window.open(item.url, '_blank', 'noopener,noreferrer');
 }
 
-function openPictureInPicture(item) {
+async function openPictureInPicture(item) {
     pictureInPictureTitle.value = item.title;
-    pictureInPictureUrl.value = youtubeEmbedUrl(item.url) || item.url;
+    pictureInPictureSource.value = null;
+    const youtubeUrl = youtubeEmbedUrl(item.url);
+    if (youtubeUrl) {
+        pictureInPictureUrl.value = youtubeUrl;
+        return;
+    }
+
+    pictureInPictureUrl.value = '';
+    try {
+        pictureInPictureSource.value = await api(`/api/feed/reader?url=${encodeURIComponent(item.url)}`);
+    } catch {
+        window.open(item.url, '_blank', 'noopener,noreferrer');
+        closePictureInPicture();
+    }
 }
 
 function closePictureInPicture() {
     pictureInPictureUrl.value = '';
+    pictureInPictureSource.value = null;
     pictureInPictureTitle.value = '';
 }
 
@@ -258,7 +273,6 @@ async function loadHeaderData() {
 
     if (settingsResult.status === 'fulfilled') {
         preferences.value = settingsResult.value.preferences || {};
-        skipFrameCheck.value = Boolean(settingsResult.value.hideXFrameNotice);
         applyTheme(preferences.value.theme || 'auto');
     }
 }
@@ -422,22 +436,55 @@ onBeforeUnmount(() => {
             </nav>
         </aside>
 
-        <section class="content-pane">
+        <section class="content-pane" :class="{ 'has-content': hasContent }">
             <div v-if="hasContent" class="content-toolbar" title="Double-click to toggle focus mode" @dblclick="toggleFocusMode">
                 <strong>{{ currentTitle }}</strong>
-                <div class="content-toolbar-actions"><button title="Toggle focus mode" @click="toggleFocusMode">{{ focusMode ? '⊞' : '⊟' }}</button><button title="Close" @click="closeCurrent">×</button></div>
+                <div class="content-toolbar-actions">
+                    <button title="Toggle focus mode" @click="toggleFocusMode">{{ focusMode ? '⊞' : '⊟' }}</button>
+                    <button v-if="currentItem" title="Open original website" @click="openCurrentExternal">↗</button>
+                    <button title="Close" @click="closeCurrent">×</button>
+                </div>
             </div>
-            <iframe v-if="hasContent && !frameBlocked" :src="currentUrl" :title="currentTitle" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-modals allow-presentation" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            <iframe
+                v-if="currentUrl"
+                :src="currentUrl"
+                :title="currentTitle"
+                referrerpolicy="strict-origin-when-cross-origin"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            <div v-else-if="readerLoading" class="reader-loading">
+                <div class="spinner"></div>
+                <p>Artikel laden…</p>
+            </div>
+            <div v-else-if="readerError" class="reader-error card">
+                <h2>Artikel kon niet worden geladen</h2>
+                <p>{{ readerError }}</p>
+                <button class="primary" @click="openCurrentExternal">Open originele website ↗</button>
+            </div>
+            <ArticleReader v-else-if="readerSource" :source="readerSource" />
             <Dashboard v-else />
         </section>
 
 
-        <aside v-if="pictureInPictureUrl" class="floating-reader card" aria-label="Floating reader">
+        <aside v-if="pictureInPictureUrl || pictureInPictureSource" class="floating-reader card" aria-label="Floating reader">
             <header>
                 <strong>{{ pictureInPictureTitle }}</strong>
                 <button class="icon-button" title="Close floating reader" @click="closePictureInPicture">×</button>
             </header>
-            <iframe :src="pictureInPictureUrl" :title="pictureInPictureTitle" referrerpolicy="strict-origin-when-cross-origin" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-modals allow-presentation" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            <iframe
+                v-if="pictureInPictureUrl"
+                :src="pictureInPictureUrl"
+                :title="pictureInPictureTitle"
+                referrerpolicy="strict-origin-when-cross-origin"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+            ></iframe>
+            <div v-else-if="pictureInPictureSource" class="floating-reader-content">
+                <ArticleReader :source="pictureInPictureSource" compact />
+            </div>
         </aside>
 
         <dialog ref="addDialog" class="modal">

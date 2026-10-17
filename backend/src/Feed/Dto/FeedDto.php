@@ -18,6 +18,7 @@ use App\Feed\Dto\Response\FeedOverviewResponse;
 use App\Feed\Dto\Response\FramePolicyResponse;
 use App\Feed\Dto\Response\PageMetadataResponse;
 use App\Feed\Dto\Response\PinFeedItemResponse;
+use App\Feed\Dto\Response\ReaderResponse;
 use App\Feed\Processor\CreateFeedItemProcessor;
 use App\Feed\Processor\FramePolicyProcessor;
 use App\Feed\Processor\MarkFeedItemOpenedProcessor;
@@ -28,6 +29,7 @@ use App\Feed\Provider\FeedItemsProvider;
 use App\Feed\Provider\FeedOverviewProvider;
 use App\Feed\Provider\FeedSearchProvider;
 use App\Feed\Provider\FeedTagItemsProvider;
+use App\Feed\Provider\ReaderProvider;
 use App\Shared\Dto\Response\StatusResponse;
 
 #[ApiResource(operations: [
@@ -57,21 +59,26 @@ use App\Shared\Dto\Response\StatusResponse;
         output: FeedOverviewResponse::class,
         provider: FeedOverviewProvider::class,
     ),
+    new Get(
+        uriTemplate: '/feed/reader',
+        output: ReaderResponse::class,
+        provider: ReaderProvider::class,
+    ),
     new Post(
         uriTemplate: '/feed/metadata',
-        status: 200,
         input: UrlRequest::class,
         output: PageMetadataResponse::class,
         read: false,
         processor: PageMetadataProcessor::class,
+        status: 200,
     ),
     new Post(
         uriTemplate: '/feed/items',
-        status: 201,
         input: CreateFeedItemRequest::class,
         output: FeedItemMutationResponse::class,
         read: false,
         processor: CreateFeedItemProcessor::class,
+        status: 201,
     ),
     new Patch(
         uriTemplate: '/feed/items/{id}/pin',
@@ -84,27 +91,27 @@ use App\Shared\Dto\Response\StatusResponse;
     new Post(
         uriTemplate: '/feed/items/{id}/opened',
         requirements: ['id' => '\\d+'],
-        status: 200,
         input: false,
         output: StatusResponse::class,
         read: false,
         processor: MarkFeedItemOpenedProcessor::class,
+        status: 200,
     ),
     new Post(
         uriTemplate: '/feed/frame-policy',
-        status: 200,
         input: UrlRequest::class,
         output: FramePolicyResponse::class,
         read: false,
         processor: FramePolicyProcessor::class,
+        status: 200,
     ),
     new Post(
         uriTemplate: '/feed/import',
-        status: 201,
         input: CreateFeedItemRequest::class,
         output: FeedItemMutationResponse::class,
         read: false,
         processor: CreateFeedItemProcessor::class,
+        status: 201,
     ),
 ])]
 final class FeedDto

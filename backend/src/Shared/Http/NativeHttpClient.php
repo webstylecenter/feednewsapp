@@ -64,7 +64,7 @@ final readonly class NativeHttpClient
         }
 
         $url = $this->urlGuard->normalize($url);
-        $headers = ['User-Agent' => 'FeedNews/2.0 (+https://feednews.me)', 'Accept' => '*/*'] + $headers;
+        $headers += ['User-Agent' => 'FeedNews/2.0 (+https://feednews.me)', 'Accept' => '*/*'];
 
         $headerLines = [];
         foreach ($headers as $name => $value) {

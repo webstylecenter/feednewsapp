@@ -32,3 +32,7 @@ services:
     App\User\Security\LoginThrottle:
         arguments:
             $cache: '@cache.app'
+
+    App\Feed\Service\ReaderService:
+        arguments:
+            $cache: '@cache.app'
