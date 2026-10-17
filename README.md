@@ -1,8 +1,8 @@
-#  FeedNews.me
-A powerful dashboard tool to keep track of your favorite news sites, daily tasks, reminders, and so much more. FeedNews.me, previously called "It's my Homepage" brings you a site that you can set as startpage of your browser, or use Electron to run it as an app. I personally use it all day, with my news sources like Neowin, iDownloadblog and many more next to my Youtube subscriptions, todo-list and weather updates all in one place.
+#  FeedNews
+A powerful dashboard tool to keep track of your favorite news sites, daily tasks, reminders, and so much more. FeedNews, previously called "It's my Homepage" brings you a site that you can set as startpage of your browser, or use Electron to run it as an app. I personally use it all day, with my news sources like Neowin, iDownloadblog and many more next to my Youtube subscriptions, todo-list and weather updates all in one place.
 
 # Use online version
-In case you wish to use the functionality, or just have a look around but you don't want to go through all the installation hussle. Visit [Feednews.me](http://feednews.me) and create a account.
+In case you wish to use the functionality, or just have a look around but you don't want to go through all the installation hussle. Visit [Feednews](http://feednews.petervdam.nl) and create a account.
 
 # Functionality
 - Read and manage RSS Feeds
@@ -59,7 +59,7 @@ If you want to change styling, also run:
 - TODO
 
 # Mobile support
-FeedNews.me is fully responsive. On Android (Chrome) or iOS (Safari), save the page to your home screen for a fullscreen experience. This is especially handy for features like the shopping-list–style to-do list.
+FeedNews is fully responsive. On Android (Chrome) or iOS (Safari), save the page to your home screen for a fullscreen experience. This is especially handy for features like the shopping-list–style to-do list.
 
 # Contributing
 Ideas, feedback, and contributions are welcome. If you’d like to help, fork the repository and submit a pull request. New ideas and improvements are always appreciated.
