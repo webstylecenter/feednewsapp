@@ -22,7 +22,7 @@ final readonly class AuthenticationSuccessHandler implements AuthenticationSucce
     ) {
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
     {
         $user = $token->getUser();
         if (!$user instanceof User) {

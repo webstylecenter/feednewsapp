@@ -44,9 +44,16 @@ final readonly class SessionProvider implements ProviderInterface
                 && $this->userFeedRepository->count(['user' => $authenticatedUser]) === 0,
             csrfToken: $this->csrfTokenManager->getToken($this->csrfSubscriber->tokenId())->getValue(),
             oauth: new OAuthAvailabilityResponse(
-                google: (string) ($_ENV['GOOGLE_CLIENT_ID'] ?? '') !== '',
-                facebook: (string) ($_ENV['FACEBOOK_CLIENT_ID'] ?? '') !== '',
+                google: self::envString('GOOGLE_CLIENT_ID') !== '',
+                facebook: self::envString('FACEBOOK_CLIENT_ID') !== '',
             ),
         );
+    }
+
+    private static function envString(string $key): string
+    {
+        $value = $_ENV[$key] ?? null;
+
+        return is_string($value) ? $value : '';
     }
 }

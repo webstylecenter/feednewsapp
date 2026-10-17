@@ -7,7 +7,6 @@ namespace App\Feed\Service;
 use App\Feed\Dto\PageMetadata;
 use App\Shared\Http\NativeHttpClient;
 use DOMDocument;
-use DOMElement;
 use RuntimeException;
 
 final readonly class PageMetadataService
@@ -35,9 +34,11 @@ final readonly class PageMetadataService
             libxml_use_internal_errors($previous);
         }
 
+        $titleNode = $document->getElementsByTagName('title')->item(0);
+        $documentTitle = $titleNode?->textContent;
         $title = $this->findMeta($document, 'property', 'og:title')
             ?? $this->findMeta($document, 'name', 'twitter:title')
-            ?? $document->getElementsByTagName('title')->item(0)?->textContent
+            ?? $documentTitle
             ?? $response->url;
         $description = $this->findMeta($document, 'property', 'og:description')
             ?? $this->findMeta($document, 'name', 'description')
@@ -54,10 +55,6 @@ final readonly class PageMetadataService
     private function findMeta(DOMDocument $document, string $attribute, string $expectedValue): ?string
     {
         foreach ($document->getElementsByTagName('meta') as $node) {
-            if (!$node instanceof DOMElement) {
-                continue;
-            }
-
             if (strcasecmp($node->getAttribute($attribute), $expectedValue) !== 0) {
                 continue;
             }

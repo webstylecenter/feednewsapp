@@ -16,6 +16,8 @@ use App\Feed\Repository\FeedErrorRepository;
 use App\Feed\Repository\FeedRepository;
 use App\User\Entity\User;
 use App\User\Repository\UserRepository;
+use DateTimeInterface;
+use LogicException;
 use Override;
 
 /** @implements ProviderInterface<AdminDashboardResponse> */
@@ -44,18 +46,19 @@ final readonly class AdminDashboardProvider implements ProviderInterface
                 enabled: $user->isEnabled(),
                 isAdmin: $user->isAdmin(),
                 lastLogin: $user->getLastLogin()?->format(DATE_ATOM),
-                createdAt: $user->getCreatedAt()->format(DATE_ATOM),
+                createdAt: self::formatTimestamp($user->getCreatedAt()),
             ),
             $this->userRepository->findBy([], ['createdAt' => 'DESC']),
         );
+        $users = array_values($users);
 
         $feeds = array_map(
             static fn (Feed $feed): AdminFeedResponse => new AdminFeedResponse(
                 id: $feed->getId(),
                 name: $feed->getName(),
                 url: $feed->getUrl(),
-                createdAt: $feed->getCreatedAt()->format(DATE_ATOM),
-                updatedAt: $feed->getUpdatedAt()->format(DATE_ATOM),
+                createdAt: self::formatTimestamp($feed->getCreatedAt()),
+                updatedAt: self::formatTimestamp($feed->getUpdatedAt()),
             ),
             array_slice($this->feedRepository->findBy([], ['createdAt' => 'DESC']), 0, 20),
         );
@@ -68,11 +71,20 @@ final readonly class AdminDashboardProvider implements ProviderInterface
                 message: $error->getException(),
                 user: $error->getUser()?->getEmail(),
                 feed: $error->getFeed()?->getName(),
-                updatedAt: $error->getUpdatedAt()->format(DATE_ATOM),
+                updatedAt: self::formatTimestamp($error->getUpdatedAt()),
             ),
             $this->errorRepository->findMostFrequent(),
         );
 
         return new AdminDashboardResponse($users, $feeds, $errors);
+    }
+
+    private static function formatTimestamp(?DateTimeInterface $dateTime): string
+    {
+        if ($dateTime === null) {
+            throw new LogicException('Persisted entity is missing a timestamp.');
+        }
+
+        return $dateTime->format(DATE_ATOM);
     }
 }

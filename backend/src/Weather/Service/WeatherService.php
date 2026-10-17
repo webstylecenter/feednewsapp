@@ -57,11 +57,8 @@ final readonly class WeatherService
             throw new RuntimeException('Weather API returned an invalid response.');
         }
 
-        $current = $data['current'] ?? null;
-        $daily = $data['daily'] ?? null;
-        if (!is_array($current) || !is_array($daily)) {
-            throw new RuntimeException('Weather API response did not contain forecast data.');
-        }
+        $current = $this->stringKeyedArray($data['current'] ?? null, 'current');
+        $daily = $this->stringKeyedArray($data['daily'] ?? null, 'daily');
 
         $currentTemp = $this->number($current, 'temperature_2m');
         $currentCode = $this->integer($current, 'weather_code');
@@ -97,6 +94,25 @@ final readonly class WeatherService
 
         $this->entityManager->flush();
         return $forecast;
+    }
+
+    /** @return array<string, mixed> */
+    private function stringKeyedArray(mixed $value, string $field): array
+    {
+        if (!is_array($value)) {
+            throw new RuntimeException(sprintf('Weather field "%s" is missing.', $field));
+        }
+
+        $result = [];
+        foreach ($value as $key => $item) {
+            if (!is_string($key)) {
+                throw new RuntimeException(sprintf('Weather field "%s" contains invalid data.', $field));
+            }
+
+            $result[$key] = $item;
+        }
+
+        return $result;
     }
 
     /** @param array<string, mixed> $data */

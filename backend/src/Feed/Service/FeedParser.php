@@ -44,7 +44,7 @@ final class FeedParser
         $items = [];
 
         foreach ($root->getElementsByTagName('*') as $node) {
-            if (!$node instanceof DOMElement || strtolower((string) $node->localName) !== 'item') {
+            if (strtolower((string) $node->localName) !== 'item') {
                 continue;
             }
 
@@ -144,7 +144,7 @@ final class FeedParser
     private function firstDescendant(DOMElement $element, string $localName): ?DOMElement
     {
         foreach ($element->getElementsByTagName('*') as $node) {
-            if ($node instanceof DOMElement && strtolower((string) $node->localName) === strtolower($localName)) {
+            if (strtolower((string) $node->localName) === strtolower($localName)) {
                 return $node;
             }
         }

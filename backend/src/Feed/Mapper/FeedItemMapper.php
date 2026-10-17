@@ -6,6 +6,7 @@ namespace App\Feed\Mapper;
 
 use App\Feed\Dto\Response\FeedItemResponse;
 use App\Feed\Entity\FeedUserItem;
+use DateTimeInterface;
 use LogicException;
 
 final class FeedItemMapper
@@ -38,7 +39,7 @@ final class FeedItemMapper
             pinned: $userItem->isPinned(),
             viewed: $userItem->isViewed(),
             openedAt: $userItem->getOpenedAt()?->format(DATE_ATOM),
-            createdAt: $userItem->getCreatedAt()->format(DATE_ATOM),
+            createdAt: self::formatTimestamp($userItem->getCreatedAt()),
             tagId: $userItem->getTag()?->getId(),
         );
     }
@@ -50,5 +51,14 @@ final class FeedItemMapper
     public function toResponses(array $items): array
     {
         return array_map($this->toResponse(...), $items);
+    }
+
+    private static function formatTimestamp(?DateTimeInterface $dateTime): string
+    {
+        if ($dateTime === null) {
+            throw new LogicException('Persisted feed item is missing a creation timestamp.');
+        }
+
+        return $dateTime->format(DATE_ATOM);
     }
 }

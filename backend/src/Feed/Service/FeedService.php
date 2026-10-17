@@ -18,6 +18,7 @@ use App\Feed\Repository\UserFeedRepository;
 use App\Shared\Http\NativeHttpClient;
 use App\Shared\Http\PublicUrlGuard;
 use App\User\Entity\User;
+use DateTime;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
@@ -136,7 +137,7 @@ final readonly class FeedService
         }
 
         $newItems = $this->persistParsedItems($feed, $parsedFeed);
-        $feed->setUpdatedAt(new DateTimeImmutable());
+        $feed->setUpdatedAt(new DateTime());
         $this->entityManager->flush();
 
         return $newItems;
@@ -153,9 +154,15 @@ final readonly class FeedService
             ? $this->pageMetadataService->fetch($safeUrl)
             : null;
 
-        $resolvedUrl = $metadata?->url ?? $safeUrl;
-        $resolvedTitle = $metadata?->title ?? trim((string) $title);
-        $resolvedDescription = $metadata?->description ?? trim((string) $description);
+        if ($metadata !== null) {
+            $resolvedUrl = $metadata->url;
+            $resolvedTitle = $metadata->title;
+            $resolvedDescription = $metadata->description;
+        } else {
+            $resolvedUrl = $safeUrl;
+            $resolvedTitle = trim((string) $title);
+            $resolvedDescription = trim((string) $description);
+        }
         if ($resolvedTitle === '') {
             $resolvedTitle = $resolvedUrl;
         }
@@ -272,7 +279,7 @@ final readonly class FeedService
     ): FeedItem {
         $feedItem = new FeedItem($item->title, $item->description, $feed, $guid, $url);
         if ($item->publishedAt instanceof DateTimeImmutable) {
-            $feedItem->setCreatedAt($item->publishedAt);
+            $feedItem->setCreatedAt(DateTime::createFromImmutable($item->publishedAt));
         }
         return $feedItem;
     }

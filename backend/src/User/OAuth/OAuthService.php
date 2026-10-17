@@ -127,11 +127,20 @@ final readonly class OAuthService
             throw new RuntimeException('OAuth provider returned an invalid response.');
         }
 
-        if (isset($data['error'])) {
+        $result = [];
+        foreach ($data as $key => $value) {
+            if (!is_string($key)) {
+                throw new RuntimeException('OAuth provider returned an invalid response.');
+            }
+
+            $result[$key] = $value;
+        }
+
+        if (isset($result['error'])) {
             throw new RuntimeException('OAuth provider rejected the request.');
         }
 
-        return $data;
+        return $result;
     }
 
     /** @param array<string, mixed> $data */

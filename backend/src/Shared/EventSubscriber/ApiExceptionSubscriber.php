@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Shared\EventSubscriber;
 
-use ApiPlatform\Validator\Exception\ValidationException;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -54,7 +53,6 @@ final readonly class ApiExceptionSubscriber implements EventSubscriberInterface
 
         $statusCode = match (true) {
             $throwable instanceof HttpExceptionInterface => $throwable->getStatusCode(),
-            $throwable instanceof ValidationException => Response::HTTP_UNPROCESSABLE_ENTITY,
             $throwable instanceof InvalidArgumentException,
             $throwable instanceof RuntimeException => Response::HTTP_UNPROCESSABLE_ENTITY,
             default => Response::HTTP_INTERNAL_SERVER_ERROR,

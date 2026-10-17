@@ -76,9 +76,16 @@ final class OAuthController extends AbstractController
     private function credentials(string $provider): array
     {
         return match ($provider) {
-            'google' => [(string) ($_ENV['GOOGLE_CLIENT_ID'] ?? ''), (string) ($_ENV['GOOGLE_CLIENT_SECRET'] ?? '')],
-            'facebook' => [(string) ($_ENV['FACEBOOK_CLIENT_ID'] ?? ''), (string) ($_ENV['FACEBOOK_CLIENT_SECRET'] ?? '')],
+            'google' => [self::envString('GOOGLE_CLIENT_ID'), self::envString('GOOGLE_CLIENT_SECRET')],
+            'facebook' => [self::envString('FACEBOOK_CLIENT_ID'), self::envString('FACEBOOK_CLIENT_SECRET')],
             default => throw new RuntimeException('Unsupported OAuth provider.'),
         };
+    }
+
+    private static function envString(string $key): string
+    {
+        $value = $_ENV[$key] ?? null;
+
+        return is_string($value) ? $value : '';
     }
 }

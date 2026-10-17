@@ -7,7 +7,6 @@ namespace App\Feed\Service;
 use App\Shared\Http\NativeHttpClient;
 use App\Shared\Http\PublicUrlGuard;
 use DOMDocument;
-use DOMElement;
 use RuntimeException;
 
 final readonly class FeedDiscoveryService
@@ -56,10 +55,6 @@ final readonly class FeedDiscoveryService
         }
 
         foreach ($document->getElementsByTagName('link') as $link) {
-            if (!$link instanceof DOMElement) {
-                continue;
-            }
-
             $rel = strtolower($link->getAttribute('rel'));
             $type = strtolower($link->getAttribute('type'));
             if (
