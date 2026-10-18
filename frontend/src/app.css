@@ -457,6 +457,25 @@ label {
     line-height: 1.4;
     white-space: normal;
     overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+
+.pull-refresh {
+    height: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: .8rem;
+    transition: height .15s ease;
+}
+
+.pull-refresh.active {
+    color: var(--blue);
+    font-weight: 600;
 }
 
 .feed-icon {
