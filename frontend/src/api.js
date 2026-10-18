@@ -8,8 +8,11 @@ export async function api(path, options = {}) {
     const method = (options.method || 'GET').toUpperCase();
     const headers = new Headers(options.headers || {});
 
-    if (options.body !== undefined && !(options.body instanceof FormData)) {
-        headers.set('Content-Type', 'application/json');
+    if (options.body !== undefined && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+        headers.set(
+            'Content-Type',
+            method === 'PATCH' ? 'application/merge-patch+json' : 'application/json',
+        );
     }
     if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && csrfToken) {
         headers.set('X-CSRF-TOKEN', csrfToken);

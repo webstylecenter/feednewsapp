@@ -10,6 +10,7 @@ use App\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
+use Symfony\Component\Uid\Uuid;
 
 /** @extends ServiceEntityRepository<FeedUser> */
 final class UserFeedRepository extends ServiceEntityRepository
@@ -118,7 +119,7 @@ final class UserFeedRepository extends ServiceEntityRepository
             ->andWhere('userFeed.user = :user')
             ->andWhere('feed.uuid = :feedUuid')
             ->setParameter('user', $user)
-            ->setParameter('feedUuid', $feedUuid)
+            ->setParameter('feedUuid', Uuid::fromString($feedUuid), 'uuid')
             ->getQuery()
             ->getOneOrNullResult();
 

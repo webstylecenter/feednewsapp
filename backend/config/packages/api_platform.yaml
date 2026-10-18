@@ -3,6 +3,8 @@ api_platform:
     version: 1.0.0
     formats:
         json: ['application/json']
+    patch_formats:
+        json: ['application/merge-patch+json']
     mapping:
         paths: ['%kernel.project_dir%/src']
     docs_formats:

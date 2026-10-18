@@ -459,6 +459,15 @@ label {
     overflow-wrap: anywhere;
 }
 
+.feed-main .feed-copy > small {
+    display: -webkit-box;
+    max-height: 4.2em;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
 .feed-icon {
     width: 30px;
     height: 30px;
@@ -2318,38 +2327,53 @@ th, td {
 
 .statistics-feeds-widget {
     display: grid;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
     gap: .7rem;
 }
 
 .top-feed-statistics {
     display: grid;
+    min-width: 0;
+    max-width: 100%;
     gap: .8rem;
 }
 
 .top-feed-row {
     display: grid;
+    min-width: 0;
+    max-width: 100%;
     gap: .35rem;
 }
 
 .top-feed-label {
     display: flex;
+    min-width: 0;
+    max-width: 100%;
     justify-content: space-between;
     gap: 1rem;
     align-items: baseline;
 }
 
 .top-feed-label strong {
+    min-width: 0;
+    flex: 1 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .top-feed-label span {
+    flex: 0 0 auto;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
 }
 
 .top-feed-track {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     height: 8px;
     overflow: hidden;
     border-radius: 999px;
