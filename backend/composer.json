@@ -6,7 +6,9 @@
     "require": {
         "php": ">=8.5",
         "ext-ctype": "*",
+        "ext-dom": "*",
         "ext-iconv": "*",
+        "ext-mbstring": "*",
         "api-platform/core": "^4.2.15",
         "api-platform/doctrine-orm": "^4.1",
         "api-platform/symfony": "^4.1",
@@ -23,6 +25,7 @@
         "symfony/expression-language": "7.4.*",
         "symfony/flex": "^2.10",
         "symfony/framework-bundle": "7.4.*",
+        "symfony/mime": "7.4.*",
         "symfony/property-access": "7.4.*",
         "symfony/property-info": "7.4.*",
         "symfony/runtime": "7.4.*",
@@ -31,9 +34,7 @@
         "symfony/twig-bundle": "7.4.*",
         "symfony/uid": "7.4.*",
         "symfony/validator": "7.4.*",
-        "symfony/yaml": "7.4.*",
-        "ext-dom": "*",
-        "ext-mbstring": "*"
+        "symfony/yaml": "7.4.*"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
