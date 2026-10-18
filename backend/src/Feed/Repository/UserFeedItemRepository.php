@@ -7,9 +7,11 @@ namespace App\Feed\Repository;
 use App\Feed\Entity\FeedTag;
 use App\Feed\Entity\FeedUserItem;
 use App\User\Entity\User;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use LogicException;
 
 /** @extends ServiceEntityRepository<FeedUserItem> */
 final class UserFeedItemRepository extends ServiceEntityRepository
@@ -186,6 +188,155 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     public function findOwnedByUuid(User $user, string $uuid): ?FeedUserItem
     {
         return $this->findOneBy(['uuid' => $uuid, 'user' => $user]);
+    }
+
+    /** @return array{items: int, unread: int, opened: int, pinned: int} */
+    public function dashboardTotalsForUser(User $user): array
+    {
+        $row = $this->getEntityManager()->getConnection()->fetchAssociative(
+            'SELECT '
+            . 'COUNT(id) AS item_count, '
+            . 'SUM(CASE WHEN opened_at IS NULL THEN 1 ELSE 0 END) AS unread_count, '
+            . 'SUM(CASE WHEN opened_at IS NOT NULL THEN 1 ELSE 0 END) AS opened_count, '
+            . 'SUM(CASE WHEN pinned = 1 THEN 1 ELSE 0 END) AS pinned_count '
+            . 'FROM feed_user_item WHERE user_id = :userId',
+            ['userId' => $this->persistedUserId($user)],
+        );
+
+        if ($row === false) {
+            return ['items' => 0, 'unread' => 0, 'opened' => 0, 'pinned' => 0];
+        }
+
+        return [
+            'items' => $this->countValue($row['item_count'] ?? null),
+            'unread' => $this->countValue($row['unread_count'] ?? null),
+            'opened' => $this->countValue($row['opened_count'] ?? null),
+            'pinned' => $this->countValue($row['pinned_count'] ?? null),
+        ];
+    }
+
+    /** @return list<array{name: string, count: int}> */
+    public function countByCategoryForUser(User $user): array
+    {
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            "SELECT CASE "
+            . "WHEN item.user_feed_id IS NULL THEN 'Saved links' "
+            . "WHEN category.id IS NULL THEN 'Uncategorised' "
+            . "ELSE category.name END AS category_name, "
+            . 'COUNT(item.id) AS item_count '
+            . 'FROM feed_user_item item '
+            . 'LEFT JOIN feed_user user_feed ON user_feed.id = item.user_feed_id '
+            . 'LEFT JOIN feed feed ON feed.id = user_feed.feed_id '
+            . 'LEFT JOIN feed_category category ON category.id = feed.category_id '
+            . 'WHERE item.user_id = :userId '
+            . 'GROUP BY category_name '
+            . 'ORDER BY item_count DESC, category_name ASC',
+            ['userId' => $this->persistedUserId($user)],
+        );
+
+        $statistics = [];
+        foreach ($rows as $row) {
+            $name = $row['category_name'] ?? null;
+            if (!is_string($name) || $name === '') {
+                continue;
+            }
+
+            $statistics[] = [
+                'name' => $name,
+                'count' => $this->countValue($row['item_count'] ?? null),
+            ];
+        }
+
+        return $statistics;
+    }
+
+    /** @return array<string, int> */
+    public function countCreatedByDayForUser(User $user, DateTimeImmutable $since): array
+    {
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            'SELECT DATE(created_at) AS date_key, COUNT(id) AS item_count '
+            . 'FROM feed_user_item '
+            . 'WHERE user_id = :userId AND created_at >= :since '
+            . 'GROUP BY DATE(created_at) '
+            . 'ORDER BY date_key ASC',
+            [
+                'userId' => $this->persistedUserId($user),
+                'since' => $since->format('Y-m-d 00:00:00'),
+            ],
+        );
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $date = $row['date_key'] ?? null;
+            if (!is_string($date)) {
+                continue;
+            }
+
+            $counts[$date] = $this->countValue($row['item_count'] ?? null);
+        }
+
+        return $counts;
+    }
+
+    /** @return list<array{name: string, count: int}> */
+    public function topFeedsForUser(User $user, DateTimeImmutable $since, int $limit): array
+    {
+        if ($limit < 1) {
+            return [];
+        }
+
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
+            'SELECT feed.name AS feed_name, COUNT(item.id) AS item_count '
+            . 'FROM feed_user_item item '
+            . 'INNER JOIN feed_user user_feed ON user_feed.id = item.user_feed_id '
+            . 'INNER JOIN feed feed ON feed.id = user_feed.feed_id '
+            . 'WHERE item.user_id = :userId AND item.created_at >= :since '
+            . 'GROUP BY feed.id, feed.name '
+            . 'ORDER BY item_count DESC, feed.name ASC '
+            . 'LIMIT ' . $limit,
+            [
+                'userId' => $this->persistedUserId($user),
+                'since' => $since->format('Y-m-d 00:00:00'),
+            ],
+        );
+
+        $statistics = [];
+        foreach ($rows as $row) {
+            $name = $row['feed_name'] ?? null;
+            if (!is_string($name) || $name === '') {
+                continue;
+            }
+
+            $statistics[] = [
+                'name' => $name,
+                'count' => $this->countValue($row['item_count'] ?? null),
+            ];
+        }
+
+        return $statistics;
+    }
+
+    private function persistedUserId(User $user): int
+    {
+        $id = $user->getId();
+        if ($id === null) {
+            throw new LogicException('Dashboard statistics require a persisted user.');
+        }
+
+        return $id;
+    }
+
+    private function countValue(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_string($value) && ctype_digit($value)) {
+            return (int) $value;
+        }
+
+        return 0;
     }
 
     private function applySourceFilter(

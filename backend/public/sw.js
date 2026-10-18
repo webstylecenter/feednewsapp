@@ -129,10 +129,10 @@ define(['./workbox-7e5eb42b'], (function (workbox) { 'use strict';
     "revision": "3ea3483ef518ce5b654419c940a758ab"
   }, {
     "url": "build/app.js",
-    "revision": "e6b8b9546ec48a91ad037cc9e0d1d8be"
+    "revision": "442082c4f296c01a5fae66603a4942af"
   }, {
     "url": "build/app.css",
-    "revision": "6552fb105c36f1055dcf62f7611351f3"
+    "revision": "048ada4288b2f10b5aa9bdc55ae5526a"
   }, {
     "url": "apple-touch-icon.png",
     "revision": "c8efb21a33bff7b75f235edf76d89c00"

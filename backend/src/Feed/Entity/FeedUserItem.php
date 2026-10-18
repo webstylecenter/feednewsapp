@@ -18,6 +18,7 @@ use Symfony\Component\Uid\Uuid;
     name: 'feed_user_item',
     indexes: [
         new ORM\Index(name: 'idx_fui_user', columns: ['user_id']),
+        new ORM\Index(name: 'idx_fui_user_created', columns: ['user_id', 'created_at']),
         new ORM\Index(name: 'idx_fui_feed_item', columns: ['feed_item_id']),
         new ORM\Index(name: 'idx_fui_user_feed', columns: ['user_feed_id']),
         new ORM\Index(name: 'idx_fui_tag', columns: ['tag_id']),

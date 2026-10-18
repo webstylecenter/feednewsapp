@@ -1,33 +1,13 @@
-# FeedNews UUID/mobile/scroll patch
+# FeedNews dashboard chart axis update
 
-This patch contains only changed files.
+Deze kleine patch bouwt voort op `feednews-dashboard-statistics.zip`.
 
-## Changes
+Wijzigingen in de grafiek **New items**:
 
-- Dashboard Add a feed / Available feeds widgets now scroll vertically when their content exceeds the widget height.
-- Notes use the existing vertical tabs on desktop and a select box on mobile.
-- Public API identifiers have been changed from database primary keys to UUIDs for entities that expose a UUID.
-- Feed subscriptions are addressed externally by the UUID of the feed rather than the internal `feed_user.id`.
-- Saved/manual links keep the special `manual` source key because it is not a database identifier.
-- Notes now use `POST /api/notes` for creation and `PATCH /api/notes/{uuid}` for updates.
+- verticale Y-as met zichtbare aantallen;
+- horizontale gridlijnen gekoppeld aan de Y-as;
+- aantal items zichtbaar boven ieder datapunt, dus hover is niet nodig;
+- ieder van de 14 dagen staat onder de X-as in Nederlands formaat, bijvoorbeeld `MA 5 OKT`;
+- op smalle schermen kan alleen het grafiekgedeelte horizontaal scrollen, zodat de labels leesbaar blijven.
 
-## Examples
-
-- `/api/feed/items/{uuid}/pin`
-- `/api/feed/items/{uuid}/opened`
-- `/api/feed/tag/{uuid}`
-- `/api/tags/{uuid}`
-- `/api/notes/{uuid}`
-- `/api/checklist/{uuid}`
-- `/api/settings/feeds/{feedUuid}`
-- `/api/admin/users/{uuid}`
-- `/api/users/{uuid}`
-
-No database schema migration is required: the relevant UUID columns already exist.
-
-After copying the files, clear the Symfony cache and run the quality checks:
-
-```bash
-ddev exec php backend/bin/console cache:clear
-ddev composer quality
-```
+Er zijn geen backend- of databasewijzigingen nodig.
