@@ -1,23 +1,34 @@
-# FeedNews frontend
+# Feednews PWA files
 
-Vue 3 + Vite frontend for FeedNews. Runtime dependencies are intentionally limited to Vue; interaction features use browser-native APIs where practical.
+Copy the contents of this zip into the frontend project root.
+
+## Dependency
+
+```bash
+npm install -D vite-plugin-pwa
+```
+
+The supplied `vite.config.js` includes the missing `VitePWA` import and generates the web app manifest during the Vite build.
+
+Remove the two old static manifests to avoid conflicting manifests:
+
+```bash
+rm -f public/manifest.json public/manifest.webmanifest
+```
+
+Make sure these are present inside `<head>` in `index.html`:
+
+```html
+<meta name="theme-color" content="#337dff">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+```
+
+The manifest link and service-worker registration are handled by `vite-plugin-pwa`.
+
+Then build:
 
 ```bash
 npm install
-npm run dev
 npm run build
 ```
-
-The production build is written to `../backend/public`.
-
-Native browser features replace the legacy frontend dependencies:
-
-- `<dialog>` for modals
-- Pointer Events for swipe actions
-- `IntersectionObserver` for endless loading
-- Clipboard API for share links
-- History API for client-side navigation
-- native `<input type="color">` for feed/tag colors
-- CSS media queries and `color-scheme` for responsive/light/dark presentation
-
-There is no jQuery or Svelte runtime.
