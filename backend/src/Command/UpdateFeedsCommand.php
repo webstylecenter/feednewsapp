@@ -27,13 +27,24 @@ final class UpdateFeedsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $startedAt = microtime(true);
         $total = 0;
         $failed = 0;
+
         foreach ($this->feedRepository->findOldestUpdatedFirst() as $feed) {
+            $feedStartedAt = microtime(true);
             try {
                 $newItems = $this->feedService->parseFeed($feed);
                 $total += $newItems;
-                $output->writeln(sprintf('%s: %d new item(s)', $feed->getName(), $newItems));
+
+                if ($newItems > 0 || $output->isVerbose()) {
+                    $output->writeln(sprintf(
+                        '%s: %d new item(s) in %.2fs',
+                        $feed->getName(),
+                        $newItems,
+                        microtime(true) - $feedStartedAt,
+                    ));
+                }
             } catch (Throwable $throwable) {
                 ++$failed;
                 $this->errorService->report(FeedErrorType::ERROR, $throwable->getMessage(), null, $feed);
@@ -41,7 +52,13 @@ final class UpdateFeedsCommand extends Command
             }
         }
 
-        $output->writeln(sprintf('<info>Finished: %d new item(s), %d failed feed(s).</info>', $total, $failed));
+        $output->writeln(sprintf(
+            '<info>Finished: %d new item(s), %d failed feed(s) in %.2fs.</info>',
+            $total,
+            $failed,
+            microtime(true) - $startedAt,
+        ));
+
         return $failed === 0 ? self::SUCCESS : self::FAILURE;
     }
 }

@@ -10,7 +10,6 @@ use App\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
-use Symfony\Component\Uid\Uuid;
 
 /** @extends ServiceEntityRepository<FeedUser> */
 final class UserFeedRepository extends ServiceEntityRepository
@@ -108,7 +107,14 @@ final class UserFeedRepository extends ServiceEntityRepository
     public function findForFeed(Feed $feed): array
     {
         /** @var list<FeedUser> $feeds */
-        $feeds = $this->findBy(['feed' => $feed]);
+        $feeds = $this->createQueryBuilder('userFeed')
+            ->addSelect('user')
+            ->innerJoin('userFeed.user', 'user')
+            ->andWhere('userFeed.feed = :feed')
+            ->setParameter('feed', $feed)
+            ->getQuery()
+            ->getResult();
+
         return $feeds;
     }
 
@@ -119,7 +125,7 @@ final class UserFeedRepository extends ServiceEntityRepository
             ->andWhere('userFeed.user = :user')
             ->andWhere('feed.uuid = :feedUuid')
             ->setParameter('user', $user)
-            ->setParameter('feedUuid', Uuid::fromString($feedUuid), 'uuid')
+            ->setParameter('feedUuid', $feedUuid)
             ->getQuery()
             ->getOneOrNullResult();
 

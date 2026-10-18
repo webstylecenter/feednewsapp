@@ -97,7 +97,7 @@ final readonly class FeedService
         $this->entityManager->persist($subscription);
 
         foreach ($this->feedItemRepository->findLatestForFeed($feed, 25) as $feedItem) {
-            $this->createUserItem($user, $subscription, $feedItem, $autoPin);
+            $this->createUserItemIfMissing($user, $subscription, $feedItem, $autoPin);
         }
 
         $this->entityManager->flush();
@@ -131,7 +131,13 @@ final readonly class FeedService
 
     public function parseFeed(Feed $feed): int
     {
-        $parsedFeed = $this->downloadAndParse($feed->getUrl());
+        $parsedFeed = $this->downloadAndParseFeed($feed);
+        if ($parsedFeed === null) {
+            $feed->setUpdatedAt(new DateTime());
+            $this->entityManager->flush();
+            return 0;
+        }
+
         if ($feed->getName() === '') {
             $feed->setName($parsedFeed->title);
         }
@@ -268,12 +274,66 @@ final readonly class FeedService
         return $this->feedParser->parse($response->body);
     }
 
+    private function downloadAndParseFeed(Feed $feed): ?ParsedFeed
+    {
+        $headers = [
+            'Accept' => 'application/rss+xml,application/atom+xml,application/xml,text/xml;q=0.9,*/*;q=0.1',
+        ];
+
+        $etag = $feed->getHttpEtag();
+        if ($etag !== null && $etag !== '') {
+            $headers['If-None-Match'] = $etag;
+        }
+
+        $lastModified = $feed->getHttpLastModified();
+        if ($lastModified !== null && $lastModified !== '') {
+            $headers['If-Modified-Since'] = $lastModified;
+        }
+
+        $response = $this->httpClient->get($feed->getUrl(), $headers);
+        if ($response->statusCode === 304) {
+            $responseEtag = $this->normalizeHeader($response->firstHeader('etag'), 2_000);
+            if ($responseEtag !== null) {
+                $feed->setHttpEtag($responseEtag);
+            }
+
+            $responseLastModified = $this->normalizeHeader($response->firstHeader('last-modified'), 255);
+            if ($responseLastModified !== null) {
+                $feed->setHttpLastModified($responseLastModified);
+            }
+
+            return null;
+        }
+
+        if ($response->statusCode < 200 || $response->statusCode >= 300) {
+            throw new RuntimeException(sprintf('Feed returned HTTP %d.', $response->statusCode));
+        }
+
+        $parsedFeed = $this->feedParser->parse($response->body);
+
+        $feed->setHttpEtag($this->normalizeHeader($response->firstHeader('etag'), 2_000));
+        $feed->setHttpLastModified($this->normalizeHeader($response->firstHeader('last-modified'), 255));
+
+        return $parsedFeed;
+    }
+
     private function persistParsedItems(Feed $feed, ParsedFeed $parsedFeed): int
     {
+        $guids = [];
+        foreach ($parsedFeed->items as $parsedItem) {
+            $guids[] = $this->normalizeGuid($parsedItem->guid);
+        }
+
+        /** @var list<string> $uniqueGuids */
+        $uniqueGuids = array_values(array_unique($guids));
+        $existingGuids = $this->feedItemRepository->findExistingGuidMap($feed, $uniqueGuids);
+        $seenGuids = [];
+        $subscriptions = null;
         $newItems = 0;
+
         foreach ($parsedFeed->items as $parsedItem) {
             $guid = $this->normalizeGuid($parsedItem->guid);
-            if ($this->feedItemRepository->findOneBy(['feed' => $feed, 'guid' => $guid]) instanceof FeedItem) {
+            if (isset($existingGuids[$guid]) || isset($seenGuids[$guid])) {
                 continue;
             }
 
@@ -283,9 +343,12 @@ final readonly class FeedService
                 continue;
             }
 
+            $seenGuids[$guid] = true;
             $feedItem = $this->createFeedItem($feed, $parsedItem, $guid, $safeUrl);
             $this->entityManager->persist($feedItem);
-            foreach ($this->userFeedRepository->findForFeed($feed) as $subscription) {
+
+            $subscriptions ??= $this->userFeedRepository->findForFeed($feed);
+            foreach ($subscriptions as $subscription) {
                 $this->createUserItem(
                     $subscription->getUser(),
                     $subscription,
@@ -293,6 +356,7 @@ final readonly class FeedService
                     $subscription->isAutoPin(),
                 );
             }
+
             ++$newItems;
         }
 
@@ -314,14 +378,23 @@ final readonly class FeedService
 
     private function createUserItem(User $user, FeedUser $subscription, FeedItem $feedItem, bool $pinned): void
     {
-        if ($this->userFeedItemRepository->findOneBy(['user' => $user, 'feedItem' => $feedItem]) instanceof FeedUserItem) {
-            return;
-        }
-
         $item = new FeedUserItem($user, $feedItem, $subscription, null);
         $item->setPinned($pinned);
         $subscription->addUserFeedItem($item);
         $this->entityManager->persist($item);
+    }
+
+    private function createUserItemIfMissing(
+        User $user,
+        FeedUser $subscription,
+        FeedItem $feedItem,
+        bool $pinned,
+    ): void {
+        if ($this->userFeedItemRepository->findOneBy(['user' => $user, 'feedItem' => $feedItem]) instanceof FeedUserItem) {
+            return;
+        }
+
+        $this->createUserItem($user, $subscription, $feedItem, $pinned);
     }
 
     /** @param list<FeedUserItem> $items */
@@ -350,6 +423,20 @@ final readonly class FeedService
         }
 
         return hash('sha256', $guid);
+    }
+
+    private function normalizeHeader(?string $header, int $maxLength): ?string
+    {
+        if ($header === null) {
+            return null;
+        }
+
+        $header = trim($header);
+        if ($header === '') {
+            return null;
+        }
+
+        return mb_substr($header, 0, $maxLength);
     }
 
     private function normalizeNullableColor(?string $color): ?string

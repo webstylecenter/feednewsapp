@@ -36,6 +36,12 @@ class Feed
     #[ORM\Column(type: Types::TEXT)]
     private string $url;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $httpEtag = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $httpLastModified = null;
+
     public function __construct(?FeedCategory $category, string $name, string $color, string $url)
     {
         $this->uuid = Uuid::v4();
@@ -96,6 +102,28 @@ class Feed
     public function setUrl(string $url): Feed
     {
         $this->url = $url;
+        return $this;
+    }
+
+    public function getHttpEtag(): ?string
+    {
+        return $this->httpEtag;
+    }
+
+    public function setHttpEtag(?string $httpEtag): Feed
+    {
+        $this->httpEtag = $httpEtag;
+        return $this;
+    }
+
+    public function getHttpLastModified(): ?string
+    {
+        return $this->httpLastModified;
+    }
+
+    public function setHttpLastModified(?string $httpLastModified): Feed
+    {
+        $this->httpLastModified = $httpLastModified;
         return $this;
     }
 }
