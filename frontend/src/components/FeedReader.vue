@@ -1,12 +1,15 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { api } from '../api.js';
 import { applyTheme } from '../theme.js';
 import Dashboard from './Dashboard.vue';
 import ArticleReader from './ArticleReader.vue';
-import { feedIcon, weatherIcon } from '../presentation.js';
+import { faviconUrl, weatherIcon } from '../presentation.js';
 
-const props = defineProps({ user: { type: Object, required: true } });
+const props = defineProps({
+    user: { type: Object, required: true },
+    path: { type: String, default: '/' },
+});
 const emit = defineEmits(['navigate', 'logout']);
 
 const items = ref([]);
@@ -15,6 +18,9 @@ const pinnedCount = ref(0);
 const showAllPinned = ref(false);
 const pinnedLoading = ref(false);
 const tags = ref([]);
+const failedFavicons = ref(new Set());
+const selectedFeedSource = ref('');
+const selectedFeedLabel = ref('');
 const activeTab = ref('recent');
 const selectedTag = ref('');
 const search = ref('');
@@ -66,6 +72,50 @@ function resetPinnedState() {
     showAllPinned.value = false;
 }
 
+function markFaviconFailed(item) {
+    const url = faviconUrl(item.url);
+    if (!url) return;
+
+    const failed = new Set(failedFavicons.value);
+    failed.add(url);
+    failedFavicons.value = failed;
+}
+
+function showFavicon(item) {
+    const url = faviconUrl(item.url);
+
+    return url !== '' && !failedFavicons.value.has(url);
+}
+
+function feedSourceFromPath(path) {
+    const match = /^\/feed\/([^/]+)$/.exec(path);
+    if (!match) return '';
+
+    const source = decodeURIComponent(match[1]);
+    if (source === 'manual' || /^\d+$/.test(source)) return source;
+
+    return '';
+}
+
+async function applyFeedSource(path) {
+    const source = feedSourceFromPath(path);
+    if (source === selectedFeedSource.value) return;
+
+    selectedFeedSource.value = source;
+    selectedFeedLabel.value = source === 'manual' ? 'Saved links' : '';
+    activeTab.value = 'recent';
+    selectedTag.value = '';
+    await loadRecent(true);
+}
+
+function clearFeedSource() {
+    emit('navigate', '/');
+}
+
+function openDashboardFeed(source) {
+    emit('navigate', `/feed/${source}`);
+}
+
 function youtubeEmbedUrl(url) {
     try {
         const parsed = new URL(url);
@@ -105,11 +155,20 @@ async function loadRecent(reset = false) {
             items.value = [];
             resetPinnedState();
         }
-        const data = await api(`/api/feed/items?page=${page.value}&limit=50`);
+        const feedFilter = selectedFeedSource.value
+            ? `&feed=${encodeURIComponent(selectedFeedSource.value)}`
+            : '';
+        const data = await api(`/api/feed/items?page=${page.value}&limit=50${feedFilter}`);
         items.value.push(...data.items);
         if (page.value === 0) {
             pinnedItems.value = data.pinnedItems || [];
             pinnedCount.value = data.pinnedCount || 0;
+            if (selectedFeedSource.value) {
+                const firstItem = pinnedItems.value[0] || items.value[0];
+                selectedFeedLabel.value = selectedFeedSource.value === 'manual'
+                    ? 'Saved links'
+                    : (firstItem?.feedName || `Feed ${selectedFeedSource.value}`);
+            }
         }
         nextPage.value = data.nextPage;
         if (data.nextPage !== null) page.value = data.nextPage;
@@ -119,6 +178,11 @@ async function loadRecent(reset = false) {
 }
 
 async function switchTab(tab) {
+    if (selectedFeedSource.value) {
+        selectedFeedSource.value = '';
+        selectedFeedLabel.value = '';
+        emit('navigate', '/');
+    }
     activeTab.value = tab;
     selectedTag.value = '';
     if (tab === 'recent') return loadRecent(true);
@@ -132,6 +196,11 @@ async function switchTab(tab) {
 
 async function doSearch() {
     if (search.value.trim().length < 2) return;
+    if (selectedFeedSource.value) {
+        selectedFeedSource.value = '';
+        selectedFeedLabel.value = '';
+        emit('navigate', '/');
+    }
     activeTab.value = 'search';
     selectedTag.value = '';
     resetPinnedState();
@@ -140,6 +209,11 @@ async function doSearch() {
 }
 
 async function filterTag() {
+    if (selectedFeedSource.value) {
+        selectedFeedSource.value = '';
+        selectedFeedLabel.value = '';
+        emit('navigate', '/');
+    }
     if (!selectedTag.value) return loadRecent(true);
     activeTab.value = 'tag';
     resetPinnedState();
@@ -162,7 +236,7 @@ async function openItem(item) {
     currentUrl.value = '';
     readerSource.value = null;
     readerError.value = '';
-    await api(`/api/feed/items/${item.id}/opened`, { method: 'POST' });
+    await api(`/api/feed/items/${item.uuid}/opened`, { method: 'POST' });
 
     const youtubeUrl = youtubeEmbedUrl(item.url);
     if (youtubeUrl) {
@@ -183,7 +257,7 @@ async function openItem(item) {
 }
 
 async function togglePin(item) {
-    await api(`/api/feed/items/${item.id}/pin`, { method: 'PATCH' });
+    await api(`/api/feed/items/${item.uuid}/pin`, { method: 'PATCH' });
     await loadRecent(true);
 }
 
@@ -197,7 +271,10 @@ async function togglePinnedList() {
     if (pinnedItems.value.length < pinnedCount.value) {
         pinnedLoading.value = true;
         try {
-            pinnedItems.value = (await api('/api/feed/pinned')).items;
+            const feedFilter = selectedFeedSource.value
+                ? `?feed=${encodeURIComponent(selectedFeedSource.value)}`
+                : '';
+            pinnedItems.value = (await api(`/api/feed/pinned${feedFilter}`)).items;
         } finally {
             pinnedLoading.value = false;
         }
@@ -252,8 +329,8 @@ function pointerUp(event, item) {
 }
 
 function tagForItem(item) {
-    if (!item.tagId) return null;
-    return tags.value.find((tag) => tag.id === item.tagId) || null;
+    if (!item.tagUuid) return null;
+    return tags.value.find((tag) => tag.uuid === item.tagUuid) || null;
 }
 
 function openTagDialog(item) {
@@ -262,9 +339,9 @@ function openTagDialog(item) {
     tagDialog.value?.showModal();
 }
 
-async function assignTag(tagId) {
-    await api('/api/tags/assign', { method: 'POST', body: { itemId: selectedItem.value.id, tagId } });
-    selectedItem.value.tagId = tagId || null;
+async function assignTag(tagUuid) {
+    await api('/api/tags/assign', { method: 'POST', body: { itemUuid: selectedItem.value.uuid, tagUuid } });
+    selectedItem.value.tagUuid = tagUuid || null;
     await loadTags();
     tagDialog.value?.close();
 }
@@ -338,6 +415,8 @@ async function importFromQuery() {
 }
 
 onMounted(async () => {
+    selectedFeedSource.value = feedSourceFromPath(props.path);
+    selectedFeedLabel.value = selectedFeedSource.value === 'manual' ? 'Saved links' : '';
     await Promise.all([loadRecent(true), loadTags()]);
     loadHeaderData().catch(() => {});
     refreshTimer = window.setInterval(() => loadHeaderData().catch(() => {}), 300000);
@@ -348,6 +427,14 @@ onMounted(async () => {
     if (sentinel.value) observer.observe(sentinel.value);
     await importFromQuery();
 });
+
+
+watch(
+    () => props.path,
+    (path) => {
+        applyFeedSource(path).catch(() => {});
+    },
+);
 
 onBeforeUnmount(() => {
     observer?.disconnect();
@@ -411,9 +498,13 @@ onBeforeUnmount(() => {
                     <input v-model="search" type="search" placeholder="Search" aria-label="Search feed items">
                     <button title="Search">⌕</button>
                 </form>
+                <div v-if="selectedFeedSource" class="feed-source-filter">
+                    <strong>{{ selectedFeedLabel || 'Selected feed' }}</strong>
+                    <button title="Show all feeds" @click="clearFeedSource">×</button>
+                </div>
                 <select v-model="selectedTag" aria-label="Filter by tag" @change="filterTag">
                     <option value="">All tags</option>
-                    <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }} ({{ tag.count }})</option>
+                    <option v-for="tag in tags" :key="tag.uuid" :value="tag.uuid">{{ tag.name }} ({{ tag.count }})</option>
                 </select>
             </div>
 
@@ -421,7 +512,7 @@ onBeforeUnmount(() => {
                 <template v-for="(item, index) in visibleItems" :key="item.uuid">
                 <article
                     class="feed-item"
-                    :class="{ pinned: item.pinned }"
+                    :class="{ pinned: item.pinned, active: currentItem?.uuid === item.uuid, striped: index % 2 === 1 }"
                     :style="{ '--feed-color': item.color }"
                     @pointerdown="pointerDown"
                     @pointerup="pointerUp($event, item)"
@@ -439,7 +530,16 @@ onBeforeUnmount(() => {
                         </svg>
                     </button>
                     <button class="feed-main" @click="openItem(item)">
-                        <span class="feed-icon">{{ feedIcon(item.feedIcon) }}</span>
+                        <span class="feed-icon">
+                            <img
+                                v-if="showFavicon(item)"
+                                :src="faviconUrl(item.url)"
+                                alt=""
+                                loading="lazy"
+                                @error="markFaviconFailed(item)"
+                            >
+                            <span v-else class="feed-dot"></span>
+                        </span>
                         <span class="feed-copy">
                             <strong>{{ item.title }}</strong>
                             <small>{{ item.description }}</small>
@@ -448,7 +548,7 @@ onBeforeUnmount(() => {
                     <div class="feed-actions">
                         <button
                             class="tag-action"
-                            :class="{ active: item.tagId }"
+                            :class="{ active: item.tagUuid }"
                             :style="tagForItem(item) ? { '--tag-color': tagForItem(item).color } : undefined"
                             :title="tagForItem(item) ? `Tag: ${tagForItem(item).name}` : 'Tag'"
                             @click="openTagDialog(item)"
@@ -512,7 +612,7 @@ onBeforeUnmount(() => {
                 <button class="primary" @click="openCurrentExternal">Open originele website ↗</button>
             </div>
             <ArticleReader v-else-if="readerSource" :source="readerSource" />
-            <Dashboard v-else />
+            <Dashboard v-else @select-feed="openDashboardFeed" />
         </section>
 
 
@@ -550,18 +650,18 @@ onBeforeUnmount(() => {
                 <header><h2>Tag item</h2><button class="icon-button" @click="tagDialog.close()">×</button></header>
                 <button
                     class="tag-option"
-                    :class="{ selected: (selectedItem?.tagId ?? null) === null }"
-                    :aria-pressed="(selectedItem?.tagId ?? null) === null"
+                    :class="{ selected: (selectedItem?.tagUuid ?? null) === null }"
+                    :aria-pressed="(selectedItem?.tagUuid ?? null) === null"
                     @click="assignTag(null)"
                 >No tag</button>
                 <button
                     v-for="tag in tags"
-                    :key="tag.id"
+                    :key="tag.uuid"
                     class="tag-option"
-                    :class="{ selected: selectedItem?.tagId === tag.id }"
+                    :class="{ selected: selectedItem?.tagUuid === tag.uuid }"
                     :style="{ '--tag-color': tag.color }"
-                    :aria-pressed="selectedItem?.tagId === tag.id"
-                    @click="assignTag(tag.id)"
+                    :aria-pressed="selectedItem?.tagUuid === tag.uuid"
+                    @click="assignTag(tag.uuid)"
                 >
                     <span></span>{{ tag.name }}
                 </button>

@@ -94,5 +94,5 @@ onBeforeUnmount(() => window.removeEventListener('popstate', onPopState));
     <WeatherPage v-else-if="path === '/weather'" @navigate="navigate" />
     <FeedbackPage v-else-if="path === '/feedback'" @navigate="navigate" />
     <ScreensaverPage v-else-if="path === '/screensaver'" @navigate="navigate" />
-    <FeedReader v-else :user="session.user" @navigate="navigate" @logout="logout" />
+    <FeedReader v-else :user="session.user" :path="path" @navigate="navigate" @logout="logout" />
 </template>

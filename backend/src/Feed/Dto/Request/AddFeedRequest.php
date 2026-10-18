@@ -17,8 +17,8 @@ final class AddFeedRequest
     #[Assert\Url(protocols: ['http', 'https'])]
     public string $url = '';
 
-    #[Assert\Positive]
-    public ?int $category = null;
+    #[Assert\Uuid]
+    public ?string $category = null;
 
     #[Assert\Regex(pattern: '/^#[0-9a-fA-F]{6}$/')]
     public ?string $color = null;

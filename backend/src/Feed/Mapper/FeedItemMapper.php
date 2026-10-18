@@ -16,10 +16,6 @@ final class FeedItemMapper
         $feedItem = $userItem->getFeedItem();
         $userFeed = $userItem->getUserFeed();
         $feed = $userFeed?->getFeed() ?? $feedItem->getFeed();
-        $id = $userItem->getId();
-        if ($id === null) {
-            throw new LogicException('Cannot map an unpersisted feed user item.');
-        }
 
         $feedName = $feed?->getName() ?? '';
         $description = trim((string) $feedItem->getDescription());
@@ -28,7 +24,6 @@ final class FeedItemMapper
         }
 
         return new FeedItemResponse(
-            id: $id,
             uuid: $userItem->getUuid()->toRfc4122(),
             title: $feedItem->getTitle(),
             description: $description,
@@ -40,7 +35,7 @@ final class FeedItemMapper
             viewed: $userItem->isViewed(),
             openedAt: $userItem->getOpenedAt()?->format(DATE_ATOM),
             createdAt: self::formatTimestamp($userItem->getCreatedAt()),
-            tagId: $userItem->getTag()?->getId(),
+            tagUuid: $userItem->getTag()?->getUuid()->toRfc4122(),
         );
     }
 
@@ -52,7 +47,6 @@ final class FeedItemMapper
     {
         return array_map($this->toResponse(...), $items);
     }
-
     private static function formatTimestamp(?DateTimeInterface $dateTime): string
     {
         if ($dateTime === null) {

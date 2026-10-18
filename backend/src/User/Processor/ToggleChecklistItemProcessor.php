@@ -34,9 +34,9 @@ final readonly class ToggleChecklistItemProcessor implements ProcessorInterface
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ChecklistMutationResponse
     {
-        $item = $this->repository->findOwnedById(
+        $item = $this->repository->findOwnedByUuid(
             $this->currentUser->get(),
-            UriVariable::positiveInt($uriVariables),
+            UriVariable::uuid($uriVariables),
         );
         if (!$item instanceof UserChecklistItem) {
             throw new NotFoundHttpException('Todo not found.');

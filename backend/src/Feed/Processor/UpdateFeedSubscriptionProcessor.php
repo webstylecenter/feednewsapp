@@ -36,9 +36,9 @@ final readonly class UpdateFeedSubscriptionProcessor implements ProcessorInterfa
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): SubscriptionMutationResponse
     {
-        $subscription = $this->repository->findOwnedById(
+        $subscription = $this->repository->findOwnedByFeedUuid(
             $this->currentUser->get(),
-            UriVariable::positiveInt($uriVariables),
+            UriVariable::uuid($uriVariables),
         );
         if (!$subscription instanceof FeedUser) {
             throw new NotFoundHttpException('Feed subscription not found.');

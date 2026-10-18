@@ -14,6 +14,17 @@ export function weatherIcon(type, blue = false) {
     return `/images/${name}${blue ? '-blue' : ''}.png`;
 }
 
+export function faviconUrl(url) {
+    try {
+        const parsed = new URL(url);
+        if (!['http:', 'https:'].includes(parsed.protocol)) return '';
+
+        return `${parsed.origin}/favicon.ico`;
+    } catch {
+        return '';
+    }
+}
+
 const feedIcons = [
     ['youtube', '▶'],
     ['video', '▶'],

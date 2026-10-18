@@ -7,7 +7,7 @@ namespace App\Feed\Dto\Response;
 final readonly class FeedSummaryResponse
 {
     public function __construct(
-        public int $id,
+        public string $uuid,
         public string $name,
         public string $url,
         public string $color,

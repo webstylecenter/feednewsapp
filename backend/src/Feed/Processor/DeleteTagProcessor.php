@@ -35,7 +35,7 @@ final readonly class DeleteTagProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StatusResponse
     {
         $user = $this->currentUser->get();
-        $tag = $this->tagRepository->findOwnedById($user, UriVariable::positiveInt($uriVariables));
+        $tag = $this->tagRepository->findOwnedByUuid($user, UriVariable::uuid($uriVariables));
         if (!$tag instanceof FeedTag) {
             throw new NotFoundHttpException('Tag not found.');
         }

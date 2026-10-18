@@ -4,16 +4,12 @@ declare(strict_types=1);
 
 namespace App\User\Provider;
 
-use ApiPlatform\Doctrine\Orm\Paginator;
-use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Metadata\Operation;
-use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use App\User\Dto\Response\UserCollectionResponse;
 use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
-use ArrayIterator;
-use RuntimeException;
+use App\User\Repository\UserRepository;
 use Override;
 
 /**
@@ -22,43 +18,22 @@ use Override;
 final readonly class UserGetCollectionProvider implements ProviderInterface
 {
     public function __construct(
-        private CollectionProvider $collectionProvider,
+        private UserRepository $repository,
         private UserMapper $userMapper,
     ) {
     }
 
     /**
-     * @param Operation $operation
      * @param array<string, mixed> $uriVariables
      * @param array<string, mixed> $context
-     * @return array<int, UserCollectionResponse>
+     * @return list<UserCollectionResponse>
      */
     #[Override]
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        $entities = $this->collectionProvider->provide($operation, $uriVariables, $context);
+        /** @var list<User> $users */
+        $users = $this->repository->findBy([], ['createdAt' => 'DESC']);
 
-        /** @var array<int, UserCollectionResponse> $output */
-        $output = [];
-
-        foreach ($entities as $user) {
-            if (!$user instanceof User) {
-                throw new RuntimeException('Entity not of type ' . User::class);
-            }
-
-            $output[] = $this->userMapper->toCollectionResponse($user);
-        }
-
-        if ($entities instanceof Paginator) {
-            $output = iterator_to_array(new TraversablePaginator(
-                new ArrayIterator($output),
-                $entities->getCurrentPage(),
-                $entities->getItemsPerPage(),
-                $entities->getTotalItems(),
-            ));
-        }
-
-        /** @var array<int, UserCollectionResponse> $output */
-        return $output;
+        return array_map($this->userMapper->toCollectionResponse(...), $users);
     }
 }

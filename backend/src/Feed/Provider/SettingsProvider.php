@@ -37,21 +37,18 @@ final readonly class SettingsProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): SettingsResponse
     {
         $user = $this->currentUser->get();
-        $followedFeedIds = [];
+        $followedFeedUuids = [];
         $subscriptions = [];
         foreach ($this->userFeedRepository->findForUser($user) as $subscription) {
-            $feedId = $subscription->getFeed()->getId();
-            if ($feedId === null || $subscription->getId() === null) {
-                continue;
-            }
-            $followedFeedIds[$feedId] = true;
+            $feedUuid = $subscription->getFeed()->getUuid()->toRfc4122();
+            $followedFeedUuids[$feedUuid] = true;
             $subscriptions[] = $this->mapper->toSubscriptionResponse($subscription);
         }
 
         $availableFeeds = [];
         foreach ($this->feedRepository->findAllOrdered() as $feed) {
-            $id = $feed->getId();
-            if ($id === null || isset($followedFeedIds[$id])) {
+            $uuid = $feed->getUuid()->toRfc4122();
+            if (isset($followedFeedUuids[$uuid])) {
                 continue;
             }
             $availableFeeds[] = $this->mapper->toFeedResponse($feed);
@@ -59,10 +56,10 @@ final readonly class SettingsProvider implements ProviderInterface
 
         $categories = [];
         foreach ($this->categoryRepository->findAllOrdered() as $category) {
-            $id = $category->getId();
-            if ($id !== null) {
-                $categories[] = new CategoryResponse($id, $category->getName());
-            }
+            $categories[] = new CategoryResponse(
+                $category->getUuid()->toRfc4122(),
+                $category->getName(),
+            );
         }
 
         return new SettingsResponse(

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Shared\Api;
 
 use InvalidArgumentException;
+use Symfony\Component\Uid\Uuid;
 
 final class UriVariable
 {
@@ -28,6 +29,17 @@ final class UriVariable
         }
 
         throw new InvalidArgumentException(sprintf('%s must be a positive integer.', $name));
+    }
+
+    /** @param array<string, mixed> $uriVariables */
+    public static function uuid(array $uriVariables, string $name = 'uuid'): string
+    {
+        $value = $uriVariables[$name] ?? null;
+        if (!is_string($value) || !Uuid::isValid($value)) {
+            throw new InvalidArgumentException(sprintf('%s must be a valid UUID.', $name));
+        }
+
+        return $value;
     }
 
     /** @param array<string, mixed> $uriVariables */

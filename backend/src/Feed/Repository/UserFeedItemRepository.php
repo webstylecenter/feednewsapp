@@ -8,8 +8,8 @@ use App\Feed\Entity\FeedTag;
 use App\Feed\Entity\FeedUserItem;
 use App\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ServiceEntityRepository<FeedUserItem> */
 final class UserFeedItemRepository extends ServiceEntityRepository
@@ -20,10 +20,18 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     }
 
     /** @return list<FeedUserItem> */
-    public function findRecentForUser(User $user, int $limit, int $offset): array
-    {
+    public function findRecentForUser(
+        User $user,
+        int $limit,
+        int $offset,
+        ?string $feedUuid = null,
+        bool $manualOnly = false,
+    ): array {
+        $queryBuilder = $this->baseReaderQuery($user);
+        $this->applySourceFilter($queryBuilder, $feedUuid, $manualOnly);
+
         /** @var list<FeedUserItem> $items */
-        $items = $this->baseReaderQuery($user)
+        $items = $queryBuilder
             ->andWhere('item.pinned = false')
             ->orderBy('item.createdAt', 'DESC')
             ->addOrderBy('item.id', 'DESC')
@@ -36,9 +44,15 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     }
 
     /** @return list<FeedUserItem> */
-    public function findPinnedForUser(User $user, ?int $limit = null): array
-    {
-        $queryBuilder = $this->baseReaderQuery($user)
+    public function findPinnedForUser(
+        User $user,
+        ?int $limit = null,
+        ?string $feedUuid = null,
+        bool $manualOnly = false,
+    ): array {
+        $queryBuilder = $this->baseReaderQuery($user);
+        $this->applySourceFilter($queryBuilder, $feedUuid, $manualOnly);
+        $queryBuilder
             ->andWhere('item.pinned = true')
             ->orderBy('item.createdAt', 'DESC')
             ->addOrderBy('item.id', 'DESC');
@@ -53,12 +67,32 @@ final class UserFeedItemRepository extends ServiceEntityRepository
         return $items;
     }
 
-    public function countPinnedForUser(User $user): int
+    public function countPinnedForUser(
+        User $user,
+        ?string $feedUuid = null,
+        bool $manualOnly = false,
+    ): int {
+        $queryBuilder = $this->createQueryBuilder('item')
+            ->select('COUNT(item.id)')
+            ->leftJoin('item.userFeed', 'userFeed')
+            ->leftJoin('userFeed.feed', 'subscriptionFeed')
+            ->andWhere('item.user = :user')
+            ->andWhere('item.pinned = true')
+            ->setParameter('user', $user);
+
+        $this->applySourceFilter($queryBuilder, $feedUuid, $manualOnly);
+
+        return (int) $queryBuilder
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countManualForUser(User $user): int
     {
         return (int) $this->createQueryBuilder('item')
             ->select('COUNT(item.id)')
             ->andWhere('item.user = :user')
-            ->andWhere('item.pinned = true')
+            ->andWhere('item.userFeed IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -152,6 +186,23 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     public function findOwnedByUuid(User $user, string $uuid): ?FeedUserItem
     {
         return $this->findOneBy(['uuid' => $uuid, 'user' => $user]);
+    }
+
+    private function applySourceFilter(
+        QueryBuilder $queryBuilder,
+        ?string $feedUuid,
+        bool $manualOnly,
+    ): void {
+        if ($manualOnly) {
+            $queryBuilder->andWhere('item.userFeed IS NULL');
+            return;
+        }
+
+        if ($feedUuid !== null) {
+            $queryBuilder
+                ->andWhere('subscriptionFeed.uuid = :feedUuid')
+                ->setParameter('feedUuid', $feedUuid);
+        }
     }
 
     private function baseReaderQuery(User $user): QueryBuilder

@@ -26,8 +26,8 @@ use App\Feed\Processor\PageMetadataProcessor;
 use App\Feed\Processor\ToggleFeedItemPinProcessor;
 use App\Feed\Provider\FeedHistoryProvider;
 use App\Feed\Provider\FeedItemsProvider;
-use App\Feed\Provider\FeedPinnedProvider;
 use App\Feed\Provider\FeedOverviewProvider;
+use App\Feed\Provider\FeedPinnedProvider;
 use App\Feed\Provider\FeedSearchProvider;
 use App\Feed\Provider\FeedTagItemsProvider;
 use App\Feed\Provider\ReaderProvider;
@@ -55,8 +55,8 @@ use App\Shared\Dto\Response\StatusResponse;
         provider: FeedSearchProvider::class,
     ),
     new Get(
-        uriTemplate: '/feed/tag/{id}',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/feed/tag/{uuid}',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         output: FeedItemsResponse::class,
         provider: FeedTagItemsProvider::class,
     ),
@@ -87,16 +87,16 @@ use App\Shared\Dto\Response\StatusResponse;
         status: 201,
     ),
     new Patch(
-        uriTemplate: '/feed/items/{id}/pin',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/feed/items/{uuid}/pin',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         input: false,
         output: PinFeedItemResponse::class,
         read: false,
         processor: ToggleFeedItemPinProcessor::class,
     ),
     new Post(
-        uriTemplate: '/feed/items/{id}/opened',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/feed/items/{uuid}/opened',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         input: false,
         output: StatusResponse::class,
         read: false,
@@ -123,5 +123,5 @@ use App\Shared\Dto\Response\StatusResponse;
 final class FeedDto
 {
     #[ApiProperty(identifier: true)]
-    public ?int $id = null;
+    public ?string $uuid = null;
 }

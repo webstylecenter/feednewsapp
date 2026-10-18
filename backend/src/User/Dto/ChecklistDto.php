@@ -17,11 +17,7 @@ use App\User\Processor\ToggleChecklistItemProcessor;
 use App\User\Provider\ChecklistCollectionProvider;
 
 #[ApiResource(operations: [
-    new Get(
-        uriTemplate: '/checklist',
-        output: ChecklistCollectionResponse::class,
-        provider: ChecklistCollectionProvider::class,
-    ),
+    new Get(uriTemplate: '/checklist', output: ChecklistCollectionResponse::class, provider: ChecklistCollectionProvider::class),
     new Post(
         uriTemplate: '/checklist',
         input: CreateChecklistItemRequest::class,
@@ -31,8 +27,8 @@ use App\User\Provider\ChecklistCollectionProvider;
         status: 201,
     ),
     new Patch(
-        uriTemplate: '/checklist/{id}',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/checklist/{uuid}',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         input: false,
         output: ChecklistMutationResponse::class,
         read: false,
@@ -42,5 +38,5 @@ use App\User\Provider\ChecklistCollectionProvider;
 final class ChecklistDto
 {
     #[ApiProperty(identifier: true)]
-    public ?int $id = null;
+    public ?string $uuid = null;
 }

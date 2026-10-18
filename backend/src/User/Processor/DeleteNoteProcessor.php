@@ -32,9 +32,9 @@ final readonly class DeleteNoteProcessor implements ProcessorInterface
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StatusResponse
     {
-        $note = $this->repository->findOwnedById(
+        $note = $this->repository->findOwnedByUuid(
             $this->currentUser->get(),
-            UriVariable::positiveInt($uriVariables),
+            UriVariable::uuid($uriVariables),
         );
         if (!$note instanceof UserNote) {
             throw new NotFoundHttpException('Note not found.');

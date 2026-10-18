@@ -21,8 +21,8 @@ use App\Shared\Dto\Response\StatusResponse;
         security: "is_granted('ROLE_ADMIN')",
     ),
     new Delete(
-        uriTemplate: '/admin/users/{id}',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/admin/users/{uuid}',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         output: StatusResponse::class,
         read: false,
         processor: DeleteAdminUserProcessor::class,
@@ -33,5 +33,5 @@ use App\Shared\Dto\Response\StatusResponse;
 final class AdminDto
 {
     #[ApiProperty(identifier: true)]
-    public ?int $id = null;
+    public ?string $uuid = null;
 }

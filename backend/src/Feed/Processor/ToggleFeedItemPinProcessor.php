@@ -32,7 +32,7 @@ final readonly class ToggleFeedItemPinProcessor implements ProcessorInterface
     {
         $item = $this->feedService->togglePin(
             $this->currentUser->get(),
-            UriVariable::positiveInt($uriVariables),
+            UriVariable::uuid($uriVariables),
         );
 
         return new PinFeedItemResponse(

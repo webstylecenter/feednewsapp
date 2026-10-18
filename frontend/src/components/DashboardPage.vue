@@ -11,6 +11,6 @@ const emit = defineEmits(['navigate']);
             <h1>Dashboard</h1>
             <span></span>
         </header>
-        <Dashboard />
+        <Dashboard @select-feed="(source) => emit('navigate', `/feed/${source}`)" />
     </section>
 </template>

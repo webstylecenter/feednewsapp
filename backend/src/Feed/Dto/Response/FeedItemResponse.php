@@ -7,7 +7,6 @@ namespace App\Feed\Dto\Response;
 final readonly class FeedItemResponse
 {
     public function __construct(
-        public int $id,
         public string $uuid,
         public string $title,
         public string $description,
@@ -19,7 +18,7 @@ final readonly class FeedItemResponse
         public bool $viewed,
         public ?string $openedAt,
         public string $createdAt,
-        public ?int $tagId,
+        public ?string $tagUuid,
     ) {
     }
 }

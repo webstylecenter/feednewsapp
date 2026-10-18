@@ -36,7 +36,7 @@ final readonly class FollowFeedProcessor implements ProcessorInterface
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): SubscriptionMutationResponse
     {
-        $feed = $this->feedRepository->find(UriVariable::positiveInt($uriVariables));
+        $feed = $this->feedRepository->findOneBy(['uuid' => UriVariable::uuid($uriVariables)]);
         if (!$feed instanceof Feed) {
             throw new NotFoundHttpException('Feed not found.');
         }

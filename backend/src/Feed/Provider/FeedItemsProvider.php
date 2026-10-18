@@ -12,6 +12,8 @@ use App\Feed\Service\FeedService;
 use App\Shared\Security\CurrentUser;
 use Override;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Uid\Uuid;
 
 /** @implements ProviderInterface<FeedItemsPageResponse> */
 final readonly class FeedItemsProvider implements ProviderInterface
@@ -37,13 +39,28 @@ final readonly class FeedItemsProvider implements ProviderInterface
         $page = max(0, $request?->query->getInt('page') ?? 0);
         $limit = max(1, min(100, $request?->query->getInt('limit', 50) ?? 50));
         $user = $this->currentUser->get();
-        $items = $this->feedService->recent($user, $page, $limit);
+        $source = trim($request?->query->getString('feed') ?? '');
+        $manualOnly = $source === 'manual';
+        $feedUuid = null;
+        if ($source !== '' && !$manualOnly) {
+            if (!Uuid::isValid($source)) {
+                throw new BadRequestHttpException('Invalid feed filter.');
+            }
+            $feedUuid = $source;
+        }
+
+        $items = $this->feedService->recent($user, $page, $limit, $feedUuid, $manualOnly);
 
         $pinnedItems = [];
         $pinnedCount = 0;
         if ($page === 0) {
-            $pinnedItems = $this->feedService->pinned($user, self::INITIAL_PINNED_LIMIT);
-            $pinnedCount = $this->feedService->pinnedCount($user);
+            $pinnedItems = $this->feedService->pinned(
+                $user,
+                self::INITIAL_PINNED_LIMIT,
+                $feedUuid,
+                $manualOnly,
+            );
+            $pinnedCount = $this->feedService->pinnedCount($user, $feedUuid, $manualOnly);
         }
 
         return new FeedItemsPageResponse(

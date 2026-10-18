@@ -25,8 +25,8 @@ final class UserNoteRepository extends ServiceEntityRepository
         return $notes;
     }
 
-    public function findOwnedById(User $user, int $id): ?UserNote
+    public function findOwnedByUuid(User $user, string $uuid): ?UserNote
     {
-        return $this->findOneBy(['user' => $user, 'id' => $id]);
+        return $this->findOneBy(['user' => $user, 'uuid' => $uuid]);
     }
 }

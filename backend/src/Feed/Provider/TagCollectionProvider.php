@@ -35,17 +35,16 @@ final readonly class TagCollectionProvider implements ProviderInterface
         $items = [];
 
         foreach ($this->tagRepository->findForUser($user) as $tag) {
-            $id = $tag->getId();
-            if ($id === null) {
+            $internalId = $tag->getId();
+            if ($internalId === null) {
                 continue;
             }
 
             $items[] = new TagResponse(
-                id: $id,
                 uuid: $tag->getUuid()->toRfc4122(),
                 name: $tag->getName(),
                 color: $tag->getColor(),
-                count: $counts[$id] ?? 0,
+                count: $counts[$internalId] ?? 0,
             );
         }
 

@@ -6,6 +6,7 @@ namespace App\User\Provider;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Feed\Repository\UserFeedItemRepository;
 use App\Feed\Repository\UserFeedRepository;
 use App\Shared\Security\CurrentUser;
 use App\User\Dto\Response\DashboardFeedResponse;
@@ -28,6 +29,7 @@ final readonly class DashboardProvider implements ProviderInterface
         private UserNoteRepository $noteRepository,
         private UserChecklistItemRepository $checklistRepository,
         private UserFeedRepository $feedRepository,
+        private UserFeedItemRepository $feedItemRepository,
         private WeatherService $weatherService,
         private WeatherMapper $weatherMapper,
     ) {
@@ -43,7 +45,7 @@ final readonly class DashboardProvider implements ProviderInterface
         $user = $this->currentUser->get();
         $notes = array_map(
             static fn (UserNote $note): DashboardNoteResponse => new DashboardNoteResponse(
-                id: $note->getId(),
+                uuid: $note->getUuid()->toRfc4122(),
                 name: $note->getName(),
                 position: $note->getPosition(),
                 content: $note->getContent() ?? '',
@@ -52,7 +54,7 @@ final readonly class DashboardProvider implements ProviderInterface
         );
         $todos = array_map(
             static fn (UserChecklistItem $item): DashboardTodoResponse => new DashboardTodoResponse(
-                id: $item->getId(),
+                uuid: $item->getUuid()->toRfc4122(),
                 item: $item->getItem(),
                 checked: $item->getChecked(),
             ),
@@ -61,14 +63,27 @@ final readonly class DashboardProvider implements ProviderInterface
 
         $feeds = array_map(
             static fn (array $row): DashboardFeedResponse => new DashboardFeedResponse(
-                id: $row['id'],
+                source: $row['source'],
                 name: $row['name'],
                 color: $row['color'],
                 icon: $row['icon'],
                 itemCount: $row['itemCount'],
+                url: $row['url'],
             ),
             $this->feedRepository->findDashboardRowsForUser($user),
         );
+
+        $manualItemCount = $this->feedItemRepository->countManualForUser($user);
+        if ($manualItemCount > 0) {
+            $feeds[] = new DashboardFeedResponse(
+                source: 'manual',
+                name: 'Saved links',
+                color: '#337dff',
+                icon: '',
+                itemCount: $manualItemCount,
+                url: null,
+            );
+        }
 
         $weather = $this->weatherService->current();
 

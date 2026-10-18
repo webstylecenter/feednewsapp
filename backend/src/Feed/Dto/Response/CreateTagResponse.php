@@ -7,7 +7,7 @@ namespace App\Feed\Dto\Response;
 final readonly class CreateTagResponse
 {
     public function __construct(
-        public int $id,
+        public string $uuid,
         public string $status = 'success',
     ) {
     }

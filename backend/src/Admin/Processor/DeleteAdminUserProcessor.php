@@ -31,7 +31,7 @@ final readonly class DeleteAdminUserProcessor implements ProcessorInterface
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StatusResponse
     {
-        $user = $this->repository->find(UriVariable::positiveInt($uriVariables));
+        $user = $this->repository->findOneBy(['uuid' => UriVariable::uuid($uriVariables)]);
         if (!$user instanceof User) {
             throw new NotFoundHttpException('User not found.');
         }

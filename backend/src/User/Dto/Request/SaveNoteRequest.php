@@ -8,9 +8,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class SaveNoteRequest
 {
-    #[Assert\Positive]
-    public ?int $id = null;
-
     #[Assert\Length(max: 255)]
     public string $name = 'Note';
 

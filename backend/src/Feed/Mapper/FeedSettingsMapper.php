@@ -8,19 +8,13 @@ use App\Feed\Dto\Response\FeedSubscriptionResponse;
 use App\Feed\Dto\Response\FeedSummaryResponse;
 use App\Feed\Entity\Feed;
 use App\Feed\Entity\FeedUser;
-use LogicException;
 
 final class FeedSettingsMapper
 {
     public function toFeedResponse(Feed $feed): FeedSummaryResponse
     {
-        $id = $feed->getId();
-        if ($id === null) {
-            throw new LogicException('Cannot map an unpersisted feed.');
-        }
-
         return new FeedSummaryResponse(
-            id: $id,
+            uuid: $feed->getUuid()->toRfc4122(),
             name: $feed->getName(),
             url: $feed->getUrl(),
             color: $feed->getColor(),
@@ -30,15 +24,12 @@ final class FeedSettingsMapper
 
     public function toSubscriptionResponse(FeedUser $subscription): FeedSubscriptionResponse
     {
-        $id = $subscription->getId();
-        if ($id === null) {
-            throw new LogicException('Cannot map an unpersisted subscription.');
-        }
+        $feed = $subscription->getFeed();
 
         return new FeedSubscriptionResponse(
-            id: $id,
-            feed: $this->toFeedResponse($subscription->getFeed()),
-            color: $subscription->getColor() ?? $subscription->getFeed()->getColor(),
+            uuid: $feed->getUuid()->toRfc4122(),
+            feed: $this->toFeedResponse($feed),
+            color: $subscription->getColor() ?? $feed->getColor(),
             icon: $subscription->getIcon() ?? '',
             autoPin: $subscription->isAutoPin(),
         );

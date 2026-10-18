@@ -185,11 +185,22 @@ final readonly class FeedService
     }
 
     /** @return list<FeedUserItem> */
-    public function recent(User $user, int $page, int $limit = 50): array
-    {
+    public function recent(
+        User $user,
+        int $page,
+        int $limit = 50,
+        ?string $feedUuid = null,
+        bool $manualOnly = false,
+    ): array {
         $page = max(0, $page);
         $limit = max(1, min(100, $limit));
-        $items = $this->userFeedItemRepository->findRecentForUser($user, $limit, $page * $limit);
+        $items = $this->userFeedItemRepository->findRecentForUser(
+            $user,
+            $limit,
+            $page * $limit,
+            $feedUuid,
+            $manualOnly,
+        );
 
         $this->markViewed($items);
 
@@ -197,22 +208,34 @@ final readonly class FeedService
     }
 
     /** @return list<FeedUserItem> */
-    public function pinned(User $user, ?int $limit = null): array
-    {
-        $items = $this->userFeedItemRepository->findPinnedForUser($user, $limit);
+    public function pinned(
+        User $user,
+        ?int $limit = null,
+        ?string $feedUuid = null,
+        bool $manualOnly = false,
+    ): array {
+        $items = $this->userFeedItemRepository->findPinnedForUser(
+            $user,
+            $limit,
+            $feedUuid,
+            $manualOnly,
+        );
         $this->markViewed($items);
 
         return $items;
     }
 
-    public function pinnedCount(User $user): int
-    {
-        return $this->userFeedItemRepository->countPinnedForUser($user);
+    public function pinnedCount(
+        User $user,
+        ?string $feedUuid = null,
+        bool $manualOnly = false,
+    ): int {
+        return $this->userFeedItemRepository->countPinnedForUser($user, $feedUuid, $manualOnly);
     }
 
-    public function togglePin(User $user, int $id): FeedUserItem
+    public function togglePin(User $user, string $uuid): FeedUserItem
     {
-        $item = $this->userFeedItemRepository->findOwnedById($user, $id);
+        $item = $this->userFeedItemRepository->findOwnedByUuid($user, $uuid);
         if (!$item instanceof FeedUserItem) {
             throw new RuntimeException('Feed item not found.');
         }
@@ -222,9 +245,9 @@ final readonly class FeedService
         return $item;
     }
 
-    public function markOpened(User $user, int $id): void
+    public function markOpened(User $user, string $uuid): void
     {
-        $item = $this->userFeedItemRepository->findOwnedById($user, $id);
+        $item = $this->userFeedItemRepository->findOwnedByUuid($user, $uuid);
         if (!$item instanceof FeedUserItem) {
             throw new RuntimeException('Feed item not found.');
         }

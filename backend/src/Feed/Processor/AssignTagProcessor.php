@@ -16,7 +16,6 @@ use App\Shared\Security\CurrentUser;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 /** @implements ProcessorInterface<AssignTagRequest, StatusResponse> */
 final readonly class AssignTagProcessor implements ProcessorInterface
@@ -37,20 +36,14 @@ final readonly class AssignTagProcessor implements ProcessorInterface
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StatusResponse
     {
-        $itemId = $data->itemId ?? $data->legacyItemId;
-        $tagId = $data->tagId ?? $data->legacyTagId;
-        if ($itemId === null) {
-            throw new UnprocessableEntityHttpException('Feed item is required.');
-        }
-
         $user = $this->currentUser->get();
-        $item = $this->itemRepository->findOwnedById($user, $itemId);
+        $item = $this->itemRepository->findOwnedByUuid($user, $data->itemUuid);
         if (!$item instanceof FeedUserItem) {
             throw new NotFoundHttpException('Feed item not found.');
         }
 
-        $tag = $tagId !== null ? $this->tagRepository->findOwnedById($user, $tagId) : null;
-        if ($tagId !== null && !$tag instanceof FeedTag) {
+        $tag = $data->tagUuid !== null ? $this->tagRepository->findOwnedByUuid($user, $data->tagUuid) : null;
+        if ($data->tagUuid !== null && !$tag instanceof FeedTag) {
             throw new NotFoundHttpException('Tag not found.');
         }
 

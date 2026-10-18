@@ -12,7 +12,6 @@ use App\Feed\Entity\FeedTag;
 use App\Feed\Repository\FeedTagRepository;
 use App\Shared\Security\CurrentUser;
 use Doctrine\ORM\EntityManagerInterface;
-use LogicException;
 use Override;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
@@ -44,11 +43,6 @@ final readonly class CreateTagProcessor implements ProcessorInterface
         $this->entityManager->persist($tag);
         $this->entityManager->flush();
 
-        $id = $tag->getId();
-        if ($id === null) {
-            throw new LogicException('Persisted tag has no identifier.');
-        }
-
-        return new CreateTagResponse($id);
+        return new CreateTagResponse($tag->getUuid()->toRfc4122());
     }
 }

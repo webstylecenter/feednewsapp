@@ -28,20 +28,20 @@ final readonly class FeedOverviewProvider implements ProviderInterface
     #[Override]
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): FeedOverviewResponse
     {
+        $user = $this->currentUser->get();
+        $counts = $this->repository->countItemsPerFeedForUser($user);
         $items = [];
-        foreach ($this->repository->findForUser($this->currentUser->get()) as $subscription) {
-            $id = $subscription->getId();
-            if ($id === null) {
-                continue;
-            }
+
+        foreach ($this->repository->findForUser($user) as $subscription) {
             $feed = $subscription->getFeed();
+            $feedUuid = $feed->getUuid()->toRfc4122();
             $items[] = new FeedOverviewItemResponse(
-                id: $id,
+                uuid: $feedUuid,
                 name: $feed->getName(),
                 color: $subscription->getColor() ?? $feed->getColor(),
                 icon: $subscription->getIcon() ?? '',
                 autoPin: $subscription->isAutoPin(),
-                itemCount: $subscription->getItems()->count(),
+                itemCount: $counts[$feedUuid] ?? 0,
             );
         }
 

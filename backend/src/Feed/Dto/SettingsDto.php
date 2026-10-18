@@ -27,11 +27,7 @@ use App\Feed\Provider\SettingsProvider;
 use App\Shared\Dto\Response\StatusResponse;
 
 #[ApiResource(operations: [
-    new Get(
-        uriTemplate: '/settings',
-        output: SettingsResponse::class,
-        provider: SettingsProvider::class,
-    ),
+    new Get(uriTemplate: '/settings', output: SettingsResponse::class, provider: SettingsProvider::class),
     new Post(
         uriTemplate: '/settings/feeds',
         input: AddFeedRequest::class,
@@ -41,8 +37,8 @@ use App\Shared\Dto\Response\StatusResponse;
         status: 201,
     ),
     new Post(
-        uriTemplate: '/settings/feeds/{id}/follow',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/settings/feeds/{uuid}/follow',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         input: FollowFeedRequest::class,
         output: SubscriptionMutationResponse::class,
         read: false,
@@ -50,16 +46,16 @@ use App\Shared\Dto\Response\StatusResponse;
         status: 201,
     ),
     new Patch(
-        uriTemplate: '/settings/feeds/{id}',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/settings/feeds/{uuid}',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         input: UpdateFeedSubscriptionRequest::class,
         output: SubscriptionMutationResponse::class,
         read: false,
         processor: UpdateFeedSubscriptionProcessor::class,
     ),
     new Delete(
-        uriTemplate: '/settings/feeds/{id}',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/settings/feeds/{uuid}',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         output: StatusResponse::class,
         read: false,
         processor: RemoveFeedSubscriptionProcessor::class,
@@ -85,5 +81,5 @@ use App\Shared\Dto\Response\StatusResponse;
 final class SettingsDto
 {
     #[ApiProperty(identifier: true)]
-    public ?int $id = null;
+    public ?string $uuid = null;
 }

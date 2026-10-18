@@ -6,6 +6,7 @@ namespace App\User\Processor;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
+use App\Shared\Api\UriVariable;
 use App\Shared\Security\CurrentUser;
 use App\User\Dto\Request\SaveNoteRequest;
 use App\User\Dto\Response\NoteMutationResponse;
@@ -14,7 +15,7 @@ use App\User\Mapper\NoteMapper;
 use App\User\Repository\UserNoteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Override;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /** @implements ProcessorInterface<SaveNoteRequest, NoteMutationResponse> */
 final readonly class SaveNoteProcessor implements ProcessorInterface
@@ -37,9 +38,11 @@ final readonly class SaveNoteProcessor implements ProcessorInterface
     {
         $user = $this->currentUser->get();
         $content = $data->content !== '' ? $data->content : ($data->note ?? '');
-        $note = $data->id !== null ? $this->repository->findOwnedById($user, $data->id) : null;
-        if ($data->id !== null && !$note instanceof UserNote) {
-            throw new AccessDeniedHttpException('Note does not belong to the current user.');
+        $uuid = array_key_exists('uuid', $uriVariables) ? UriVariable::uuid($uriVariables) : null;
+        $note = $uuid !== null ? $this->repository->findOwnedByUuid($user, $uuid) : null;
+
+        if ($uuid !== null && !$note instanceof UserNote) {
+            throw new NotFoundHttpException('Note not found.');
         }
 
         $name = trim($data->name) !== '' ? mb_substr(trim($data->name), 0, 255) : 'Note';

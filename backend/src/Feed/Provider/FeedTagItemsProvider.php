@@ -35,7 +35,7 @@ final readonly class FeedTagItemsProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): FeedItemsResponse
     {
         $user = $this->currentUser->get();
-        $tag = $this->tagRepository->findOwnedById($user, UriVariable::positiveInt($uriVariables));
+        $tag = $this->tagRepository->findOwnedByUuid($user, UriVariable::uuid($uriVariables));
         if (!$tag instanceof FeedTag) {
             throw new NotFoundHttpException('Tag not found.');
         }

@@ -7,7 +7,6 @@ namespace App\Admin\Dto\Response;
 final readonly class AdminUserResponse
 {
     public function __construct(
-        public ?int $id,
         public string $uuid,
         public string $name,
         public string $email,

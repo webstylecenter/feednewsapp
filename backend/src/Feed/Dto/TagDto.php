@@ -20,11 +20,7 @@ use App\Feed\Provider\TagCollectionProvider;
 use App\Shared\Dto\Response\StatusResponse;
 
 #[ApiResource(operations: [
-    new Get(
-        uriTemplate: '/tags',
-        output: TagCollectionResponse::class,
-        provider: TagCollectionProvider::class,
-    ),
+    new Get(uriTemplate: '/tags', output: TagCollectionResponse::class, provider: TagCollectionProvider::class),
     new Post(
         uriTemplate: '/tags',
         input: CreateTagRequest::class,
@@ -42,8 +38,8 @@ use App\Shared\Dto\Response\StatusResponse;
         status: 200,
     ),
     new Delete(
-        uriTemplate: '/tags/{id}',
-        requirements: ['id' => '\\d+'],
+        uriTemplate: '/tags/{uuid}',
+        requirements: ['uuid' => '[0-9a-fA-F-]{36}'],
         output: StatusResponse::class,
         read: false,
         processor: DeleteTagProcessor::class,
@@ -53,5 +49,5 @@ use App\Shared\Dto\Response\StatusResponse;
 final class TagDto
 {
     #[ApiProperty(identifier: true)]
-    public ?int $id = null;
+    public ?string $uuid = null;
 }

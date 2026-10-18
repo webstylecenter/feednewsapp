@@ -38,7 +38,7 @@ final readonly class AddFeedProcessor implements ProcessorInterface
     {
         $category = null;
         if ($data->category !== null) {
-            $category = $this->categoryRepository->find($data->category);
+            $category = $this->categoryRepository->findOneBy(['uuid' => $data->category]);
             if (!$category instanceof FeedCategory) {
                 throw new NotFoundHttpException('Feed category not found.');
             }

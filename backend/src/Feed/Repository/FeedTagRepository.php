@@ -25,8 +25,8 @@ final class FeedTagRepository extends ServiceEntityRepository
         return $tags;
     }
 
-    public function findOwnedById(User $user, int $id): ?FeedTag
+    public function findOwnedByUuid(User $user, string $uuid): ?FeedTag
     {
-        return $this->findOneBy(['id' => $id, 'user' => $user]);
+        return $this->findOneBy(['uuid' => $uuid, 'user' => $user]);
     }
 }

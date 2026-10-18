@@ -39,7 +39,6 @@ final readonly class AdminDashboardProvider implements ProviderInterface
     {
         $users = array_map(
             static fn (User $user): AdminUserResponse => new AdminUserResponse(
-                id: $user->getId(),
                 uuid: $user->getUuid()->toRfc4122(),
                 name: $user->getName(),
                 email: $user->getEmail(),
@@ -50,11 +49,12 @@ final readonly class AdminDashboardProvider implements ProviderInterface
             ),
             $this->userRepository->findBy([], ['createdAt' => 'DESC']),
         );
+
         $users = array_values($users);
 
         $feeds = array_map(
             static fn (Feed $feed): AdminFeedResponse => new AdminFeedResponse(
-                id: $feed->getId(),
+                uuid: $feed->getUuid()->toRfc4122(),
                 name: $feed->getName(),
                 url: $feed->getUrl(),
                 createdAt: self::formatTimestamp($feed->getCreatedAt()),
@@ -65,7 +65,6 @@ final readonly class AdminDashboardProvider implements ProviderInterface
 
         $errors = array_map(
             static fn (FeedError $error): AdminFeedErrorResponse => new AdminFeedErrorResponse(
-                id: $error->getId(),
                 type: $error->getType()->value,
                 occurrences: $error->getOccurrences(),
                 message: $error->getException(),
@@ -78,7 +77,6 @@ final readonly class AdminDashboardProvider implements ProviderInterface
 
         return new AdminDashboardResponse($users, $feeds, $errors);
     }
-
     private static function formatTimestamp(?DateTimeInterface $dateTime): string
     {
         if ($dateTime === null) {

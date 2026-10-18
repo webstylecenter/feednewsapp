@@ -32,8 +32,8 @@ final class UserChecklistItemRepository extends ServiceEntityRepository
         return $items;
     }
 
-    public function findOwnedById(User $user, int $id): ?UserChecklistItem
+    public function findOwnedByUuid(User $user, string $uuid): ?UserChecklistItem
     {
-        return $this->findOneBy(['user' => $user, 'id' => $id]);
+        return $this->findOneBy(['user' => $user, 'uuid' => $uuid]);
     }
 }

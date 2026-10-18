@@ -4,23 +4,21 @@ declare(strict_types=1);
 
 namespace App\User\Provider;
 
-use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Shared\Api\UriVariable;
 use App\User\Dto\Response\UserItemResponse;
 use App\User\Entity\User;
 use App\User\Mapper\UserMapper;
-use InvalidArgumentException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\User\Repository\UserRepository;
 use Override;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-/**
- * @implements ProviderInterface<UserItemResponse>
- */
+/** @implements ProviderInterface<UserItemResponse> */
 final readonly class UserGetItemProvider implements ProviderInterface
 {
     public function __construct(
-        private ItemProvider $itemProvider,
+        private UserRepository $repository,
         private UserMapper $userMapper,
     ) {
     }
@@ -30,28 +28,13 @@ final readonly class UserGetItemProvider implements ProviderInterface
      * @param array<string, mixed> $context
      */
     #[Override]
-    public function provide(
-        Operation $operation,
-        array $uriVariables = [],
-        array $context = [],
-    ): UserItemResponse {
-        if (!array_key_exists('id', $uriVariables)) {
-            throw new InvalidArgumentException('id is required');
+    public function provide(Operation $operation, array $uriVariables = [], array $context = []): UserItemResponse
+    {
+        $user = $this->repository->findOneBy(['uuid' => UriVariable::uuid($uriVariables)]);
+        if (!$user instanceof User) {
+            throw new NotFoundHttpException('User not found.');
         }
 
-        $rawId = $uriVariables['id'];
-        if (is_string($rawId)) {
-            if ($rawId === '' || !ctype_digit($rawId)) {
-                throw new InvalidArgumentException('id must be a positive integer');
-            }
-            $uriVariables['id'] = (int) $rawId;
-        } elseif (!is_int($rawId) || $rawId < 1) {
-            throw new InvalidArgumentException('id must be a positive integer');
-        }
-
-        $user = $this->itemProvider->provide($operation, $uriVariables, $context);
-        return $user instanceof User
-            ? $this->userMapper->toItemResponse($user)
-            : throw new NotFoundHttpException('User not found');
+        return $this->userMapper->toItemResponse($user);
     }
 }

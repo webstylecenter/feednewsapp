@@ -30,7 +30,7 @@ final readonly class MarkFeedItemOpenedProcessor implements ProcessorInterface
     {
         $this->feedService->markOpened(
             $this->currentUser->get(),
-            UriVariable::positiveInt($uriVariables),
+            UriVariable::uuid($uriVariables),
         );
 
         return new StatusResponse();
