@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Feed\Service;
 
 use App\Feed\Entity\Feed;
-use App\Feed\Entity\FeedItem;
-use App\Feed\Entity\FeedUser;
 use App\Feed\Entity\FeedUserItem;
 use App\Feed\Repository\FeedItemRepository;
 use App\Feed\Repository\UserFeedItemRepository;
@@ -39,9 +37,8 @@ final readonly class FeedUserItemBackfillService
         foreach ($this->feedItemRepository->findLatestForFeed($feed, self::MAX_ITEMS_PER_FEED) as $feedItem) {
             $missingSubscriptions = [];
             foreach ($subscriptions as $subscription) {
-                $user = $subscription->getUser();
                 if ($this->userFeedItemRepository->findOneBy([
-                    'user' => $user,
+                    'user' => $subscription->getUser(),
                     'feedItem' => $feedItem,
                 ]) instanceof FeedUserItem) {
                     continue;
@@ -59,7 +56,11 @@ final readonly class FeedUserItemBackfillService
             }
 
             foreach ($missingSubscriptions as $subscription) {
-                $created += $this->createUserItem($subscription, $feedItem);
+                $userItem = new FeedUserItem($subscription->getUser(), $feedItem, $subscription, null);
+                $userItem->setPinned($subscription->isAutoPin());
+                $subscription->addUserFeedItem($userItem);
+                $this->entityManager->persist($userItem);
+                ++$created;
             }
         }
 
@@ -68,15 +69,5 @@ final readonly class FeedUserItemBackfillService
         }
 
         return $created;
-    }
-
-    private function createUserItem(FeedUser $subscription, FeedItem $feedItem): int
-    {
-        $userItem = new FeedUserItem($subscription->getUser(), $feedItem, $subscription, null);
-        $userItem->setPinned($subscription->isAutoPin());
-        $subscription->addUserFeedItem($userItem);
-        $this->entityManager->persist($userItem);
-
-        return 1;
     }
 }
