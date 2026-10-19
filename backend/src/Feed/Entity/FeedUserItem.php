@@ -51,7 +51,7 @@ class FeedUserItem
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private FeedItem $feedItem;
 
-    #[ORM\ManyToOne(targetEntity: FeedUser::class)]
+    #[ORM\ManyToOne(targetEntity: FeedUser::class, inversedBy: 'items')]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?FeedUser $userFeed = null;
 
