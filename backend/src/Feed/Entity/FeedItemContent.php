@@ -18,7 +18,7 @@ class FeedItemContent
     private ?int $id = null;
 
     #[ORM\OneToOne(targetEntity: FeedItem::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private FeedItem $feedItem;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
