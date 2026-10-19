@@ -21,6 +21,7 @@ use Symfony\Component\Uid\Uuid;
         new ORM\Index(name: 'idx_feed_user_feed', columns: ['feed_id'])
     ],
     uniqueConstraints: [
+        new ORM\UniqueConstraint(name: 'uniq_feed_user_uuid', columns: ['uuid']),
         new ORM\UniqueConstraint(name: 'uniq_feed_user_user_feed', columns: ['user_id','feed_id'])
     ]
 )]
@@ -33,7 +34,7 @@ class FeedUser
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\Column(type: 'uuid')]
     private Uuid $uuid;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userFeeds')]
