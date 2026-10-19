@@ -48,11 +48,11 @@ class FeedUserItem
     private User $user;
 
     #[ORM\ManyToOne(targetEntity: FeedItem::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private FeedItem $feedItem;
 
     #[ORM\ManyToOne(targetEntity: FeedUser::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?FeedUser $userFeed = null;
 
     #[ORM\ManyToOne(targetEntity: FeedTag::class)]
