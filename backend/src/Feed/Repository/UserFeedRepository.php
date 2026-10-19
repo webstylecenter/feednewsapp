@@ -118,14 +118,13 @@ final class UserFeedRepository extends ServiceEntityRepository
         return $feeds;
     }
 
-    public function findOwnedByFeedUuid(User $user, string $feedUuid): ?FeedUser
+    public function findOwnedByUuid(User $user, string $subscriptionUuid): ?FeedUser
     {
         $result = $this->createQueryBuilder('userFeed')
-            ->innerJoin('userFeed.feed', 'feed')
             ->andWhere('userFeed.user = :user')
-            ->andWhere('feed.uuid = :feedUuid')
+            ->andWhere('userFeed.uuid = :subscriptionUuid')
             ->setParameter('user', $user)
-            ->setParameter('feedUuid', $feedUuid)
+            ->setParameter('subscriptionUuid', $subscriptionUuid)
             ->getQuery()
             ->getOneOrNullResult();
 
