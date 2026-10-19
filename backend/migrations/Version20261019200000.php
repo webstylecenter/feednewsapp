@@ -16,15 +16,18 @@ final class Version20261019200000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('DROP INDEX idx_fui_user_created ON feed_user_item');
+        $this->addSql('DROP INDEX IF EXISTS idx_fui_user_created ON feed_user_item');
         $this->addSql(
-            'CREATE INDEX idx_fui_user_created_feed ON feed_user_item (user_id, created_at, user_feed_id)',
+            'CREATE INDEX IF NOT EXISTS idx_fui_user_created_feed '
+            . 'ON feed_user_item (user_id, created_at, user_feed_id)',
         );
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('DROP INDEX idx_fui_user_created_feed ON feed_user_item');
-        $this->addSql('CREATE INDEX idx_fui_user_created ON feed_user_item (user_id, created_at)');
+        $this->addSql('DROP INDEX IF EXISTS idx_fui_user_created_feed ON feed_user_item');
+        $this->addSql(
+            'CREATE INDEX IF NOT EXISTS idx_fui_user_created ON feed_user_item (user_id, created_at)',
+        );
     }
 }
