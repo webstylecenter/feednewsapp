@@ -27,7 +27,7 @@ final class FeedSettingsMapper
         $feed = $subscription->getFeed();
 
         return new FeedSubscriptionResponse(
-            uuid: $feed->getUuid()->toRfc4122(),
+            uuid: $subscription->getUuid()->toRfc4122(),
             feed: $this->toFeedResponse($feed),
             color: $subscription->getColor() ?? $feed->getColor(),
             icon: $subscription->getIcon() ?? '',
