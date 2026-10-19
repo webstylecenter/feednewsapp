@@ -208,7 +208,7 @@ final readonly class FeedService
             $manualOnly,
         );
 
-        $this->markViewed($items);
+        $this->markViewed($user, $items);
 
         return $items;
     }
@@ -226,7 +226,7 @@ final readonly class FeedService
             $feedUuid,
             $manualOnly,
         );
-        $this->markViewed($items);
+        $this->markViewed($user, $items);
 
         return $items;
     }
@@ -398,21 +398,22 @@ final readonly class FeedService
     }
 
     /** @param list<FeedUserItem> $items */
-    private function markViewed(array $items): void
+    private function markViewed(User $user, array $items): void
     {
-        $changed = false;
+        $unviewedIds = [];
         foreach ($items as $item) {
             if ($item->isViewed()) {
                 continue;
             }
 
+            $itemId = $item->getId();
+            if ($itemId !== null) {
+                $unviewedIds[] = $itemId;
+            }
             $item->setViewed(true);
-            $changed = true;
         }
 
-        if ($changed) {
-            $this->entityManager->flush();
-        }
+        $this->userFeedItemRepository->markViewedByIdsForUser($user, $unviewedIds);
     }
 
     private function normalizeGuid(string $guid): string
