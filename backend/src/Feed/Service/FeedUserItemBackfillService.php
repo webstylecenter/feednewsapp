@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Feed\Service;
 
 use App\Feed\Entity\Feed;
+use App\Feed\Entity\FeedItem;
 use App\Feed\Entity\FeedUser;
 use App\Feed\Entity\FeedUserItem;
 use App\Feed\Repository\FeedItemRepository;
@@ -69,7 +70,7 @@ final readonly class FeedUserItemBackfillService
         return $created;
     }
 
-    private function createUserItem(FeedUser $subscription, \App\Feed\Entity\FeedItem $feedItem): int
+    private function createUserItem(FeedUser $subscription, FeedItem $feedItem): int
     {
         $userItem = new FeedUserItem($subscription->getUser(), $feedItem, $subscription, null);
         $userItem->setPinned($subscription->isAutoPin());
