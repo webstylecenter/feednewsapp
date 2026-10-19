@@ -12,6 +12,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: FeedItemRepository::class)]
 #[ORM\Table(name: 'feed_item')]
+#[ORM\Index(name: 'idx_feed_item_guid', columns: ['guid'])]
 #[ORM\UniqueConstraint(name: 'uniq_feed_item_feed_guid', columns: ['feed_id', 'guid'])]
 class FeedItem
 {
