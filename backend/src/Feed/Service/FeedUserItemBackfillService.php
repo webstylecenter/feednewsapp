@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Feed\Service;
 
 use App\Feed\Entity\Feed;
+use App\Feed\Entity\FeedUser;
 use App\Feed\Entity\FeedUserItem;
 use App\Feed\Repository\FeedItemRepository;
 use App\Feed\Repository\UserFeedItemRepository;
@@ -35,10 +36,7 @@ final readonly class FeedUserItemBackfillService
         $isYouTubeFeed = $this->youTubeVideoFilter->isYouTubeFeed($feed->getUrl());
 
         foreach ($this->feedItemRepository->findLatestForFeed($feed, self::MAX_ITEMS_PER_FEED) as $feedItem) {
-            if ($isYouTubeFeed && $this->youTubeVideoFilter->isShort($feedItem->getUrl())) {
-                continue;
-            }
-
+            $missingSubscriptions = [];
             foreach ($subscriptions as $subscription) {
                 $user = $subscription->getUser();
                 if ($this->userFeedItemRepository->findOneBy([
@@ -48,11 +46,19 @@ final readonly class FeedUserItemBackfillService
                     continue;
                 }
 
-                $userItem = new FeedUserItem($user, $feedItem, $subscription, null);
-                $userItem->setPinned($subscription->isAutoPin());
-                $subscription->addUserFeedItem($userItem);
-                $this->entityManager->persist($userItem);
-                ++$created;
+                $missingSubscriptions[] = $subscription;
+            }
+
+            if ($missingSubscriptions === []) {
+                continue;
+            }
+
+            if ($isYouTubeFeed && $this->youTubeVideoFilter->isShort($feedItem->getUrl())) {
+                continue;
+            }
+
+            foreach ($missingSubscriptions as $subscription) {
+                $created += $this->createUserItem($subscription, $feedItem);
             }
         }
 
@@ -61,5 +67,15 @@ final readonly class FeedUserItemBackfillService
         }
 
         return $created;
+    }
+
+    private function createUserItem(FeedUser $subscription, \App\Feed\Entity\FeedItem $feedItem): int
+    {
+        $userItem = new FeedUserItem($subscription->getUser(), $feedItem, $subscription, null);
+        $userItem->setPinned($subscription->isAutoPin());
+        $subscription->addUserFeedItem($userItem);
+        $this->entityManager->persist($userItem);
+
+        return 1;
     }
 }
