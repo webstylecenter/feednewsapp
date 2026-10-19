@@ -13,7 +13,8 @@ const message = ref('');
 const failedFavicons = ref(new Set());
 const form = ref({ url: '', category: '', color: '#337dff', autoPin: false });
 const pendingUserRemoval = ref(null);
-const editingFeedUuid = ref('');
+const pendingFeedRemoval = ref(null);
+const editingSubscriptionUuid = ref('');
 let notificationTimer;
 
 async function load() {
@@ -49,9 +50,10 @@ function showFavicon(key, url) {
 }
 
 function toggleFeedEditor(subscription) {
-    editingFeedUuid.value = editingFeedUuid.value === subscription.feed.uuid
+    editingSubscriptionUuid.value = editingSubscriptionUuid.value === subscription.uuid
         ? ''
-        : subscription.feed.uuid;
+        : subscription.uuid;
+    pendingFeedRemoval.value = null;
 }
 
 async function addFeed() {
@@ -84,23 +86,29 @@ async function follow(feed) {
 }
 
 async function update(subscription) {
-    await api(`/api/settings/feeds/${subscription.feed.uuid}`, {
+    await api(`/api/settings/feeds/${subscription.uuid}`, {
         method: 'PATCH',
         body: { color: subscription.color, autoPin: subscription.autoPin },
     });
-    editingFeedUuid.value = '';
+    editingSubscriptionUuid.value = '';
+    pendingFeedRemoval.value = null;
     notify(`${subscription.feed.name} updated.`);
 }
 
 async function remove(subscription) {
-    if (!window.confirm(`Stop following ${subscription.feed.name}?`)) return;
+    if (pendingFeedRemoval.value !== subscription.uuid) {
+        pendingFeedRemoval.value = subscription.uuid;
+        return;
+    }
 
     try {
-        await api(`/api/settings/feeds/${subscription.feed.uuid}`, { method: 'DELETE' });
-        editingFeedUuid.value = '';
+        await api(`/api/settings/feeds/${subscription.uuid}`, { method: 'DELETE' });
+        editingSubscriptionUuid.value = '';
+        pendingFeedRemoval.value = null;
         notify(`${subscription.feed.name} removed.`);
         await load();
     } catch (exception) {
+        pendingFeedRemoval.value = null;
         notify(exception.message, true);
     }
 }
@@ -152,17 +160,17 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                 <div class="subscription-list">
                     <div
                         v-for="subscription in state.subscriptions"
-                        :key="subscription.feed.uuid"
+                        :key="subscription.uuid"
                         class="subscription-row"
-                        :class="{ editing: editingFeedUuid === subscription.feed.uuid }"
+                        :class="{ editing: editingSubscriptionUuid === subscription.uuid }"
                     >
                         <span class="feed-source-icon settings-feed-icon">
                             <img
-                                v-if="showFavicon(`subscription-${subscription.feed.uuid}`, subscription.feed.url)"
+                                v-if="showFavicon(`subscription-${subscription.uuid}`, subscription.feed.url)"
                                 :src="faviconUrl(subscription.feed.url)"
                                 alt=""
                                 loading="lazy"
-                                @error="markFaviconFailed(`subscription-${subscription.feed.uuid}`)"
+                                @error="markFaviconFailed(`subscription-${subscription.uuid}`)"
                             >
                             <span v-else class="feed-dot" :style="{ '--feed-color': subscription.color }"></span>
                         </span>
@@ -171,13 +179,19 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                             <small class="subscription-url">{{ subscription.feed.url }}</small>
                         </div>
                         <button class="secondary small subscription-edit-toggle" @click="toggleFeedEditor(subscription)">
-                            {{ editingFeedUuid === subscription.feed.uuid ? 'Close' : 'Edit' }}
+                            {{ editingSubscriptionUuid === subscription.uuid ? 'Close' : 'Edit' }}
                         </button>
                         <div class="subscription-controls">
                             <input v-model="subscription.color" type="color" :aria-label="`${subscription.feed.name} color`">
                             <label class="compact-check"><input v-model="subscription.autoPin" type="checkbox"> Auto-pin</label>
                             <button class="secondary small" @click="update(subscription)">Save</button>
-                            <button class="danger small" @click="remove(subscription)">Remove</button>
+                            <button
+                                class="danger small feed-remove-button"
+                                :class="{ confirming: pendingFeedRemoval === subscription.uuid }"
+                                @click="remove(subscription)"
+                            >
+                                {{ pendingFeedRemoval === subscription.uuid ? 'Are you sure?' : 'Remove' }}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -259,6 +273,11 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 
 .subscription-edit-toggle {
     display: none;
+}
+
+.feed-remove-button.confirming {
+    background: var(--danger);
+    color: #fff;
 }
 
 @media (max-width: 800px) {
