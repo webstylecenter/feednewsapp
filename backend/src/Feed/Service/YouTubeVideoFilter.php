@@ -60,6 +60,8 @@ final readonly class YouTubeVideoFilter
                 return null;
             }
 
+            /** @var array<string, mixed> $parameters */
+            $parameters = [];
             parse_str($query, $parameters);
             $videoId = $parameters['v'] ?? null;
         } else {
