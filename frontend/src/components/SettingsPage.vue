@@ -13,6 +13,7 @@ const message = ref('');
 const failedFavicons = ref(new Set());
 const form = ref({ url: '', category: '', color: '#337dff', autoPin: false });
 const pendingUserRemoval = ref(null);
+const editingFeedUuid = ref('');
 let notificationTimer;
 
 async function load() {
@@ -47,6 +48,12 @@ function showFavicon(key, url) {
     return faviconUrl(url) !== '' && !failedFavicons.value.has(key);
 }
 
+function toggleFeedEditor(subscription) {
+    editingFeedUuid.value = editingFeedUuid.value === subscription.feed.uuid
+        ? ''
+        : subscription.feed.uuid;
+}
+
 async function addFeed() {
     error.value = '';
     message.value = '';
@@ -77,17 +84,25 @@ async function follow(feed) {
 }
 
 async function update(subscription) {
-    await api(`/api/settings/feeds/${subscription.uuid}`, {
+    await api(`/api/settings/feeds/${subscription.feed.uuid}`, {
         method: 'PATCH',
         body: { color: subscription.color, autoPin: subscription.autoPin },
     });
+    editingFeedUuid.value = '';
     notify(`${subscription.feed.name} updated.`);
 }
 
 async function remove(subscription) {
     if (!window.confirm(`Stop following ${subscription.feed.name}?`)) return;
-    await api(`/api/settings/feeds/${subscription.uuid}`, { method: 'DELETE' });
-    await load();
+
+    try {
+        await api(`/api/settings/feeds/${subscription.feed.uuid}`, { method: 'DELETE' });
+        editingFeedUuid.value = '';
+        notify(`${subscription.feed.name} removed.`);
+        await load();
+    } catch (exception) {
+        notify(exception.message, true);
+    }
 }
 
 async function savePreference(setting, value) {
@@ -134,22 +149,37 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 
             <section class="settings-section card">
                 <h2>Your feeds</h2>
-                <div v-for="subscription in state.subscriptions" :key="subscription.uuid" class="subscription-row">
-                    <span class="feed-source-icon settings-feed-icon">
-                        <img
-                            v-if="showFavicon(`subscription-${subscription.uuid}`, subscription.feed.url)"
-                            :src="faviconUrl(subscription.feed.url)"
-                            alt=""
-                            loading="lazy"
-                            @error="markFaviconFailed(`subscription-${subscription.uuid}`)"
-                        >
-                        <span v-else class="feed-dot" :style="{ '--feed-color': subscription.color }"></span>
-                    </span>
-                    <div><strong>{{ subscription.feed.name }}</strong><small>{{ subscription.feed.url }}</small></div>
-                    <input v-model="subscription.color" type="color" :aria-label="`${subscription.feed.name} color`">
-                    <label class="compact-check"><input v-model="subscription.autoPin" type="checkbox"> Auto-pin</label>
-                    <button class="secondary small" @click="update(subscription)">Save</button>
-                    <button class="danger small" @click="remove(subscription)">Remove</button>
+                <div class="subscription-list">
+                    <div
+                        v-for="subscription in state.subscriptions"
+                        :key="subscription.feed.uuid"
+                        class="subscription-row"
+                        :class="{ editing: editingFeedUuid === subscription.feed.uuid }"
+                    >
+                        <span class="feed-source-icon settings-feed-icon">
+                            <img
+                                v-if="showFavicon(`subscription-${subscription.feed.uuid}`, subscription.feed.url)"
+                                :src="faviconUrl(subscription.feed.url)"
+                                alt=""
+                                loading="lazy"
+                                @error="markFaviconFailed(`subscription-${subscription.feed.uuid}`)"
+                            >
+                            <span v-else class="feed-dot" :style="{ '--feed-color': subscription.color }"></span>
+                        </span>
+                        <div class="subscription-copy">
+                            <strong>{{ subscription.feed.name }}</strong>
+                            <small class="subscription-url">{{ subscription.feed.url }}</small>
+                        </div>
+                        <button class="secondary small subscription-edit-toggle" @click="toggleFeedEditor(subscription)">
+                            {{ editingFeedUuid === subscription.feed.uuid ? 'Close' : 'Edit' }}
+                        </button>
+                        <div class="subscription-controls">
+                            <input v-model="subscription.color" type="color" :aria-label="`${subscription.feed.name} color`">
+                            <label class="compact-check"><input v-model="subscription.autoPin" type="checkbox"> Auto-pin</label>
+                            <button class="secondary small" @click="update(subscription)">Save</button>
+                            <button class="danger small" @click="remove(subscription)">Remove</button>
+                        </div>
+                    </div>
                 </div>
                 <p v-if="state.subscriptions.length === 0" class="muted">No feeds followed yet.</p>
             </section>
@@ -206,3 +236,78 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
         <div v-if="error" class="toast-notification error" role="alert">{{ error }}</div>
     </section>
 </template>
+
+<style scoped>
+.subscription-copy {
+    min-width: 0;
+}
+
+.subscription-copy strong,
+.subscription-copy small {
+    display: block;
+}
+
+.subscription-url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.subscription-controls {
+    display: contents;
+}
+
+.subscription-edit-toggle {
+    display: none;
+}
+
+@media (max-width: 800px) {
+    .subscription-list {
+        display: grid;
+        gap: .55rem;
+    }
+
+    .subscription-row {
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        gap: .65rem;
+        align-items: center;
+        padding: .65rem 0;
+    }
+
+    .subscription-url,
+    .subscription-controls {
+        display: none;
+    }
+
+    .subscription-edit-toggle {
+        display: inline-block;
+    }
+
+    .subscription-row.editing {
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+    }
+
+    .subscription-row.editing .subscription-url {
+        display: block;
+        margin-top: .25rem;
+        color: var(--muted);
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .subscription-row.editing .subscription-controls {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        gap: .55rem;
+        align-items: center;
+        padding-top: .35rem;
+    }
+
+    .subscription-row.editing .subscription-controls > input[type='color'] {
+        width: 46px;
+        min-height: 38px;
+        padding: .2rem;
+    }
+}
+</style>
