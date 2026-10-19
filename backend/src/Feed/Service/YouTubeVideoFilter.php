@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace App\Feed\Service;
 
 use App\Shared\Http\NativeHttpClient;
+use RuntimeException;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Throwable;
 
 final readonly class YouTubeVideoFilter
 {
-    public function __construct(private NativeHttpClient $httpClient)
-    {
+    private const int CACHE_TTL_SECONDS = 31_536_000;
+    private const int CHECK_TIMEOUT_SECONDS = 3;
+
+    public function __construct(
+        private NativeHttpClient $httpClient,
+        private CacheInterface $cache,
+    ) {
     }
 
     public function isYouTubeFeed(string $url): bool
@@ -30,18 +38,34 @@ final readonly class YouTubeVideoFilter
         }
 
         try {
-            $response = $this->httpClient->head('https://www.youtube.com/shorts/' . $videoId);
+            return $this->cache->get(
+                'youtube_short_' . $videoId,
+                function (ItemInterface $item) use ($videoId): bool {
+                    $response = $this->httpClient->head(
+                        'https://www.youtube.com/shorts/' . $videoId,
+                        timeoutSeconds: self::CHECK_TIMEOUT_SECONDS,
+                    );
+
+                    if ($response->statusCode < 200 || $response->statusCode >= 400) {
+                        throw new RuntimeException(sprintf(
+                            'YouTube Shorts check returned HTTP %d.',
+                            $response->statusCode,
+                        ));
+                    }
+
+                    $path = parse_url($response->url, PHP_URL_PATH);
+                    if (!is_string($path)) {
+                        throw new RuntimeException('YouTube Shorts check returned an invalid URL.');
+                    }
+
+                    $item->expiresAfter(self::CACHE_TTL_SECONDS);
+
+                    return str_starts_with($path, '/shorts/');
+                },
+            );
         } catch (Throwable) {
             return false;
         }
-
-        if ($response->statusCode < 200 || $response->statusCode >= 400) {
-            return false;
-        }
-
-        $path = parse_url($response->url, PHP_URL_PATH);
-
-        return is_string($path) && str_starts_with($path, '/shorts/');
     }
 
     private function videoId(string $url): ?string
