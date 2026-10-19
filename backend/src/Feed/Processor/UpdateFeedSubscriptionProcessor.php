@@ -36,7 +36,7 @@ final readonly class UpdateFeedSubscriptionProcessor implements ProcessorInterfa
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): SubscriptionMutationResponse
     {
-        $subscription = $this->repository->findOwnedByUuid(
+        $subscription = $this->repository->findOwnedByIdentifier(
             $this->currentUser->get(),
             UriVariable::uuid($uriVariables),
         );
