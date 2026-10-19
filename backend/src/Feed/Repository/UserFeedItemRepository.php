@@ -9,6 +9,7 @@ use App\Feed\Entity\FeedUserItem;
 use App\User\Entity\User;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
@@ -76,13 +77,19 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     ): int {
         $queryBuilder = $this->createQueryBuilder('item')
             ->select('COUNT(item.id)')
-            ->leftJoin('item.userFeed', 'userFeed')
-            ->leftJoin('userFeed.feed', 'subscriptionFeed')
             ->andWhere('item.user = :user')
             ->andWhere('item.pinned = true')
             ->setParameter('user', $user);
 
-        $this->applySourceFilter($queryBuilder, $feedUuid, $manualOnly);
+        if ($manualOnly) {
+            $queryBuilder->andWhere('item.userFeed IS NULL');
+        } elseif ($feedUuid !== null) {
+            $queryBuilder
+                ->innerJoin('item.userFeed', 'userFeed')
+                ->innerJoin('userFeed.feed', 'subscriptionFeed')
+                ->andWhere('subscriptionFeed.uuid = :feedUuid')
+                ->setParameter('feedUuid', $feedUuid);
+        }
 
         return (int) $queryBuilder
             ->getQuery()
@@ -190,16 +197,35 @@ final class UserFeedItemRepository extends ServiceEntityRepository
         return $this->findOneBy(['uuid' => $uuid, 'user' => $user]);
     }
 
+    /** @param list<int> $ids */
+    public function markViewedByIdsForUser(User $user, array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $this->getEntityManager()->getConnection()->executeStatement(
+            'UPDATE feed_user_item '
+            . 'SET viewed = 1, updated_at = CURRENT_TIMESTAMP '
+            . 'WHERE user_id = :userId AND viewed = 0 AND id IN (:ids)',
+            [
+                'userId' => $this->persistedUserId($user),
+                'ids' => $ids,
+            ],
+            [
+                'ids' => ArrayParameterType::INTEGER,
+            ],
+        );
+    }
+
     /** @return array{items: int, unread: int, opened: int, pinned: int} */
     public function dashboardTotalsForUser(User $user): array
     {
         $row = $this->getEntityManager()->getConnection()->fetchAssociative(
             'SELECT '
-            . 'COUNT(id) AS item_count, '
-            . 'SUM(CASE WHEN opened_at IS NULL THEN 1 ELSE 0 END) AS unread_count, '
-            . 'SUM(CASE WHEN opened_at IS NOT NULL THEN 1 ELSE 0 END) AS opened_count, '
-            . 'SUM(CASE WHEN pinned = 1 THEN 1 ELSE 0 END) AS pinned_count '
-            . 'FROM feed_user_item WHERE user_id = :userId',
+            . '(SELECT COUNT(*) FROM feed_user_item WHERE user_id = :userId AND opened_at IS NULL) AS unread_count, '
+            . '(SELECT COUNT(*) FROM feed_user_item WHERE user_id = :userId AND opened_at IS NOT NULL) AS opened_count, '
+            . '(SELECT COUNT(*) FROM feed_user_item WHERE user_id = :userId AND pinned = 1) AS pinned_count',
             ['userId' => $this->persistedUserId($user)],
         );
 
@@ -207,10 +233,13 @@ final class UserFeedItemRepository extends ServiceEntityRepository
             return ['items' => 0, 'unread' => 0, 'opened' => 0, 'pinned' => 0];
         }
 
+        $unread = $this->countValue($row['unread_count'] ?? null);
+        $opened = $this->countValue($row['opened_count'] ?? null);
+
         return [
-            'items' => $this->countValue($row['item_count'] ?? null),
-            'unread' => $this->countValue($row['unread_count'] ?? null),
-            'opened' => $this->countValue($row['opened_count'] ?? null),
+            'items' => $unread + $opened,
+            'unread' => $unread,
+            'opened' => $opened,
             'pinned' => $this->countValue($row['pinned_count'] ?? null),
         ];
     }
@@ -220,15 +249,19 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     {
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
             "SELECT CASE "
-            . "WHEN item.user_feed_id IS NULL THEN 'Saved links' "
+            . "WHEN grouped.user_feed_id IS NULL THEN 'Saved links' "
             . "WHEN category.id IS NULL THEN 'Uncategorised' "
             . "ELSE category.name END AS category_name, "
-            . 'COUNT(item.id) AS item_count '
-            . 'FROM feed_user_item item '
-            . 'LEFT JOIN feed_user user_feed ON user_feed.id = item.user_feed_id '
+            . 'SUM(grouped.item_count) AS item_count '
+            . 'FROM ('
+            . 'SELECT user_feed_id, COUNT(*) AS item_count '
+            . 'FROM feed_user_item '
+            . 'WHERE user_id = :userId '
+            . 'GROUP BY user_feed_id'
+            . ') grouped '
+            . 'LEFT JOIN feed_user user_feed ON user_feed.id = grouped.user_feed_id '
             . 'LEFT JOIN feed feed ON feed.id = user_feed.feed_id '
             . 'LEFT JOIN feed_category category ON category.id = feed.category_id '
-            . 'WHERE item.user_id = :userId '
             . 'GROUP BY category_name '
             . 'ORDER BY item_count DESC, category_name ASC',
             ['userId' => $this->persistedUserId($user)],
@@ -254,7 +287,7 @@ final class UserFeedItemRepository extends ServiceEntityRepository
     public function countCreatedByDayForUser(User $user, DateTimeImmutable $since): array
     {
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT DATE(created_at) AS date_key, COUNT(id) AS item_count '
+            'SELECT DATE(created_at) AS date_key, COUNT(*) AS item_count '
             . 'FROM feed_user_item '
             . 'WHERE user_id = :userId AND created_at >= :since '
             . 'GROUP BY DATE(created_at) '
@@ -286,13 +319,16 @@ final class UserFeedItemRepository extends ServiceEntityRepository
         }
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT feed.name AS feed_name, COUNT(item.id) AS item_count '
-            . 'FROM feed_user_item item '
-            . 'INNER JOIN feed_user user_feed ON user_feed.id = item.user_feed_id '
+            'SELECT feed.name AS feed_name, grouped.item_count AS item_count '
+            . 'FROM ('
+            . 'SELECT user_feed_id, COUNT(*) AS item_count '
+            . 'FROM feed_user_item '
+            . 'WHERE user_id = :userId AND created_at >= :since AND user_feed_id IS NOT NULL '
+            . 'GROUP BY user_feed_id'
+            . ') grouped '
+            . 'INNER JOIN feed_user user_feed ON user_feed.id = grouped.user_feed_id '
             . 'INNER JOIN feed feed ON feed.id = user_feed.feed_id '
-            . 'WHERE item.user_id = :userId AND item.created_at >= :since '
-            . 'GROUP BY feed.id, feed.name '
-            . 'ORDER BY item_count DESC, feed.name ASC '
+            . 'ORDER BY grouped.item_count DESC, feed.name ASC '
             . 'LIMIT ' . $limit,
             [
                 'userId' => $this->persistedUserId($user),
