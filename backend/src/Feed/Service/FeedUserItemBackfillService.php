@@ -37,10 +37,12 @@ final readonly class FeedUserItemBackfillService
         foreach ($this->feedItemRepository->findLatestForFeed($feed, self::MAX_ITEMS_PER_FEED) as $feedItem) {
             $missingSubscriptions = [];
             foreach ($subscriptions as $subscription) {
-                if ($this->userFeedItemRepository->findOneBy([
-                    'user' => $subscription->getUser(),
-                    'feedItem' => $feedItem,
-                ]) instanceof FeedUserItem) {
+                if (
+                    $this->userFeedItemRepository->findOneBy([
+                        'user' => $subscription->getUser(),
+                        'feedItem' => $feedItem,
+                    ]) instanceof FeedUserItem
+                ) {
                     continue;
                 }
 
