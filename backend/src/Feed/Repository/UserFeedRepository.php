@@ -9,7 +9,6 @@ use App\Feed\Entity\FeedUser;
 use App\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use LogicException;
 
 /** @extends ServiceEntityRepository<FeedUser> */
 final class UserFeedRepository extends ServiceEntityRepository
@@ -120,19 +119,24 @@ final class UserFeedRepository extends ServiceEntityRepository
 
     public function findOwnedByUuid(User $user, string $subscriptionUuid): ?FeedUser
     {
+        return $this->findOneBy([
+            'user' => $user,
+            'uuid' => $subscriptionUuid,
+        ]);
+    }
+
+    public function findOwnedByFeedUuid(User $user, string $feedUuid): ?FeedUser
+    {
         $result = $this->createQueryBuilder('userFeed')
+            ->innerJoin('userFeed.feed', 'feed')
             ->andWhere('userFeed.user = :user')
-            ->andWhere('userFeed.uuid = :subscriptionUuid')
+            ->andWhere('feed.uuid = :feedUuid')
             ->setParameter('user', $user)
-            ->setParameter('subscriptionUuid', $subscriptionUuid)
+            ->setParameter('feedUuid', $feedUuid)
             ->getQuery()
             ->getOneOrNullResult();
 
-        if ($result !== null && !$result instanceof FeedUser) {
-            throw new LogicException('Expected FeedUser result.');
-        }
-
-        return $result;
+        return $result instanceof FeedUser ? $result : null;
     }
 
     public function isFollowing(User $user, Feed $feed): bool
