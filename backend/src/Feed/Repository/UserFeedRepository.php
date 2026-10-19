@@ -117,6 +117,16 @@ final class UserFeedRepository extends ServiceEntityRepository
         return $feeds;
     }
 
+    public function findOwnedByIdentifier(User $user, string $uuid): ?FeedUser
+    {
+        $subscription = $this->findOwnedByUuid($user, $uuid);
+        if ($subscription instanceof FeedUser) {
+            return $subscription;
+        }
+
+        return $this->findOwnedByFeedUuid($user, $uuid);
+    }
+
     public function findOwnedByUuid(User $user, string $subscriptionUuid): ?FeedUser
     {
         return $this->findOneBy([
@@ -127,16 +137,15 @@ final class UserFeedRepository extends ServiceEntityRepository
 
     public function findOwnedByFeedUuid(User $user, string $feedUuid): ?FeedUser
     {
-        $result = $this->createQueryBuilder('userFeed')
-            ->innerJoin('userFeed.feed', 'feed')
-            ->andWhere('userFeed.user = :user')
-            ->andWhere('feed.uuid = :feedUuid')
-            ->setParameter('user', $user)
-            ->setParameter('feedUuid', $feedUuid)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $feed = $this->getEntityManager()->getRepository(Feed::class)->findOneBy(['uuid' => $feedUuid]);
+        if (!$feed instanceof Feed) {
+            return null;
+        }
 
-        return $result instanceof FeedUser ? $result : null;
+        return $this->findOneBy([
+            'user' => $user,
+            'feed' => $feed,
+        ]);
     }
 
     public function isFollowing(User $user, Feed $feed): bool
