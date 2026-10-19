@@ -14,23 +14,16 @@ use InvalidArgumentException;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserFeedItemRepository::class)]
-#[ORM\Table(
-    name: 'feed_user_item',
-    indexes: [
-        new ORM\Index(name: 'idx_fui_user', columns: ['user_id']),
-        new ORM\Index(name: 'idx_fui_user_created_feed', columns: ['user_id', 'created_at', 'user_feed_id']),
-        new ORM\Index(name: 'idx_fui_feed_item', columns: ['feed_item_id']),
-        new ORM\Index(name: 'idx_fui_user_feed', columns: ['user_feed_id']),
-        new ORM\Index(name: 'idx_fui_tag', columns: ['tag_id']),
-        new ORM\Index(name: 'idx_fui_user_pinned_created', columns: ['user_id', 'pinned', 'created_at', 'id']),
-        new ORM\Index(name: 'idx_fui_user_feed_pinned_created', columns: ['user_id', 'user_feed_id', 'pinned', 'created_at', 'id']),
-        new ORM\Index(name: 'idx_fui_user_tag', columns: ['user_id', 'tag_id']),
-        new ORM\Index(name: 'idx_fui_user_opened', columns: ['user_id', 'opened_at', 'id'])
-    ],
-    uniqueConstraints: [
-        new ORM\UniqueConstraint(name: 'uniq_fui_user_feeditem', columns: ['user_id','feed_item_id'])
-    ]
+#[ORM\Table(name: 'feed_user_item')]
+#[ORM\Index(name: 'idx_fui_user_created_feed', columns: ['user_id', 'created_at', 'user_feed_id'])]
+#[ORM\Index(name: 'idx_fui_user_pinned_created', columns: ['user_id', 'pinned', 'created_at', 'id'])]
+#[ORM\Index(
+    name: 'idx_fui_user_feed_pinned_created',
+    columns: ['user_id', 'user_feed_id', 'pinned', 'created_at', 'id'],
 )]
+#[ORM\Index(name: 'idx_fui_user_tag', columns: ['user_id', 'tag_id'])]
+#[ORM\Index(name: 'idx_fui_user_opened', columns: ['user_id', 'opened_at', 'id'])]
+#[ORM\UniqueConstraint(name: 'uniq_fui_user_feeditem', columns: ['user_id', 'feed_item_id'])]
 class FeedUserItem
 {
     use TimestampableEntity;
@@ -51,7 +44,7 @@ class FeedUserItem
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private FeedItem $feedItem;
 
-    #[ORM\ManyToOne(targetEntity: FeedUser::class)]
+    #[ORM\ManyToOne(targetEntity: FeedUser::class, inversedBy: 'items')]
     #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?FeedUser $userFeed = null;
 

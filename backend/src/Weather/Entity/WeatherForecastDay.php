@@ -9,15 +9,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(
-    name: 'weather_forecast_day',
-    indexes: [
-        new ORM\Index(name: 'idx_weather_forecast_day_forecast', columns: ['forecast_id'])
-    ],
-    uniqueConstraints: [
-        new ORM\UniqueConstraint(name: 'uniq_weather_forecast_day', columns: ['forecast_id', 'day_offset'])
-    ]
-)]
+#[ORM\Table(name: 'weather_forecast_day')]
+#[ORM\UniqueConstraint(name: 'uniq_weather_forecast_day', columns: ['forecast_id', 'day_offset'])]
 class WeatherForecastDay
 {
     #[ORM\Id]

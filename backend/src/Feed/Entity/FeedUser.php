@@ -14,17 +14,9 @@ use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserFeedRepository::class)]
-#[ORM\Table(
-    name: 'feed_user',
-    indexes: [
-        new ORM\Index(name: 'idx_feed_user_user', columns: ['user_id']),
-        new ORM\Index(name: 'idx_feed_user_feed', columns: ['feed_id'])
-    ],
-    uniqueConstraints: [
-        new ORM\UniqueConstraint(name: 'uniq_feed_user_uuid', columns: ['uuid']),
-        new ORM\UniqueConstraint(name: 'uniq_feed_user_user_feed', columns: ['user_id','feed_id'])
-    ]
-)]
+#[ORM\Table(name: 'feed_user')]
+#[ORM\UniqueConstraint(name: 'uniq_feed_user_uuid', columns: ['uuid'])]
+#[ORM\UniqueConstraint(name: 'uniq_feed_user_user_feed', columns: ['user_id', 'feed_id'])]
 class FeedUser
 {
     use TimestampableEntity;
