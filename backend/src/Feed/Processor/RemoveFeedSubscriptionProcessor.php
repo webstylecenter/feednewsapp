@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Feed\Entity\FeedUser;
 use App\Feed\Repository\UserFeedRepository;
-use App\Feed\Service\FeedService;
+use App\Feed\Service\FeedSubscriptionRemovalService;
 use App\Shared\Api\UriVariable;
 use App\Shared\Dto\Response\StatusResponse;
 use App\Shared\Security\CurrentUser;
@@ -21,7 +21,7 @@ final readonly class RemoveFeedSubscriptionProcessor implements ProcessorInterfa
     public function __construct(
         private CurrentUser $currentUser,
         private UserFeedRepository $repository,
-        private FeedService $feedService,
+        private FeedSubscriptionRemovalService $removalService,
     ) {
     }
 
@@ -32,7 +32,7 @@ final readonly class RemoveFeedSubscriptionProcessor implements ProcessorInterfa
     #[Override]
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StatusResponse
     {
-        $subscription = $this->repository->findOwnedByFeedUuid(
+        $subscription = $this->repository->findOwnedByIdentifier(
             $this->currentUser->get(),
             UriVariable::uuid($uriVariables),
         );
@@ -40,7 +40,8 @@ final readonly class RemoveFeedSubscriptionProcessor implements ProcessorInterfa
             throw new NotFoundHttpException('Feed subscription not found.');
         }
 
-        $this->feedService->removeSubscription($subscription);
+        $this->removalService->remove($subscription);
+
         return new StatusResponse();
     }
 }

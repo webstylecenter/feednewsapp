@@ -30,7 +30,7 @@ class FeedError
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Feed::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Feed $feed = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: false)]

@@ -36,7 +36,7 @@ class FeedItem
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: Feed::class)]
-    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true)]
+    #[ORM\JoinColumn(referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?Feed $feed = null;
 
     #[ORM\Column(type: Types::STRING)]

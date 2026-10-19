@@ -6,6 +6,7 @@ namespace App\Feed\Service;
 
 use App\Feed\Dto\ParsedFeed;
 use App\Feed\Dto\ParsedFeedItem;
+use App\Feed\Repository\FeedItemRepository;
 use DateTimeImmutable;
 use DOMDocument;
 use DOMElement;
@@ -14,6 +15,12 @@ use Throwable;
 
 final class FeedParser
 {
+    public function __construct(
+        private readonly FeedItemRepository $feedItemRepository,
+        private readonly YouTubeVideoFilter $youTubeVideoFilter,
+    ) {
+    }
+
     public function parse(string $xml): ParsedFeed
     {
         $previous = libxml_use_internal_errors(true);
@@ -42,6 +49,7 @@ final class FeedParser
         $channel = $this->firstDescendant($root, 'channel') ?? $root;
         $title = $this->childText($channel, 'title') ?? 'Untitled feed';
         $items = [];
+        $skippedShort = false;
 
         foreach ($root->getElementsByTagName('*') as $node) {
             if (strtolower((string) $node->localName) !== 'item') {
@@ -55,6 +63,11 @@ final class FeedParser
             }
 
             $guid = $this->childText($node, 'guid') ?? $url;
+            if ($this->shouldSkipYouTubeShort($guid, $url)) {
+                $skippedShort = true;
+                continue;
+            }
+
             $description = $this->childText($node, 'description')
                 ?? $this->childText($node, 'encoded')
                 ?? $this->childText($node, 'content');
@@ -72,7 +85,7 @@ final class FeedParser
             );
         }
 
-        if ($items === []) {
+        if ($items === [] && !$skippedShort) {
             throw new RuntimeException('The RSS feed does not contain any readable items.');
         }
 
@@ -83,6 +96,7 @@ final class FeedParser
     {
         $title = $this->childText($root, 'title') ?? 'Untitled feed';
         $items = [];
+        $skippedShort = false;
 
         foreach ($root->childNodes as $node) {
             if (!$node instanceof DOMElement || strtolower((string) $node->localName) !== 'entry') {
@@ -96,6 +110,11 @@ final class FeedParser
 
             $itemTitle = $this->childText($node, 'title') ?? 'Untitled item';
             $guid = $this->childText($node, 'id') ?? $url;
+            if ($this->shouldSkipYouTubeShort($guid, $url)) {
+                $skippedShort = true;
+                continue;
+            }
+
             $description = $this->childText($node, 'summary') ?? $this->childText($node, 'content');
             $publishedAt = $this->parseDate(
                 $this->childText($node, 'published')
@@ -111,11 +130,32 @@ final class FeedParser
             );
         }
 
-        if ($items === []) {
+        if ($items === [] && !$skippedShort) {
             throw new RuntimeException('The Atom feed does not contain any readable entries.');
         }
 
         return new ParsedFeed($this->cleanText($title, 255), $items);
+    }
+
+    private function shouldSkipYouTubeShort(string $guid, string $url): bool
+    {
+        if (!$this->isYouTubeVideoUrl($url)) {
+            return false;
+        }
+
+        if ($this->feedItemRepository->findOneBy(['guid' => $guid]) !== null) {
+            return false;
+        }
+
+        return $this->youTubeVideoFilter->isShort($url);
+    }
+
+    private function isYouTubeVideoUrl(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host)
+            && ($host === 'youtu.be' || $host === 'youtube.com' || str_ends_with($host, '.youtube.com'));
     }
 
     private function atomLink(DOMElement $entry): ?string

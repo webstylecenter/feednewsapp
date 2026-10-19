@@ -135,7 +135,7 @@ final class DeduplicateFeedItemsCommand extends Command
 
     private function deleteDuplicateUserItems(): int
     {
-        return $this->connection->executeStatement(sprintf(
+        return (int) $this->connection->executeStatement(sprintf(
             <<<'SQL'
                 DELETE feed_user_item
                 FROM feed_user_item
@@ -148,7 +148,7 @@ final class DeduplicateFeedItemsCommand extends Command
 
     private function deleteDuplicateContents(): int
     {
-        return $this->connection->executeStatement(sprintf(
+        return (int) $this->connection->executeStatement(sprintf(
             <<<'SQL'
                 DELETE feed_item_content
                 FROM feed_item_content
@@ -161,7 +161,7 @@ final class DeduplicateFeedItemsCommand extends Command
 
     private function deleteDuplicateFeedItems(): int
     {
-        return $this->connection->executeStatement(sprintf(
+        return (int) $this->connection->executeStatement(sprintf(
             <<<'SQL'
                 DELETE feed_item
                 FROM feed_item
