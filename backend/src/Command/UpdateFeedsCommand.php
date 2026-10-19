@@ -17,6 +17,8 @@ use Throwable;
 #[AsCommand(name: 'feed:update', description: 'Fetch new items for all configured feeds.')]
 final class UpdateFeedsCommand extends Command
 {
+    private const float SLOW_FEED_SECONDS = 2.0;
+
     public function __construct(
         private readonly FeedRepository $feedRepository,
         private readonly FeedService $feedService,
@@ -36,19 +38,29 @@ final class UpdateFeedsCommand extends Command
             try {
                 $newItems = $this->feedService->parseFeed($feed);
                 $total += $newItems;
+                $feedDuration = microtime(true) - $feedStartedAt;
 
-                if ($newItems > 0 || $output->isVerbose()) {
+                if (
+                    $newItems > 0
+                    || $output->isVerbose()
+                    || $feedDuration >= self::SLOW_FEED_SECONDS
+                ) {
                     $output->writeln(sprintf(
                         '%s: %d new item(s) in %.2fs',
                         $feed->getName(),
                         $newItems,
-                        microtime(true) - $feedStartedAt,
+                        $feedDuration,
                     ));
                 }
             } catch (Throwable $throwable) {
                 ++$failed;
                 $this->errorService->report(FeedErrorType::ERROR, $throwable->getMessage(), null, $feed);
-                $output->writeln(sprintf('<error>%s: %s</error>', $feed->getName(), $throwable->getMessage()));
+                $output->writeln(sprintf(
+                    '<error>%s failed after %.2fs: %s</error>',
+                    $feed->getName(),
+                    microtime(true) - $feedStartedAt,
+                    $throwable->getMessage(),
+                ));
             }
         }
 
