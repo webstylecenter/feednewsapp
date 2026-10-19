@@ -16,10 +16,6 @@ final class Version20261019201500 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_fui_user ON feed_user_item (user_id)');
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_fui_feed_item ON feed_user_item (feed_item_id)');
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_fui_user_feed ON feed_user_item (user_feed_id)');
-        $this->addSql('CREATE INDEX IF NOT EXISTS idx_fui_tag ON feed_user_item (tag_id)');
         $this->addSql(
             'CREATE INDEX IF NOT EXISTS idx_fui_user_created_feed '
             . 'ON feed_user_item (user_id, created_at, user_feed_id)',
