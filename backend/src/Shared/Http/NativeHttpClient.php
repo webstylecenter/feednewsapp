@@ -9,6 +9,7 @@ use RuntimeException;
 final readonly class NativeHttpClient
 {
     private const int DEFAULT_MAX_BYTES = 2_000_000;
+    private const int DEFAULT_TIMEOUT_SECONDS = 12;
     private const int MAX_REDIRECTS = 5;
 
     public function __construct(private PublicUrlGuard $urlGuard)
@@ -26,9 +27,12 @@ final readonly class NativeHttpClient
     /**
      * @param array<string, string> $headers
      */
-    public function head(string $url, array $headers = []): HttpResponse
-    {
-        return $this->request('HEAD', $url, $headers, null, 0);
+    public function head(
+        string $url,
+        array $headers = [],
+        int $timeoutSeconds = self::DEFAULT_TIMEOUT_SECONDS,
+    ): HttpResponse {
+        return $this->request('HEAD', $url, $headers, null, 0, $timeoutSeconds);
     }
 
     /**
@@ -57,6 +61,7 @@ final readonly class NativeHttpClient
         array $headers,
         ?string $body,
         int $maxBytes,
+        int $timeoutSeconds = self::DEFAULT_TIMEOUT_SECONDS,
         int $redirects = 0,
     ): HttpResponse {
         if ($redirects > self::MAX_REDIRECTS) {
@@ -76,7 +81,7 @@ final readonly class NativeHttpClient
                 'method' => $method,
                 'header' => implode("\r\n", $headerLines),
                 'content' => $body ?? '',
-                'timeout' => 12,
+                'timeout' => max(1, $timeoutSeconds),
                 'ignore_errors' => true,
                 'follow_location' => 0,
                 'max_redirects' => 0,
@@ -124,6 +129,7 @@ final readonly class NativeHttpClient
                 $headers,
                 $statusCode === 303 ? null : $body,
                 $maxBytes,
+                $timeoutSeconds,
                 $redirects + 1,
             );
         }
