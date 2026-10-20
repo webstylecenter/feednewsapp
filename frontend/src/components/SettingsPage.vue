@@ -49,6 +49,21 @@ function showFavicon(key, url) {
     return faviconUrl(url) !== '' && !failedFavicons.value.has(key);
 }
 
+function formatLastItem(value) {
+    if (!value) return 'No items received yet';
+
+    return `Latest item: ${new Date(value).toLocaleString('nl-NL', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    })}`;
+}
+
+function showFeedError(feed) {
+    if (!feed.httpErrorStatus) return;
+
+    notify(feed.httpErrorMessage || `Feed returned HTTP ${feed.httpErrorStatus}.`, true);
+}
+
 function toggleFeedEditor(subscription) {
     editingSubscriptionUuid.value = editingSubscriptionUuid.value === subscription.uuid
         ? ''
@@ -144,6 +159,20 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
         </header>
         <div class="settings-content">
             <section class="settings-section card">
+                <h2>Preferences</h2>
+                <div class="preference-grid">
+                    <label>Theme
+                        <select :value="state.preferences.theme || 'auto'" @change="savePreference('theme', $event.target.value)">
+                            <option value="auto">Automatic</option><option value="light">Light</option><option value="dark">Dark</option>
+                        </select>
+                    </label>
+                    <label class="wide">Google Calendar embed URL
+                        <input :value="state.preferences.google_calendar || ''" type="url" placeholder="https://calendar.google.com/..." @change="savePreference('google_calendar', $event.target.value)">
+                    </label>
+                </div>
+            </section>
+
+            <section class="settings-section card">
                 <h2>Add a feed</h2>
                 <p class="muted">Paste an RSS/Atom URL, a website containing feed discovery metadata, or a YouTube channel URL.</p>
                 <form class="settings-add-grid" @submit.prevent="addFeed">
@@ -175,7 +204,17 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                             <span v-else class="feed-dot" :style="{ '--feed-color': subscription.color }"></span>
                         </span>
                         <div class="subscription-copy">
-                            <strong>{{ subscription.feed.name }}</strong>
+                            <div class="subscription-title-row">
+                                <strong>{{ subscription.feed.name }}</strong>
+                                <button
+                                    v-if="subscription.feed.httpErrorStatus"
+                                    type="button"
+                                    class="feed-health-warning"
+                                    :title="subscription.feed.httpErrorMessage || `HTTP ${subscription.feed.httpErrorStatus}`"
+                                    @click="showFeedError(subscription.feed)"
+                                >⚠ HTTP {{ subscription.feed.httpErrorStatus }}</button>
+                            </div>
+                            <small class="subscription-meta">{{ formatLastItem(subscription.feed.lastItemAt) }}</small>
                             <small class="subscription-url">{{ subscription.feed.url }}</small>
                         </div>
                         <button class="secondary small subscription-edit-toggle" @click="toggleFeedEditor(subscription)">
@@ -209,20 +248,6 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                 </div>
             </section>
 
-            <section class="settings-section card">
-                <h2>Preferences</h2>
-                <div class="preference-grid">
-                    <label>Theme
-                        <select :value="state.preferences.theme || 'auto'" @change="savePreference('theme', $event.target.value)">
-                            <option value="auto">Automatic</option><option value="light">Light</option><option value="dark">Dark</option>
-                        </select>
-                    </label>
-                    <label class="wide">Google Calendar embed URL
-                        <input :value="state.preferences.google_calendar || ''" type="url" placeholder="https://calendar.google.com/..." @change="savePreference('google_calendar', $event.target.value)">
-                    </label>
-                </div>
-            </section>
-
             <section v-if="props.user.isAdmin && admin" class="settings-section card admin-section">
                 <h2>Administration</h2>
                 <h3>Users</h3>
@@ -252,6 +277,13 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 </template>
 
 <style scoped>
+.subscription-list {
+    max-height: min(620px, 65vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: .25rem;
+}
+
 .subscription-copy {
     min-width: 0;
 }
@@ -261,10 +293,40 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
     display: block;
 }
 
+.subscription-title-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+}
+
+.subscription-title-row strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.subscription-meta {
+    margin-top: .2rem;
+    color: var(--muted);
+}
+
 .subscription-url {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.feed-health-warning {
+    flex: 0 0 auto;
+    border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border));
+    border-radius: 999px;
+    padding: .18rem .42rem;
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+    color: var(--danger);
+    font-size: .7rem;
+    line-height: 1.2;
 }
 
 .subscription-controls {
@@ -284,6 +346,7 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
     .subscription-list {
         display: grid;
         gap: .55rem;
+        max-height: min(560px, 62vh);
     }
 
     .subscription-row {
@@ -296,6 +359,12 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
     .subscription-url,
     .subscription-controls {
         display: none;
+    }
+
+    .subscription-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .25rem;
     }
 
     .subscription-edit-toggle {
