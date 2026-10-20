@@ -8,6 +8,7 @@ use App\Feed\Entity\Feed;
 use App\Feed\Entity\FeedError;
 use App\Feed\Enum\FeedErrorType;
 use App\User\Entity\User;
+use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -32,6 +33,51 @@ final class FeedErrorRepository extends ServiceEntityRepository
     public function findLatestForFeed(Feed $feed): ?FeedError
     {
         return $this->findOneBy(['feed' => $feed], ['updatedAt' => 'DESC']);
+    }
+
+    /**
+     * @param list<Feed> $feeds
+     * @return array<int, FeedError>
+     */
+    public function findLatestForFeeds(array $feeds): array
+    {
+        if ($feeds === []) {
+            return [];
+        }
+
+        $oldestUpdatedAt = null;
+        foreach ($feeds as $feed) {
+            $updatedAt = $feed->getUpdatedAt();
+            if (!$oldestUpdatedAt instanceof DateTimeInterface || $updatedAt < $oldestUpdatedAt) {
+                $oldestUpdatedAt = $updatedAt;
+            }
+        }
+
+        $queryBuilder = $this->createQueryBuilder('error')
+            ->addSelect('feed')
+            ->innerJoin('error.feed', 'feed')
+            ->andWhere('error.feed IN (:feeds)')
+            ->setParameter('feeds', $feeds)
+            ->orderBy('error.updatedAt', 'DESC');
+
+        if ($oldestUpdatedAt instanceof DateTimeInterface) {
+            $queryBuilder
+                ->andWhere('error.updatedAt > :oldestUpdatedAt')
+                ->setParameter('oldestUpdatedAt', $oldestUpdatedAt);
+        }
+
+        /** @var list<FeedError> $errors */
+        $errors = $queryBuilder->getQuery()->getResult();
+        $latestByFeed = [];
+
+        foreach ($errors as $error) {
+            $feedId = $error->getFeed()?->getId();
+            if ($feedId !== null && !isset($latestByFeed[$feedId])) {
+                $latestByFeed[$feedId] = $error;
+            }
+        }
+
+        return $latestByFeed;
     }
 
     /** @return list<FeedError> */
