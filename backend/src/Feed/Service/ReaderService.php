@@ -123,15 +123,16 @@ final readonly class ReaderService
     private function looksLikeBrowserChallenge(string $html): bool
     {
         $sample = strtolower(substr($html, 0, 200_000));
-
-        foreach ([
+        $markers = [
             'cf-chl-',
             'challenge-platform',
             'checking your browser',
             'verify you are human',
             'enable javascript and cookies',
             'access denied',
-        ] as $marker) {
+        ];
+
+        foreach ($markers as $marker) {
             if (str_contains($sample, $marker)) {
                 return true;
             }
