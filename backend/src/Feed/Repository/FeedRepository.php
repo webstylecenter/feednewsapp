@@ -21,6 +21,7 @@ final class FeedRepository extends ServiceEntityRepository
     {
         /** @var list<Feed> $feeds */
         $feeds = $this->createQueryBuilder('feed')
+            ->addSelect('category')
             ->leftJoin('feed.category', 'category')
             ->orderBy('category.name', 'ASC')
             ->addOrderBy('feed.name', 'ASC')
