@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Feed\Dto\Response\CategoryResponse;
 use App\Feed\Dto\Response\SettingsResponse;
-use App\Feed\Entity\Feed;
 use App\Feed\Mapper\FeedSettingsMapper;
 use App\Feed\Repository\FeedCategoryRepository;
 use App\Feed\Repository\FeedErrorRepository;
@@ -43,10 +42,11 @@ final readonly class SettingsProvider implements ProviderInterface
     {
         $user = $this->currentUser->get();
         $userFeeds = $this->userFeedRepository->findForUser($user);
-        $feeds = array_map(
-            static fn ($subscription): Feed => $subscription->getFeed(),
-            $userFeeds,
-        );
+        $feeds = [];
+        foreach ($userFeeds as $subscription) {
+            $feeds[] = $subscription->getFeed();
+        }
+
         $latestItemAtByFeed = $this->feedItemRepository->findLatestCreatedAtByFeeds($feeds);
         $latestErrorByFeed = $this->feedErrorRepository->findLatestForFeeds($feeds);
 
