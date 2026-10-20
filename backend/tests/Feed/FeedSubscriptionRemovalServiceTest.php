@@ -83,10 +83,10 @@ final class FeedSubscriptionRemovalServiceTest extends TestCase
 
     public function testRemovingUnpersistedSubscriptionIsRejected(): void
     {
-        $feed = $this->createMock(Feed::class);
+        $feed = $this->createStub(Feed::class);
         $feed->method('getId')->willReturn(20);
 
-        $subscription = $this->createMock(FeedUser::class);
+        $subscription = $this->createStub(FeedUser::class);
         $subscription->method('getId')->willReturn(null);
         $subscription->method('getFeed')->willReturn($feed);
 
@@ -101,10 +101,10 @@ final class FeedSubscriptionRemovalServiceTest extends TestCase
 
     private function subscription(int $subscriptionId, int $feedId): FeedUser
     {
-        $feed = $this->createMock(Feed::class);
+        $feed = $this->createStub(Feed::class);
         $feed->method('getId')->willReturn($feedId);
 
-        $subscription = $this->createMock(FeedUser::class);
+        $subscription = $this->createStub(FeedUser::class);
         $subscription->method('getId')->willReturn($subscriptionId);
         $subscription->method('getFeed')->willReturn($feed);
 

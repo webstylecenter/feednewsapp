@@ -12,6 +12,9 @@ final readonly class FeedSummaryResponse
         public string $url,
         public string $color,
         public ?string $category,
+        public ?string $lastItemAt = null,
+        public ?int $httpErrorStatus = null,
+        public ?string $httpErrorMessage = null,
     ) {
     }
 }

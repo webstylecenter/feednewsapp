@@ -6,6 +6,8 @@ const icons = {
     search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 4.2 4.2"/></svg>',
 };
 
+let enhanceFrame = 0;
+
 function decorateButton(button, action, label) {
     if (button.dataset.glassDecorated === 'true') return;
 
@@ -20,9 +22,8 @@ function tagName(option) {
 
 function tagColor(shell, option) {
     const name = tagName(option);
-    const tagButtons = shell.querySelectorAll('.tag-option[style*="--tag-color"]');
 
-    for (const button of tagButtons) {
+    for (const button of shell.querySelectorAll('.tag-option[style*="--tag-color"]')) {
         if (button.textContent.trim() === name) {
             return button.style.getPropertyValue('--tag-color').trim();
         }
@@ -32,39 +33,27 @@ function tagColor(shell, option) {
 }
 
 function closePanels(sidebar, except = '') {
-    const classes = ['glass-search-open', 'glass-tags-open', 'glass-add-open'];
-    classes.forEach((className) => {
+    for (const className of ['glass-search-open', 'glass-tags-open', 'glass-add-open']) {
         if (className !== except) sidebar.classList.remove(className);
-    });
+    }
 }
 
-function ensureActiveTagBar(sidebar, select, tagButton, shell) {
+function ensureActiveTagBar(sidebar, select) {
     let bar = sidebar.querySelector('.glass-active-tag');
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'glass-active-tag';
+    if (bar) return bar;
 
-        const dot = document.createElement('span');
-        dot.className = 'glass-active-tag-dot';
-        bar.append(dot);
-
-        const label = document.createElement('strong');
-        label.className = 'glass-active-tag-label';
-        bar.append(label);
-
-        const clear = document.createElement('button');
-        clear.type = 'button';
-        clear.className = 'glass-active-tag-clear';
-        clear.setAttribute('aria-label', 'Clear tag filter');
-        clear.textContent = '×';
-        clear.addEventListener('click', () => {
-            select.value = '';
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            syncTagState(sidebar, select, tagButton, shell);
-        });
-        bar.append(clear);
-        sidebar.append(bar);
-    }
+    bar = document.createElement('div');
+    bar.className = 'glass-active-tag';
+    bar.innerHTML = `
+        <span class="glass-active-tag-dot"></span>
+        <strong class="glass-active-tag-label"></strong>
+        <button type="button" class="glass-active-tag-clear" aria-label="Clear tag filter">×</button>
+    `;
+    bar.querySelector('.glass-active-tag-clear').addEventListener('click', () => {
+        select.value = '';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    sidebar.append(bar);
 
     return bar;
 }
@@ -72,8 +61,7 @@ function ensureActiveTagBar(sidebar, select, tagButton, shell) {
 function syncTagState(sidebar, select, button, shell) {
     const selectedOption = select.selectedOptions[0];
     const hasTag = select.value !== '';
-    const activeBar = ensureActiveTagBar(sidebar, select, button, shell);
-    const color = hasTag ? tagColor(shell, selectedOption) : '';
+    const activeBar = ensureActiveTagBar(sidebar, select);
 
     button.classList.toggle('active', hasTag);
     button.setAttribute('aria-pressed', hasTag ? 'true' : 'false');
@@ -82,16 +70,22 @@ function syncTagState(sidebar, select, button, shell) {
     activeBar.classList.toggle('visible', hasTag);
 
     if (hasTag && selectedOption) {
-        activeBar.querySelector('.glass-active-tag-label').textContent = tagName(selectedOption);
-        activeBar.style.setProperty('--tag-color', color || 'var(--blue)');
+        const label = activeBar.querySelector('.glass-active-tag-label');
+        const name = tagName(selectedOption);
+        const color = tagColor(shell, selectedOption) || 'var(--blue)';
+
+        if (label.textContent !== name) label.textContent = name;
+        if (activeBar.style.getPropertyValue('--tag-color') !== color) {
+            activeBar.style.setProperty('--tag-color', color);
+        }
     }
 
-    sidebar.querySelectorAll('.glass-tag-option').forEach((option) => {
+    for (const option of sidebar.querySelectorAll('.glass-tag-option')) {
         option.classList.toggle('active', option.dataset.value === select.value);
-    });
+    }
 }
 
-function renderTagOptions(sidebar, select, panel, tagButton, shell) {
+function renderTagOptions(sidebar, select, panel, shell) {
     const options = Array.from(select.options).filter((option) => option.value !== '');
     const signature = options.map((option) => `${option.value}:${option.textContent}:${tagColor(shell, option)}`).join('|');
     if (panel.dataset.optionsSignature === signature) return;
@@ -116,14 +110,13 @@ function renderTagOptions(sidebar, select, panel, tagButton, shell) {
         panel.append(empty);
     }
 
-    panel.querySelectorAll('.glass-tag-option').forEach((button) => {
+    for (const button of panel.querySelectorAll('.glass-tag-option')) {
         button.addEventListener('click', () => {
             select.value = button.dataset.value || '';
             select.dispatchEvent(new Event('change', { bubbles: true }));
             sidebar.classList.remove('glass-tags-open');
-            syncTagState(sidebar, select, tagButton, shell);
         });
-    });
+    }
 }
 
 function findOriginalAddForm(shell) {
@@ -134,6 +127,7 @@ function findOriginalAddForm(shell) {
 
 function setFormValue(input, value) {
     if (!input) return;
+
     input.value = value;
     input.dispatchEvent(new Event('input', { bubbles: true }));
 }
@@ -208,8 +202,7 @@ function createAddPanel(sidebar, shell) {
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
-        const original = syncToOriginal();
-        original?.requestSubmit();
+        syncToOriginal()?.requestSubmit();
         sidebar.classList.remove('glass-add-open');
         window.setTimeout(syncFromOriginal, 350);
     });
@@ -233,7 +226,7 @@ function ensureReaderLoadingAction(shell) {
 }
 
 function enhancePointerTracking(shell) {
-    shell.querySelectorAll('.feed-item:not([data-glass-pointer-bound])').forEach((item) => {
+    for (const item of shell.querySelectorAll('.feed-item:not([data-glass-pointer-bound])')) {
         item.dataset.glassPointerBound = 'true';
         item.addEventListener('pointermove', (event) => {
             if (event.pointerType === 'touch') return;
@@ -244,7 +237,7 @@ function enhancePointerTracking(shell) {
             item.classList.add('glass-pointer-active');
         });
         item.addEventListener('pointerleave', () => item.classList.remove('glass-pointer-active'));
-    });
+    }
 }
 
 function enhanceFeedReader() {
@@ -315,7 +308,7 @@ function enhanceFeedReader() {
     }
 
     const addPanel = createAddPanel(sidebar, shell);
-    renderTagOptions(sidebar, tagSelect, tagPanel, tagButton, shell);
+    renderTagOptions(sidebar, tagSelect, tagPanel, shell);
     syncTagState(sidebar, tagSelect, tagButton, shell);
 
     if (tagButton.dataset.glassToggleBound !== 'true') {
@@ -324,7 +317,6 @@ function enhanceFeedReader() {
             if (tagSelect.value !== '' && !sidebar.classList.contains('glass-tags-open')) {
                 tagSelect.value = '';
                 tagSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                syncTagState(sidebar, tagSelect, tagButton, shell);
                 return;
             }
 
@@ -353,11 +345,20 @@ function enhanceFeedReader() {
     }
 }
 
+function scheduleEnhanceFeedReader() {
+    if (enhanceFrame !== 0) return;
+
+    enhanceFrame = window.requestAnimationFrame(() => {
+        enhanceFrame = 0;
+        enhanceFeedReader();
+    });
+}
+
 export function setupFeedReaderGlass() {
     enhanceFeedReader();
 
     const app = document.querySelector('#app');
     if (!app) return;
 
-    new MutationObserver(enhanceFeedReader).observe(app, { childList: true, subtree: true });
+    new MutationObserver(scheduleEnhanceFeedReader).observe(app, { childList: true, subtree: true });
 }

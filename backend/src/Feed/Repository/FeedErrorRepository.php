@@ -29,6 +29,11 @@ final class FeedErrorRepository extends ServiceEntityRepository
         ]);
     }
 
+    public function findLatestForFeed(Feed $feed): ?FeedError
+    {
+        return $this->findOneBy(['feed' => $feed], ['updatedAt' => 'DESC']);
+    }
+
     /** @return list<FeedError> */
     public function findMostFrequent(int $limit = 50): array
     {
