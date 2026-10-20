@@ -9,6 +9,8 @@ const maxRequestBytes = 16_384;
 const maxHtmlBytes = 4_000_000;
 const navigationTimeoutMs = 15_000;
 const renderDelayMs = 1_500;
+const consentTimeoutMs = 8_000;
+const dpgPrivacyHost = 'myprivacy.dpgmedia.nl';
 
 function isPrivateIpv4(address) {
     const parts = address.split('.').map((part) => Number.parseInt(part, 10));
@@ -109,6 +111,71 @@ function sendJson(response, statusCode, payload) {
     response.end(body);
 }
 
+function hostnameFromUrl(value) {
+    try {
+        return new URL(value).hostname.toLowerCase();
+    } catch {
+        return '';
+    }
+}
+
+function isDpgPrivacyGate(value) {
+    return hostnameFromUrl(value) === dpgPrivacyHost;
+}
+
+async function clickDpgConsentButton(page) {
+    const consentButtonName = /alles accepteren|alle cookies (?:accepteren|toestaan)|accepteer(?: alles)?|akkoord|ik ga akkoord|toestaan/i;
+    const scopes = [page, ...page.frames().filter((frame) => frame !== page.mainFrame())];
+
+    for (const scope of scopes) {
+        const button = scope.getByRole('button', { name: consentButtonName }).first();
+        try {
+            await button.waitFor({ state: 'visible', timeout: 1_500 });
+            await button.click();
+            return true;
+        } catch {
+            // Try the next frame or selector.
+        }
+
+        const fallback = scope.locator('button, [role="button"]').filter({ hasText: consentButtonName }).first();
+        try {
+            await fallback.waitFor({ state: 'visible', timeout: 1_500 });
+            await fallback.click();
+            return true;
+        } catch {
+            // Try the next frame.
+        }
+    }
+
+    return false;
+}
+
+async function handleDpgPrivacyGate(page) {
+    if (!isDpgPrivacyGate(page.url())) return;
+
+    const deadline = Date.now() + consentTimeoutMs;
+    while (Date.now() < deadline) {
+        if (!isDpgPrivacyGate(page.url())) return;
+
+        if (await clickDpgConsentButton(page)) {
+            try {
+                await page.waitForURL(
+                    (currentUrl) => currentUrl.hostname.toLowerCase() !== dpgPrivacyHost,
+                    { timeout: Math.max(1_000, deadline - Date.now()), waitUntil: 'domcontentloaded' },
+                );
+            } catch {
+                // Continue below and verify where the browser ended up.
+            }
+
+            if (!isDpgPrivacyGate(page.url())) return;
+        }
+
+        await page.waitForTimeout(500);
+    }
+
+    throw new Error('DPG privacy gate could not be accepted automatically.');
+}
+
 const browser = await chromium.launch({ headless: true });
 
 async function renderPage(url) {
@@ -153,6 +220,7 @@ async function renderPage(url) {
             throw new Error(`Website returned HTTP ${navigationResponse.status()}.`);
         }
 
+        await handleDpgPrivacyGate(page);
         await page.waitForTimeout(renderDelayMs);
 
         const html = await page.content();
