@@ -14,15 +14,14 @@ use App\Feed\Repository\FeedItemRepository;
 final readonly class FeedSettingsMapper
 {
     public function __construct(
-        private FeedItemRepository $feedItemRepository,
-        private FeedErrorRepository $feedErrorRepository,
+        private ?FeedItemRepository $feedItemRepository = null,
+        private ?FeedErrorRepository $feedErrorRepository = null,
     ) {
     }
 
     public function toFeedResponse(Feed $feed): FeedSummaryResponse
     {
-        $latestItems = $this->feedItemRepository->findLatestForFeed($feed, 1);
-        $latestItem = $latestItems[0] ?? null;
+        $latestItem = $this->feedItemRepository?->findLatestForFeed($feed, 1)[0] ?? null;
         [$httpErrorStatus, $httpErrorMessage] = $this->currentHttpError($feed);
 
         return new FeedSummaryResponse(
@@ -53,7 +52,10 @@ final readonly class FeedSettingsMapper
     /** @return array{0: ?int, 1: ?string} */
     private function currentHttpError(Feed $feed): array
     {
-        if (str_contains(strtolower($feed->getUrl()), 'youtube.com/')) {
+        if (
+            $this->feedErrorRepository === null
+            || str_contains(strtolower($feed->getUrl()), 'youtube.com/')
+        ) {
             return [null, null];
         }
 
