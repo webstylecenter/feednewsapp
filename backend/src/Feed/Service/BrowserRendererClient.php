@@ -10,7 +10,7 @@ use RuntimeException;
 final readonly class BrowserRendererClient
 {
     private const int MAX_RESPONSE_BYTES = 5_000_000;
-    private const int TIMEOUT_SECONDS = 20;
+    private const int TIMEOUT_SECONDS = 35;
 
     public function __construct(
         private string $endpoint,
