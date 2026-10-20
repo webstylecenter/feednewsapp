@@ -31,7 +31,7 @@ final readonly class FeedSettingsMapper
             url: $feed->getUrl(),
             color: $feed->getColor(),
             category: $feed->getCategory()?->getName(),
-            lastItemAt: $latestItem?->getCreatedAt()->format(DATE_ATOM),
+            lastItemAt: $latestItem?->getCreatedAt()?->format(DATE_ATOM),
             httpErrorStatus: $httpErrorStatus,
             httpErrorMessage: $httpErrorMessage,
         );
