@@ -8,6 +8,7 @@ import { chromium } from 'playwright';
 const host = '127.0.0.1';
 const port = Number.parseInt(process.env.PORT || '3010', 10);
 const storageStatePath = process.env.STORAGE_STATE_PATH || './storage-state.json';
+const headless = process.env.BROWSER_HEADLESS !== '0';
 const maxRequestBytes = 16_384;
 const maxHtmlBytes = 4_000_000;
 const navigationTimeoutMs = 15_000;
@@ -284,14 +285,11 @@ async function handleAutomaticBrowserChallenge(page, navigationResponse) {
     throw new Error(`Website returned HTTP ${statusCode} and the browser challenge did not complete.`);
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless });
 const storedState = await loadStorageState();
 const contextOptions = {
     locale: 'nl-NL',
     viewport: { width: 1440, height: 1000 },
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-        + 'AppleWebKit/537.36 (KHTML, like Gecko) '
-        + 'Chrome/155.0.0.0 Safari/537.36',
     extraHTTPHeaders: {
         'Accept-Language': 'nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
         DNT: '1',
@@ -352,7 +350,7 @@ async function renderPage(url) {
 
 const server = http.createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/health') {
-        sendJson(response, 200, { ok: true });
+        sendJson(response, 200, { ok: true, headless });
         return;
     }
 
@@ -378,7 +376,7 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(port, host, () => {
-    console.log(`FeedNews browser renderer listening on http://${host}:${port}`);
+    console.log(`FeedNews browser renderer listening on http://${host}:${port} (headless=${headless})`);
 });
 
 async function shutdown() {
