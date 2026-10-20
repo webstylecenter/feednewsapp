@@ -23,8 +23,9 @@ final class UserFeedRepository extends ServiceEntityRepository
     {
         /** @var list<FeedUser> $feeds */
         $feeds = $this->createQueryBuilder('userFeed')
-            ->addSelect('feed')
+            ->addSelect('feed', 'category')
             ->innerJoin('userFeed.feed', 'feed')
+            ->leftJoin('feed.category', 'category')
             ->andWhere('userFeed.user = :user')
             ->setParameter('user', $user)
             ->orderBy('feed.name', 'ASC')
