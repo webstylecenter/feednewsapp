@@ -6,6 +6,8 @@ namespace App\Feed\Repository;
 
 use App\Feed\Entity\Feed;
 use App\Feed\Entity\FeedItem;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -51,5 +53,40 @@ final class FeedItemRepository extends ServiceEntityRepository
         /** @var list<FeedItem> $items */
         $items = $this->findBy(['feed' => $feed], ['createdAt' => 'DESC'], $limit);
         return $items;
+    }
+
+    /**
+     * @param list<Feed> $feeds
+     * @return array<int, string>
+     */
+    public function findLatestCreatedAtByFeeds(array $feeds): array
+    {
+        if ($feeds === []) {
+            return [];
+        }
+
+        /** @var list<array{feedId: int|string, lastItemAt: DateTimeInterface|string|null}> $rows */
+        $rows = $this->createQueryBuilder('item')
+            ->select('IDENTITY(item.feed) AS feedId')
+            ->addSelect('MAX(item.createdAt) AS lastItemAt')
+            ->andWhere('item.feed IN (:feeds)')
+            ->setParameter('feeds', $feeds)
+            ->groupBy('item.feed')
+            ->getQuery()
+            ->getArrayResult();
+
+        $latestByFeed = [];
+        foreach ($rows as $row) {
+            if ($row['lastItemAt'] === null) {
+                continue;
+            }
+
+            $lastItemAt = $row['lastItemAt'] instanceof DateTimeInterface
+                ? $row['lastItemAt']
+                : new DateTimeImmutable($row['lastItemAt']);
+            $latestByFeed[(int) $row['feedId']] = $lastItemAt->format(DATE_ATOM);
+        }
+
+        return $latestByFeed;
     }
 }

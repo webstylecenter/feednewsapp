@@ -34,6 +34,47 @@ final class FeedErrorRepository extends ServiceEntityRepository
         return $this->findOneBy(['feed' => $feed], ['updatedAt' => 'DESC']);
     }
 
+    /**
+     * @param list<Feed> $feeds
+     * @return array<int, FeedError>
+     */
+    public function findLatestForFeeds(array $feeds): array
+    {
+        if ($feeds === []) {
+            return [];
+        }
+
+        $oldestUpdatedAt = $feeds[0]->getUpdatedAt();
+        foreach ($feeds as $feed) {
+            $updatedAt = $feed->getUpdatedAt();
+            if ($updatedAt < $oldestUpdatedAt) {
+                $oldestUpdatedAt = $updatedAt;
+            }
+        }
+
+        /** @var list<FeedError> $errors */
+        $errors = $this->createQueryBuilder('error')
+            ->addSelect('feed')
+            ->innerJoin('error.feed', 'feed')
+            ->andWhere('error.feed IN (:feeds)')
+            ->andWhere('error.updatedAt > :oldestUpdatedAt')
+            ->setParameter('feeds', $feeds)
+            ->setParameter('oldestUpdatedAt', $oldestUpdatedAt)
+            ->orderBy('error.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $latestByFeed = [];
+        foreach ($errors as $error) {
+            $feedId = $error->getFeed()?->getId();
+            if ($feedId !== null && !isset($latestByFeed[$feedId])) {
+                $latestByFeed[$feedId] = $error;
+            }
+        }
+
+        return $latestByFeed;
+    }
+
     /** @return list<FeedError> */
     public function findMostFrequent(int $limit = 50): array
     {
