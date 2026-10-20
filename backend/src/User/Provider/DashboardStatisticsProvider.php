@@ -21,6 +21,7 @@ final readonly class DashboardStatisticsProvider implements ProviderInterface
 {
     private const int DAILY_DAYS = 14;
     private const int TOP_FEED_DAYS = 30;
+    private const int TOP_FEED_SHORT_DAYS = 7;
     private const int TOP_FEED_LIMIT = 5;
 
     public function __construct(
@@ -72,6 +73,15 @@ final readonly class DashboardStatisticsProvider implements ProviderInterface
             $this->feedItemRepository->topFeedsForUser($user, $topFeedStart, self::TOP_FEED_LIMIT),
         );
 
+        $topFeedShortStart = $today->modify('-' . (self::TOP_FEED_SHORT_DAYS - 1) . ' days');
+        $topFeeds7Days = array_map(
+            static fn (array $row): DashboardStatisticsFeedResponse => new DashboardStatisticsFeedResponse(
+                name: $row['name'],
+                count: $row['count'],
+            ),
+            $this->feedItemRepository->topFeedsForUser($user, $topFeedShortStart, self::TOP_FEED_LIMIT),
+        );
+
         return new DashboardStatisticsResponse(
             totals: new DashboardStatisticsTotalsResponse(
                 items: $totals['items'],
@@ -82,6 +92,7 @@ final readonly class DashboardStatisticsProvider implements ProviderInterface
             categories: $categories,
             daily: $daily,
             topFeeds: $topFeeds,
+            topFeeds7Days: $topFeeds7Days,
         );
     }
 }
