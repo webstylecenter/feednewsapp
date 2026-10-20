@@ -1,16 +1,22 @@
 import http from 'node:http';
 import { lookup } from 'node:dns/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { isIP } from 'node:net';
+import { dirname } from 'node:path';
 import { chromium } from 'playwright';
 
 const host = '127.0.0.1';
 const port = Number.parseInt(process.env.PORT || '3010', 10);
+const storageStatePath = process.env.STORAGE_STATE_PATH || './storage-state.json';
 const maxRequestBytes = 16_384;
 const maxHtmlBytes = 4_000_000;
 const navigationTimeoutMs = 15_000;
 const renderDelayMs = 1_500;
 const consentTimeoutMs = 8_000;
+const browserChallengeTimeoutMs = 10_000;
 const dpgPrivacyHost = 'myprivacy.dpgmedia.nl';
+const browserChallengeStatusCodes = new Set([403, 429, 503]);
+let storageWrite = Promise.resolve();
 
 function isPrivateIpv4(address) {
     const parts = address.split('.').map((part) => Number.parseInt(part, 10));
@@ -119,22 +125,66 @@ function hostnameFromUrl(value) {
     }
 }
 
+function isHostOrSubdomain(value, rootDomain) {
+    const hostname = hostnameFromUrl(value);
+    return hostname === rootDomain || hostname.endsWith(`.${rootDomain}`);
+}
+
 function isDpgPrivacyGate(value) {
     return hostnameFromUrl(value) === dpgPrivacyHost;
 }
 
-async function clickDpgConsentButton(page) {
-    const consentButtonName = /alles accepteren|alle cookies (?:accepteren|toestaan)|accepteer(?: alles)?|akkoord|ik ga akkoord|toestaan/i;
+async function loadStorageState() {
+    try {
+        return JSON.parse(await readFile(storageStatePath, 'utf8'));
+    } catch (error) {
+        if (error && typeof error === 'object' && error.code === 'ENOENT') {
+            return undefined;
+        }
+
+        console.warn(`Could not load browser storage state: ${error instanceof Error ? error.message : error}`);
+        return undefined;
+    }
+}
+
+async function persistStorageState(context) {
+    const state = await context.storageState();
+    const body = JSON.stringify(state, null, 2);
+
+    storageWrite = storageWrite
+        .catch(() => undefined)
+        .then(async () => {
+            await mkdir(dirname(storageStatePath), { recursive: true });
+            const temporaryPath = `${storageStatePath}.tmp`;
+            await writeFile(temporaryPath, body, { encoding: 'utf8', mode: 0o600 });
+            await rename(temporaryPath, storageStatePath);
+        });
+
+    await storageWrite;
+}
+
+async function clickConsentButton(page, consentButtonName, selectors = []) {
     const scopes = [page, ...page.frames().filter((frame) => frame !== page.mainFrame())];
 
     for (const scope of scopes) {
+        for (const selector of selectors) {
+            const selectedButton = scope.locator(selector).first();
+            try {
+                await selectedButton.waitFor({ state: 'visible', timeout: 750 });
+                await selectedButton.click();
+                return true;
+            } catch {
+                // Try the next selector.
+            }
+        }
+
         const button = scope.getByRole('button', { name: consentButtonName }).first();
         try {
             await button.waitFor({ state: 'visible', timeout: 1_500 });
             await button.click();
             return true;
         } catch {
-            // Try the next frame or selector.
+            // Try the fallback selector or next frame.
         }
 
         const fallback = scope.locator('button, [role="button"]').filter({ hasText: consentButtonName }).first();
@@ -153,11 +203,12 @@ async function clickDpgConsentButton(page) {
 async function handleDpgPrivacyGate(page) {
     if (!isDpgPrivacyGate(page.url())) return;
 
+    const consentButtonName = /alles accepteren|alle cookies (?:accepteren|toestaan)|accepteer(?: alles)?|akkoord|ik ga akkoord|toestaan/i;
     const deadline = Date.now() + consentTimeoutMs;
     while (Date.now() < deadline) {
         if (!isDpgPrivacyGate(page.url())) return;
 
-        if (await clickDpgConsentButton(page)) {
+        if (await clickConsentButton(page, consentButtonName)) {
             try {
                 await page.waitForURL(
                     (currentUrl) => currentUrl.hostname.toLowerCase() !== dpgPrivacyHost,
@@ -176,26 +227,87 @@ async function handleDpgPrivacyGate(page) {
     throw new Error('DPG privacy gate could not be accepted automatically.');
 }
 
+async function handleNeowinConsent(page) {
+    if (!isHostOrSubdomain(page.url(), 'neowin.net')) return;
+
+    const consentButtonName = /accept all|accept cookies|allow all|agree|i agree|accept|allow/i;
+    const clicked = await clickConsentButton(
+        page,
+        consentButtonName,
+        [
+            '#onetrust-accept-btn-handler',
+            '[data-testid="accept-all"]',
+            '[data-testid="acceptAll"]',
+        ],
+    );
+
+    if (clicked) {
+        await page.waitForTimeout(500);
+    }
+}
+
+function looksLikeCloudflareChallenge(html) {
+    const sample = html.slice(0, 300_000).toLowerCase();
+    return [
+        'cf-chl-',
+        'cf_chl_opt',
+        'challenge-platform',
+        '<title>just a moment',
+        'performing security verification',
+        'verify you are human',
+    ].some((marker) => sample.includes(marker));
+}
+
+async function handleAutomaticBrowserChallenge(page, navigationResponse) {
+    if (!navigationResponse || navigationResponse.status() < 400) return;
+
+    const statusCode = navigationResponse.status();
+    if (!browserChallengeStatusCodes.has(statusCode)) {
+        throw new Error(`Website returned HTTP ${statusCode}.`);
+    }
+
+    const initialHtml = await page.content();
+    if (!looksLikeCloudflareChallenge(initialHtml)) {
+        throw new Error(`Website returned HTTP ${statusCode}.`);
+    }
+
+    const deadline = Date.now() + browserChallengeTimeoutMs;
+    while (Date.now() < deadline) {
+        await page.waitForTimeout(500);
+        const html = await page.content();
+        if (!looksLikeCloudflareChallenge(html)) {
+            await page.waitForLoadState('domcontentloaded').catch(() => undefined);
+            return;
+        }
+    }
+
+    throw new Error(`Website returned HTTP ${statusCode} and the browser challenge did not complete.`);
+}
+
 const browser = await chromium.launch({ headless: true });
+const storedState = await loadStorageState();
+const contextOptions = {
+    locale: 'nl-NL',
+    viewport: { width: 1440, height: 1000 },
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        + 'AppleWebKit/537.36 (KHTML, like Gecko) '
+        + 'Chrome/155.0.0.0 Safari/537.36',
+    extraHTTPHeaders: {
+        'Accept-Language': 'nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
+        DNT: '1',
+    },
+};
+if (storedState) {
+    contextOptions.storageState = storedState;
+}
+const browserContext = await browser.newContext(contextOptions);
 
 async function renderPage(url) {
     const hostCache = new Map();
     await assertPublicUrl(url, hostCache);
 
-    const context = await browser.newContext({
-        locale: 'nl-NL',
-        viewport: { width: 1440, height: 1000 },
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-            + 'AppleWebKit/537.36 (KHTML, like Gecko) '
-            + 'Chrome/155.0.0.0 Safari/537.36',
-        extraHTTPHeaders: {
-            'Accept-Language': 'nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7',
-            DNT: '1',
-        },
-    });
-
+    const page = await browserContext.newPage();
     try {
-        const page = await context.newPage();
         await page.route('**/*', async (route) => {
             const requestUrl = route.request().url();
             if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
@@ -216,11 +328,9 @@ async function renderPage(url) {
             timeout: navigationTimeoutMs,
         });
 
-        if (navigationResponse && navigationResponse.status() >= 400) {
-            throw new Error(`Website returned HTTP ${navigationResponse.status()}.`);
-        }
-
+        await handleAutomaticBrowserChallenge(page, navigationResponse);
         await handleDpgPrivacyGate(page);
+        await handleNeowinConsent(page);
         await page.waitForTimeout(renderDelayMs);
 
         const html = await page.content();
@@ -229,12 +339,14 @@ async function renderPage(url) {
             throw new Error('Rendered page is too large.');
         }
 
+        await persistStorageState(browserContext);
+
         return {
             url: page.url(),
             html,
         };
     } finally {
-        await context.close();
+        await page.close();
     }
 }
 
@@ -271,6 +383,8 @@ server.listen(port, host, () => {
 
 async function shutdown() {
     server.close();
+    await persistStorageState(browserContext).catch(() => undefined);
+    await browserContext.close();
     await browser.close();
     process.exit(0);
 }
