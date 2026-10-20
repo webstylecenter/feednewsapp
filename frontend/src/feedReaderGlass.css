@@ -444,7 +444,6 @@
     transition:
         background .22s ease,
         box-shadow .22s ease,
-        transform .22s ease,
         border-color .22s ease;
 }
 
@@ -465,11 +464,6 @@
             color-mix(in srgb, var(--feed-color, var(--blue)) 18%, transparent) 38%,
             transparent 72%
         ),
-        radial-gradient(
-            250px circle at var(--pointer-x) var(--pointer-y),
-            color-mix(in srgb, var(--feed-color, var(--blue)) 10%, transparent),
-            transparent 72%
-        );
     opacity: 0;
     transition: opacity .16s ease;
 }
@@ -501,14 +495,13 @@
 }
 
 @media (hover: hover) {
-    .feed-item:hover:not(.active) {
+    .feed-item:hover:not(.pinned):not(.active) {
         z-index: 1;
-        transform: translateY(-1px) scale(1.002);
         border-left-color: color-mix(in srgb, var(--feed-color, var(--blue)) 88%, #fff);
         background: color-mix(in srgb, var(--feed-color, var(--blue)) 5%, var(--surface));
         box-shadow:
-            0 9px 26px color-mix(in srgb, var(--feed-color, var(--blue)) 15%, transparent),
-            inset 0 0 0 1px color-mix(in srgb, var(--feed-color, var(--blue)) 15%, transparent);
+                0 9px 26px color-mix(in srgb, var(--feed-color, var(--blue)) 15%, transparent),
+                inset 0 0 0 1px color-mix(in srgb, var(--feed-color, var(--blue)) 15%, transparent);
     }
 
     .feed-item.glass-pointer-active::before {
