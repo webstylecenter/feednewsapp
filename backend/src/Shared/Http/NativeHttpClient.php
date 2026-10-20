@@ -19,9 +19,13 @@ final readonly class NativeHttpClient
     /**
      * @param array<string, string> $headers
      */
-    public function get(string $url, array $headers = [], int $maxBytes = self::DEFAULT_MAX_BYTES): HttpResponse
-    {
-        return $this->request('GET', $url, $headers, null, $maxBytes);
+    public function get(
+        string $url,
+        array $headers = [],
+        int $maxBytes = self::DEFAULT_MAX_BYTES,
+        int $timeoutSeconds = self::DEFAULT_TIMEOUT_SECONDS,
+    ): HttpResponse {
+        return $this->request('GET', $url, $headers, null, $maxBytes, $timeoutSeconds);
     }
 
     /**

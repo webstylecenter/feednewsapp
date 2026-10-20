@@ -35,6 +35,10 @@ frontend/.vite/
 /backend/public/registerSW.js
 /backend/public/workbox-*.js
 
+# Browser renderer
+browser-renderer/storage-state.json
+browser-renderer/storage-state.json.tmp
+
 # DDEV generated/local state
 .ddev/.ddev-docker-*.yaml
 .ddev/.downloads/
