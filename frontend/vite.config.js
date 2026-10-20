@@ -66,6 +66,7 @@ export default defineConfig({
     build: {
         outDir: '../backend/public',
         emptyOutDir: false,
+        cssMinify: false,
         rollupOptions: {
             output: {
                 entryFileNames: 'build/app-[hash].js',
