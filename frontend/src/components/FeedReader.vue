@@ -28,6 +28,7 @@ const page = ref(0);
 const nextPage = ref(null);
 const loading = ref(false);
 const currentUrl = ref('');
+const currentImageUrl = ref('');
 const currentTitle = ref('');
 const currentItem = ref(null);
 const weather = ref(null);
@@ -66,7 +67,13 @@ let pullStartX = 0;
 let pullTracking = false;
 let readerHistoryActive = false;
 
-const hasContent = computed(() => currentUrl.value !== '' || readerSource.value !== null || readerLoading.value || readerError.value !== '');
+const hasContent = computed(() => (
+    currentUrl.value !== ''
+    || currentImageUrl.value !== ''
+    || readerSource.value !== null
+    || readerLoading.value
+    || readerError.value !== ''
+));
 const visibleItems = computed(() => [...pinnedItems.value, ...items.value]);
 
 function randomTagColor() {
@@ -75,7 +82,6 @@ function randomTagColor() {
 
     return `#${Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('')}`;
 }
-
 
 function resetPinnedState() {
     pinnedItems.value = [];
@@ -151,6 +157,22 @@ function youtubeEmbedUrl(url) {
     return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1` : null;
 }
 
+function directImageUrl(url) {
+    try {
+        const parsed = new URL(url);
+        const imagePattern = /\.(?:avif|gif|jpe?g|png|svg|webp)$/i;
+        const format = parsed.searchParams.get('format') || '';
+
+        if (imagePattern.test(parsed.pathname) || /^(?:avif|gif|jpe?g|png|svg|webp)$/i.test(format)) {
+            return url;
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+}
+
 function isMobileDevice() {
     return window.matchMedia('(max-width: 800px)').matches;
 }
@@ -182,6 +204,7 @@ function pushReaderHistory() {
 
 function resetCurrent() {
     currentUrl.value = '';
+    currentImageUrl.value = '';
     currentItem.value = null;
     currentTitle.value = '';
     readerSource.value = null;
@@ -295,9 +318,10 @@ async function openItem(item) {
     currentTitle.value = item.title;
     currentItem.value = item;
     currentUrl.value = '';
+    currentImageUrl.value = '';
     readerSource.value = null;
     readerError.value = '';
-    await api(`/api/feed/items/${item.uuid}/opened`, { method: 'POST' });
+    api(`/api/feed/items/${item.uuid}/opened`, { method: 'POST' }).catch(() => {});
 
     const youtubeUrl = youtubeEmbedUrl(item.url);
     if (youtubeUrl && isMobileDevice()) {
@@ -306,6 +330,14 @@ async function openItem(item) {
     }
 
     pushReaderHistory();
+
+    const imageUrl = directImageUrl(item.url);
+    if (imageUrl) {
+        videoMode.value = false;
+        currentImageUrl.value = imageUrl;
+        return;
+    }
+
     if (youtubeUrl) {
         videoMode.value = true;
         currentUrl.value = youtubeUrl;
@@ -493,12 +525,12 @@ function pointerUp(event, item) {
     pointerSwiped = horizontalSwipe;
 
     if (deltaX < -70 && horizontalSwipe) {
-        togglePin(item);
+        openTagDialog(item);
         return;
     }
 
     if (deltaX > 70 && horizontalSwipe) {
-        openTagDialog(item);
+        togglePin(item);
     }
 }
 
@@ -599,7 +631,6 @@ async function metadata() {
     addForm.value.description = result.data.description;
 }
 
-
 function openCurrentExternal() {
     if (currentItem.value) window.open(currentItem.value.url, '_blank', 'noopener,noreferrer');
 }
@@ -660,7 +691,6 @@ onMounted(async () => {
     if (sentinel.value) observer.observe(sentinel.value);
     await importFromQuery();
 });
-
 
 watch(
     () => props.path,
@@ -857,9 +887,13 @@ onBeforeUnmount(() => {
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowfullscreen
             ></iframe>
+            <div v-else-if="currentImageUrl" class="reader-image-view">
+                <img :src="currentImageUrl" :alt="currentTitle">
+            </div>
             <div v-else-if="readerLoading" class="reader-loading">
                 <div class="spinner"></div>
                 <p>Artikel laden…</p>
+                <button class="primary reader-loading-original" @click="openCurrentExternal">Open originele website ↗</button>
             </div>
             <div v-else-if="readerError" class="reader-error card">
                 <h2>Artikel kon niet worden geladen</h2>
@@ -869,7 +903,6 @@ onBeforeUnmount(() => {
             <ArticleReader v-else-if="readerSource" :source="readerSource" />
             <Dashboard v-else @select-feed="openDashboardFeed" />
         </section>
-
 
         <aside v-if="pictureInPictureUrl || pictureInPictureSource" class="floating-reader card" aria-label="Floating reader">
             <header>
@@ -929,3 +962,23 @@ onBeforeUnmount(() => {
         </dialog>
     </section>
 </template>
+
+<style scoped>
+.reader-image-view {
+    min-height: calc(100% - 42px);
+    display: grid;
+    place-items: center;
+    padding: clamp(1rem, 4vw, 3rem);
+    overflow: auto;
+    background: #0c0e12;
+}
+
+.reader-image-view img {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 150px);
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 18px 55px rgb(0 0 0 / 28%);
+}
+</style>
