@@ -13,6 +13,9 @@ export default defineConfig({
                 'favicon-32x32.png',
                 'apple-touch-icon.png',
             ],
+            workbox: {
+                cleanupOutdatedCaches: true,
+            },
             manifest: {
                 name: 'Feednews',
                 short_name: 'Feednews',
@@ -65,11 +68,11 @@ export default defineConfig({
         emptyOutDir: false,
         rollupOptions: {
             output: {
-                entryFileNames: 'build/app.js',
+                entryFileNames: 'build/app-[hash].js',
                 chunkFileNames: 'build/chunks/[name]-[hash].js',
                 assetFileNames: (assetInfo) => (
                     assetInfo.name?.endsWith('.css')
-                        ? 'build/app.css'
+                        ? 'build/app-[hash][extname]'
                         : 'build/assets/[name]-[hash][extname]'
                 ),
             },
