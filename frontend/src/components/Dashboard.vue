@@ -10,6 +10,7 @@ const settings = ref({ availableFeeds: [], categories: [] });
 const statistics = ref(null);
 const statisticsLoading = ref(true);
 const statisticsError = ref('');
+const topFeedPeriod = ref(7);
 const feedForm = ref({ url: '', category: '', color: '#337dff', autoPin: false });
 const todo = ref('');
 const activeNote = ref(null);
@@ -126,7 +127,12 @@ const trendAxisTicks = computed(() => trendAxis.value.ticks.map((value) => ({
     value,
     y: trendY(value),
 })));
-const topFeedMaximum = computed(() => Math.max(1, ...(statistics.value?.topFeeds ?? []).map((feed) => feed.count)));
+const activeTopFeeds = computed(() => (
+    topFeedPeriod.value === 7
+        ? (statistics.value?.topFeeds7Days ?? [])
+        : (statistics.value?.topFeeds ?? [])
+));
+const topFeedMaximum = computed(() => Math.max(1, ...activeTopFeeds.value.map((feed) => feed.count)));
 
 function formatNumber(value) {
     return numberFormatter.format(value ?? 0);
@@ -224,7 +230,6 @@ function addLocalNote() {
     data.value.notes.push(note);
     activeNote.value = note;
 }
-
 
 async function addFeed() {
     try {
@@ -431,10 +436,23 @@ onBeforeUnmount(() => {
             <article class="widget card span-two statistics-feeds-widget">
                 <header>
                     <h2>Most active feeds</h2>
-                    <span class="muted">Last 30 days</span>
+                    <div class="statistics-period-switch" aria-label="Most active feeds period">
+                        <button
+                            type="button"
+                            :class="{ active: topFeedPeriod === 7 }"
+                            :aria-pressed="topFeedPeriod === 7"
+                            @click="topFeedPeriod = 7"
+                        >7 days</button>
+                        <button
+                            type="button"
+                            :class="{ active: topFeedPeriod === 30 }"
+                            :aria-pressed="topFeedPeriod === 30"
+                            @click="topFeedPeriod = 30"
+                        >30 days</button>
+                    </div>
                 </header>
-                <div v-if="statistics?.topFeeds.length" class="top-feed-statistics">
-                    <div v-for="feed in statistics.topFeeds" :key="feed.name" class="top-feed-row">
+                <div v-if="activeTopFeeds.length" class="top-feed-statistics">
+                    <div v-for="feed in activeTopFeeds" :key="feed.name" class="top-feed-row">
                         <div class="top-feed-label">
                             <strong>{{ feed.name }}</strong>
                             <span>{{ formatNumber(feed.count) }}</span>
@@ -586,3 +604,29 @@ onBeforeUnmount(() => {
         <div v-if="toast" class="toast-notification" role="status">{{ toast }}</div>
     </section>
 </template>
+
+<style scoped>
+.statistics-period-switch {
+    display: inline-flex;
+    gap: .2rem;
+    padding: .2rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-soft);
+}
+
+.statistics-period-switch button {
+    border: 0;
+    border-radius: 999px;
+    padding: .35rem .65rem;
+    background: transparent;
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+.statistics-period-switch button.active {
+    background: var(--surface);
+    color: var(--blue);
+    box-shadow: 0 2px 8px rgb(20 40 80 / 10%);
+}
+</style>
