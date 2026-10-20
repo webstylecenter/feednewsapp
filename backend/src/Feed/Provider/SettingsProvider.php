@@ -8,8 +8,11 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Feed\Dto\Response\CategoryResponse;
 use App\Feed\Dto\Response\SettingsResponse;
+use App\Feed\Entity\Feed;
 use App\Feed\Mapper\FeedSettingsMapper;
 use App\Feed\Repository\FeedCategoryRepository;
+use App\Feed\Repository\FeedErrorRepository;
+use App\Feed\Repository\FeedItemRepository;
 use App\Feed\Repository\FeedRepository;
 use App\Feed\Repository\UserFeedRepository;
 use App\Shared\Security\CurrentUser;
@@ -25,6 +28,8 @@ final readonly class SettingsProvider implements ProviderInterface
         private FeedRepository $feedRepository,
         private FeedCategoryRepository $categoryRepository,
         private UserSettingRepository $settingRepository,
+        private FeedItemRepository $feedItemRepository,
+        private FeedErrorRepository $feedErrorRepository,
         private FeedSettingsMapper $mapper,
     ) {
     }
@@ -37,12 +42,26 @@ final readonly class SettingsProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): SettingsResponse
     {
         $user = $this->currentUser->get();
+        $userFeeds = $this->userFeedRepository->findForUser($user);
+        $feeds = array_map(
+            static fn ($subscription): Feed => $subscription->getFeed(),
+            $userFeeds,
+        );
+        $latestItemAtByFeed = $this->feedItemRepository->findLatestCreatedAtByFeeds($feeds);
+        $latestErrorByFeed = $this->feedErrorRepository->findLatestForFeeds($feeds);
+
         $followedFeedUuids = [];
         $subscriptions = [];
-        foreach ($this->userFeedRepository->findForUser($user) as $subscription) {
-            $feedUuid = $subscription->getFeed()->getUuid()->toRfc4122();
+        foreach ($userFeeds as $subscription) {
+            $feed = $subscription->getFeed();
+            $feedUuid = $feed->getUuid()->toRfc4122();
+            $feedId = $feed->getId();
             $followedFeedUuids[$feedUuid] = true;
-            $subscriptions[] = $this->mapper->toSubscriptionResponse($subscription);
+            $subscriptions[] = $this->mapper->toSubscriptionResponse(
+                $subscription,
+                $feedId === null ? null : ($latestItemAtByFeed[$feedId] ?? null),
+                $feedId === null ? null : ($latestErrorByFeed[$feedId] ?? null),
+            );
         }
 
         $availableFeeds = [];
