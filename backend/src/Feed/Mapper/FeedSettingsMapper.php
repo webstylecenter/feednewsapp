@@ -7,23 +7,17 @@ namespace App\Feed\Mapper;
 use App\Feed\Dto\Response\FeedSubscriptionResponse;
 use App\Feed\Dto\Response\FeedSummaryResponse;
 use App\Feed\Entity\Feed;
+use App\Feed\Entity\FeedError;
 use App\Feed\Entity\FeedUser;
-use App\Feed\Repository\FeedErrorRepository;
-use App\Feed\Repository\FeedItemRepository;
 
 final readonly class FeedSettingsMapper
 {
-    public function __construct(
-        private ?FeedItemRepository $feedItemRepository = null,
-        private ?FeedErrorRepository $feedErrorRepository = null,
-    ) {
-    }
-
-    public function toFeedResponse(Feed $feed): FeedSummaryResponse
-    {
-        $latestItems = $this->feedItemRepository?->findLatestForFeed($feed, 1) ?? [];
-        $latestItem = $latestItems[0] ?? null;
-        [$httpErrorStatus, $httpErrorMessage] = $this->currentHttpError($feed);
+    public function toFeedResponse(
+        Feed $feed,
+        ?string $lastItemAt = null,
+        ?FeedError $latestError = null,
+    ): FeedSummaryResponse {
+        [$httpErrorStatus, $httpErrorMessage] = $this->currentHttpError($feed, $latestError);
 
         return new FeedSummaryResponse(
             uuid: $feed->getUuid()->toRfc4122(),
@@ -31,19 +25,22 @@ final readonly class FeedSettingsMapper
             url: $feed->getUrl(),
             color: $feed->getColor(),
             category: $feed->getCategory()?->getName(),
-            lastItemAt: $latestItem?->getCreatedAt()?->format(DATE_ATOM),
+            lastItemAt: $lastItemAt,
             httpErrorStatus: $httpErrorStatus,
             httpErrorMessage: $httpErrorMessage,
         );
     }
 
-    public function toSubscriptionResponse(FeedUser $subscription): FeedSubscriptionResponse
-    {
+    public function toSubscriptionResponse(
+        FeedUser $subscription,
+        ?string $lastItemAt = null,
+        ?FeedError $latestError = null,
+    ): FeedSubscriptionResponse {
         $feed = $subscription->getFeed();
 
         return new FeedSubscriptionResponse(
             uuid: $subscription->getUuid()->toRfc4122(),
-            feed: $this->toFeedResponse($feed),
+            feed: $this->toFeedResponse($feed, $lastItemAt, $latestError),
             color: $subscription->getColor() ?? $feed->getColor(),
             icon: $subscription->getIcon() ?? '',
             autoPin: $subscription->isAutoPin(),
@@ -51,17 +48,13 @@ final readonly class FeedSettingsMapper
     }
 
     /** @return array{0: ?int, 1: ?string} */
-    private function currentHttpError(Feed $feed): array
+    private function currentHttpError(Feed $feed, ?FeedError $error): array
     {
         if (
-            $this->feedErrorRepository === null
+            $error === null
             || str_contains(strtolower($feed->getUrl()), 'youtube.com/')
+            || $error->getUpdatedAt() <= $feed->getUpdatedAt()
         ) {
-            return [null, null];
-        }
-
-        $error = $this->feedErrorRepository->findLatestForFeed($feed);
-        if ($error === null || $error->getUpdatedAt() <= $feed->getUpdatedAt()) {
             return [null, null];
         }
 
