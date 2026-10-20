@@ -17,6 +17,7 @@ const pinnedItems = ref([]);
 const pinnedCount = ref(0);
 const showAllPinned = ref(false);
 const pinnedLoading = ref(false);
+const disappearingItemUuids = ref(new Set());
 const tags = ref([]);
 const failedFavicons = ref(new Set());
 const selectedFeedSource = ref('');
@@ -375,8 +376,19 @@ function sortRecentItems() {
     });
 }
 
+function setItemDisappearing(itemUuid, disappearing) {
+    const next = new Set(disappearingItemUuids.value);
+    if (disappearing) {
+        next.add(itemUuid);
+    } else {
+        next.delete(itemUuid);
+    }
+    disappearingItemUuids.value = next;
+}
+
 async function togglePin(item) {
-    const wasPinned = pinnedItems.value.some((pinnedItem) => pinnedItem.uuid === item.uuid);
+    const wasPinned = Boolean(item.pinned);
+    const wasInPinnedSection = pinnedItems.value.some((pinnedItem) => pinnedItem.uuid === item.uuid);
     const result = await api(`/api/feed/items/${item.uuid}/pin`, { method: 'PATCH' });
     Object.assign(item, result.item);
 
@@ -385,27 +397,20 @@ async function togglePin(item) {
     }
 
     if (result.currentState) {
-        items.value = items.value.filter((recentItem) => recentItem.uuid !== item.uuid);
-        pinnedItems.value = [
-            item,
-            ...pinnedItems.value.filter((pinnedItem) => pinnedItem.uuid !== item.uuid),
-        ];
-
-        if (!wasPinned) {
-            pinnedCount.value += 1;
-        }
-
-        if (!showAllPinned.value) {
-            pinnedItems.value = pinnedItems.value.slice(0, 3);
-        }
-
         return;
     }
 
-    pinnedItems.value = pinnedItems.value.filter((pinnedItem) => pinnedItem.uuid !== item.uuid);
-    if (wasPinned) {
-        pinnedCount.value = Math.max(0, pinnedCount.value - 1);
+    if (!wasPinned || !wasInPinnedSection) {
+        return;
     }
+
+    setItemDisappearing(item.uuid, true);
+    await new Promise((resolve) => window.setTimeout(resolve, 260));
+
+    pinnedItems.value = pinnedItems.value.filter((pinnedItem) => pinnedItem.uuid !== item.uuid);
+    pinnedCount.value = Math.max(0, pinnedCount.value - 1);
+    await nextTick();
+    setItemDisappearing(item.uuid, false);
 
     if (!items.value.some((recentItem) => recentItem.uuid === item.uuid)) {
         items.value.push(item);
@@ -795,7 +800,12 @@ onBeforeUnmount(() => {
                 <template v-for="(item, index) in visibleItems" :key="item.uuid">
                 <article
                     class="feed-item"
-                    :class="{ pinned: item.pinned, active: currentItem?.uuid === item.uuid, striped: index % 2 === 1 }"
+                    :class="{
+                        pinned: item.pinned,
+                        active: currentItem?.uuid === item.uuid,
+                        striped: index % 2 === 1,
+                        'feed-item-disappearing': disappearingItemUuids.has(item.uuid),
+                    }"
                     :style="{ '--feed-color': item.color }"
                     @pointerdown="pointerDown($event, item)"
                     @pointermove="pointerMove"
@@ -964,6 +974,15 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.feed-item.feed-item-disappearing {
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
+    transition:
+        opacity .26s ease,
+        transform .26s ease;
+}
+
 .reader-image-view {
     min-height: calc(100% - 42px);
     display: grid;
