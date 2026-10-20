@@ -21,7 +21,8 @@ final readonly class FeedSettingsMapper
 
     public function toFeedResponse(Feed $feed): FeedSummaryResponse
     {
-        $latestItem = $this->feedItemRepository?->findLatestForFeed($feed, 1)[0] ?? null;
+        $latestItems = $this->feedItemRepository?->findLatestForFeed($feed, 1) ?? [];
+        $latestItem = $latestItems[0] ?? null;
         [$httpErrorStatus, $httpErrorMessage] = $this->currentHttpError($feed);
 
         return new FeedSummaryResponse(
