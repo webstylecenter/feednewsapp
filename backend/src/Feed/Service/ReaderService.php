@@ -19,8 +19,6 @@ final readonly class ReaderService
 {
     private const int MAX_HTML_BYTES = 4_000_000;
     private const int CACHE_TTL_SECONDS = 600;
-    private const int FALLBACK_TIMEOUT_SECONDS = 20;
-    private const string FALLBACK_PROXY_BASE_URL = 'https://r.jina.ai/';
 
     /** @var list<int> */
     private const array FALLBACK_STATUS_CODES = [0, 403, 406, 408, 425, 429, 500, 502, 503, 504];
@@ -28,6 +26,7 @@ final readonly class ReaderService
     public function __construct(
         private NativeHttpClient $httpClient,
         private PublicUrlGuard $urlGuard,
+        private BrowserRendererClient $browserRendererClient,
         private CacheInterface $cache,
     ) {
     }
@@ -49,6 +48,14 @@ final readonly class ReaderService
 
     private function fetchUncached(string $url): ReaderResponse
     {
+        if ($this->browserRendererClient->prefersBrowser($url)) {
+            try {
+                return $this->fetchViaBrowserRenderer($url);
+            } catch (RuntimeException) {
+                // Fall through to the direct reader when the local renderer is unavailable.
+            }
+        }
+
         try {
             $response = $this->httpClient->get(
                 $url,
@@ -56,17 +63,24 @@ final readonly class ReaderService
                 self::MAX_HTML_BYTES,
             );
         } catch (RuntimeException $exception) {
-            return $this->fetchViaFallbackProxy($url, $exception);
+            return $this->fetchViaBrowserRenderer($url, $exception);
         }
 
         if (in_array($response->statusCode, self::FALLBACK_STATUS_CODES, true)) {
-            return $this->fetchViaFallbackProxy(
+            return $this->fetchViaBrowserRenderer(
                 $url,
                 new RuntimeException(sprintf('The website returned HTTP %d.', $response->statusCode)),
             );
         }
 
         $this->assertDirectResponseIsReadable($response);
+
+        if ($this->looksLikeBrowserChallenge($response->body)) {
+            return $this->fetchViaBrowserRenderer(
+                $url,
+                new RuntimeException('The website returned a browser verification page.'),
+            );
+        }
 
         return $this->createResponse(
             $response->body,
@@ -75,36 +89,18 @@ final readonly class ReaderService
         );
     }
 
-    private function fetchViaFallbackProxy(string $url, RuntimeException $directException): ReaderResponse
+    private function fetchViaBrowserRenderer(string $url, ?RuntimeException $directException = null): ReaderResponse
     {
-        $proxyUrl = self::FALLBACK_PROXY_BASE_URL . $this->withoutFragment($url);
-
         try {
-            $response = $this->httpClient->get(
-                $proxyUrl,
-                [
-                    'Accept' => 'text/plain',
-                    'DNT' => '1',
-                    'X-Base' => 'final',
-                    'X-Engine' => 'browser',
-                    'X-Preset' => 'reader',
-                    'X-Respond-With' => 'html',
-                ],
-                self::MAX_HTML_BYTES,
-                self::FALLBACK_TIMEOUT_SECONDS,
-            );
-        } catch (RuntimeException) {
-            throw $directException;
-        }
-
-        if ($response->statusCode < 200 || $response->statusCode >= 400 || trim($response->body) === '') {
-            throw $directException;
+            $renderedPage = $this->browserRendererClient->render($url);
+        } catch (RuntimeException $rendererException) {
+            throw $directException ?? $rendererException;
         }
 
         return $this->createResponse(
-            $response->body,
-            $url,
-            strtolower($response->firstHeader('content-type') ?? ''),
+            $renderedPage['html'],
+            $renderedPage['url'],
+            'text/html; charset=utf-8',
         );
     }
 
@@ -122,6 +118,26 @@ final readonly class ReaderService
         ) {
             throw new RuntimeException('The URL did not return an HTML document.');
         }
+    }
+
+    private function looksLikeBrowserChallenge(string $html): bool
+    {
+        $sample = strtolower(substr($html, 0, 200_000));
+
+        foreach ([
+            'cf-chl-',
+            'challenge-platform',
+            'checking your browser',
+            'verify you are human',
+            'enable javascript and cookies',
+            'access denied',
+        ] as $marker) {
+            if (str_contains($sample, $marker)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function createResponse(string $html, string $url, string $contentType): ReaderResponse
@@ -171,13 +187,6 @@ final readonly class ReaderService
         $port = isset($parts['port']) ? ':' . $parts['port'] : '';
 
         return (string) $parts['scheme'] . '://' . (string) $parts['host'] . $port;
-    }
-
-    private function withoutFragment(string $url): string
-    {
-        $fragmentPosition = strpos($url, '#');
-
-        return $fragmentPosition === false ? $url : substr($url, 0, $fragmentPosition);
     }
 
     private function toUtf8(string $html, string $contentType): string
