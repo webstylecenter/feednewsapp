@@ -8,7 +8,7 @@ services:
       - browser_renderer_node_modules:/var/www/html/browser-renderer/node_modules
       - browser_renderer_storage:/var/lib/feednews-browser
     command: >
-      bash -lc "npm install --omit=dev && xvfb-run -a npm start"
+      bash -lc "npm install --omit=dev --no-package-lock && xvfb-run -a npm start"
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
