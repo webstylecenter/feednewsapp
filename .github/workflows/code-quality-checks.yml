@@ -34,8 +34,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: 'backend/vendor'
-          key: $${{ runner.os }}-composer-$${{ hashFiles('backend/composer.lock') }}
-          restore-keys: $${{ runner.os }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
         working-directory: backend
