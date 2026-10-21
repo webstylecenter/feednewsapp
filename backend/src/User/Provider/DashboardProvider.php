@@ -17,9 +17,11 @@ use App\User\Entity\UserChecklistItem;
 use App\User\Entity\UserNote;
 use App\User\Repository\UserChecklistItemRepository;
 use App\User\Repository\UserNoteRepository;
+use App\Weather\Entity\WeatherForecast;
 use App\Weather\Mapper\WeatherMapper;
 use App\Weather\Service\UserWeatherService;
 use Override;
+use RuntimeException;
 
 /** @implements ProviderInterface<DashboardResponse> */
 final readonly class DashboardProvider implements ProviderInterface
@@ -85,11 +87,20 @@ final readonly class DashboardProvider implements ProviderInterface
             );
         }
 
+        $weather = $this->weatherService->current();
+        if (!$weather instanceof WeatherForecast) {
+            try {
+                $weather = $this->weatherService->forecast();
+            } catch (RuntimeException) {
+                $weather = null;
+            }
+        }
+
         return new DashboardResponse(
             notes: $notes,
             todos: $todos,
             feeds: $feeds,
-            weather: $this->weatherMapper->toResponse($this->weatherService->forecast()),
+            weather: $weather instanceof WeatherForecast ? $this->weatherMapper->toResponse($weather) : null,
         );
     }
 }
