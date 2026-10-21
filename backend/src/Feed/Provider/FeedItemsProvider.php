@@ -7,7 +7,9 @@ namespace App\Feed\Provider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Feed\Dto\Response\FeedItemsPageResponse;
+use App\Feed\Entity\FeedUser;
 use App\Feed\Mapper\FeedItemMapper;
+use App\Feed\Repository\UserFeedRepository;
 use App\Feed\Service\FeedService;
 use App\Shared\Security\CurrentUser;
 use Override;
@@ -23,6 +25,7 @@ final readonly class FeedItemsProvider implements ProviderInterface
     public function __construct(
         private RequestStack $requestStack,
         private CurrentUser $currentUser,
+        private UserFeedRepository $userFeedRepository,
         private FeedService $feedService,
         private FeedItemMapper $mapper,
     ) {
@@ -46,7 +49,12 @@ final readonly class FeedItemsProvider implements ProviderInterface
             if (!Uuid::isValid($source)) {
                 throw new BadRequestHttpException('Invalid feed filter.');
             }
-            $feedUuid = $source;
+
+            $subscription = $this->userFeedRepository->findOwnedByUuid($user, $source);
+            if (!$subscription instanceof FeedUser) {
+                throw new BadRequestHttpException('Unknown feed filter.');
+            }
+            $feedUuid = $subscription->getFeed()->getUuid()->toRfc4122();
         }
 
         $items = $this->feedService->recent($user, $page, $limit, $feedUuid, $manualOnly);
