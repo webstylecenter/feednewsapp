@@ -23,7 +23,7 @@ jobs:
         with:
           php-version: "${{ matrix.php-version }}"
           tools: phpunit-bridge
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pgsql
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pgsql, zip
           coverage: none
 
       - name: Get composer cache directory
@@ -34,8 +34,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: 'backend/vendor'
-          key: ${{ runner.os }}-composer-${{ hashFiles('backend/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: $${{ runner.os }}-composer-$${{ hashFiles('backend/composer.lock') }}
+          restore-keys: $${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
         working-directory: backend
