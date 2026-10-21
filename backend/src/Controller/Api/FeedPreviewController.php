@@ -37,7 +37,7 @@ final readonly class FeedPreviewController
                     'title' => $item->getTitle(),
                     'description' => $item->getDescription(),
                     'url' => $item->getUrl(),
-                    'createdAt' => $item->getCreatedAt()->format(DATE_ATOM),
+                    'createdAt' => $item->getCreatedAt()?->format(DATE_ATOM),
                 ],
                 $this->feedItemRepository->findLatestForFeed($feed, 4),
             ),
