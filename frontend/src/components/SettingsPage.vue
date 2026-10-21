@@ -1,8 +1,8 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { api } from '../api.js';
-import { applyTheme } from '../theme.js';
 import { faviconUrl } from '../presentation.js';
+import FeedPreviewDialog from './FeedPreviewDialog.vue';
 
 const props = defineProps({ user: { type: Object, required: true } });
 const emit = defineEmits(['navigate', 'logout']);
@@ -15,11 +15,13 @@ const form = ref({ url: '', category: '', color: '#337dff', autoPin: false });
 const pendingUserRemoval = ref(null);
 const pendingFeedRemoval = ref(null);
 const editingSubscriptionUuid = ref('');
+const previewFeed = ref(null);
+const previewData = ref(null);
+const previewLoading = ref(false);
 let notificationTimer;
 
 async function load() {
     state.value = await api('/api/settings');
-    applyTheme(state.value.preferences.theme || 'auto');
     if (props.user.isAdmin) admin.value = await api('/api/admin');
 }
 
@@ -92,12 +94,39 @@ async function addFeed() {
     }
 }
 
+async function openFeedPreview(feed) {
+    previewFeed.value = feed;
+    previewData.value = null;
+    previewLoading.value = true;
+
+    try {
+        previewData.value = await api(`/api/settings/feeds/${feed.uuid}/preview`);
+    } catch (exception) {
+        previewFeed.value = null;
+        notify(exception.message, true);
+    } finally {
+        previewLoading.value = false;
+    }
+}
+
+function closeFeedPreview() {
+    previewFeed.value = null;
+    previewData.value = null;
+    previewLoading.value = false;
+}
+
 async function follow(feed) {
-    await api(`/api/settings/feeds/${feed.uuid}/follow`, {
-        method: 'POST',
-        body: { color: feed.color, autoPin: false },
-    });
-    await load();
+    try {
+        await api(`/api/settings/feeds/${feed.uuid}/follow`, {
+            method: 'POST',
+            body: { color: feed.color, autoPin: false },
+        });
+        closeFeedPreview();
+        notify(`${feed.name} added.`);
+        await load();
+    } catch (exception) {
+        notify(exception.message, true);
+    }
 }
 
 async function update(subscription) {
@@ -129,10 +158,13 @@ async function remove(subscription) {
 }
 
 async function savePreference(setting, value) {
-    await api(`/api/settings/preferences/${encodeURIComponent(setting)}`, { method: 'PUT', body: { value } });
-    state.value.preferences[setting] = value;
-    if (setting === 'theme') applyTheme(value);
-    notify('Preference saved.');
+    try {
+        await api(`/api/settings/preferences/${encodeURIComponent(setting)}`, { method: 'PUT', body: { value } });
+        state.value.preferences[setting] = value;
+        notify('Preference saved.');
+    } catch (exception) {
+        notify(exception.message, true);
+    }
 }
 
 async function removeUser(user) {
@@ -161,10 +193,14 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
             <section class="settings-section card">
                 <h2>Preferences</h2>
                 <div class="preference-grid">
-                    <label>Theme
-                        <select :value="state.preferences.theme || 'auto'" @change="savePreference('theme', $event.target.value)">
-                            <option value="auto">Automatic</option><option value="light">Light</option><option value="dark">Dark</option>
-                        </select>
+                    <label class="wide">Weather location
+                        <input
+                            :value="state.preferences.weather_location || ''"
+                            type="text"
+                            maxlength="120"
+                            placeholder="Eindhoven, NL"
+                            @change="savePreference('weather_location', $event.target.value)"
+                        >
                     </label>
                     <label class="wide">Google Calendar embed URL
                         <input :value="state.preferences.google_calendar || ''" type="url" placeholder="https://calendar.google.com/..." @change="savePreference('google_calendar', $event.target.value)">
@@ -176,7 +212,7 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                 <h2>Add a feed</h2>
                 <p class="muted">Paste an RSS/Atom URL, a website containing feed discovery metadata, or a YouTube channel URL.</p>
                 <form class="settings-add-grid" @submit.prevent="addFeed">
-                    <label class="wide">Website or feed URL<input v-model.trim="form.url" type="url" required placeholder="https://example.com"></label>
+                    <label class="settings-feed-url">Website or feed URL<input v-model.trim="form.url" type="url" required placeholder="https://example.com"></label>
                     <label>Category<select v-model="form.category"><option value="">None</option><option v-for="category in state.categories" :key="category.uuid" :value="category.uuid">{{ category.name }}</option></select></label>
                     <label>Color<input v-model="form.color" type="color"></label>
                     <label class="check-row"><input v-model="form.autoPin" type="checkbox"><span>Auto-pin new items</span></label>
@@ -186,7 +222,7 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 
             <section class="settings-section card">
                 <h2>Your feeds</h2>
-                <div class="subscription-list">
+                <div class="subscription-list settings-scroll-area">
                     <div
                         v-for="subscription in state.subscriptions"
                         :key="subscription.uuid"
@@ -239,8 +275,8 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 
             <section v-if="state.availableFeeds.length" class="settings-section card">
                 <h2>Available feeds</h2>
-                <div class="available-grid">
-                    <button v-for="feed in state.availableFeeds" :key="feed.uuid" class="available-feed" @click="follow(feed)">
+                <div class="available-grid settings-scroll-area">
+                    <button v-for="feed in state.availableFeeds" :key="feed.uuid" class="available-feed" @click="openFeedPreview(feed)">
                         <span class="feed-dot" :style="{ '--feed-color': feed.color }"></span>
                         <span><strong>{{ feed.name }}</strong><small>{{ feed.category || 'Uncategorised' }}</small></span>
                         <span>＋</span>
@@ -251,8 +287,8 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
             <section v-if="props.user.isAdmin && admin" class="settings-section card admin-section">
                 <h2>Administration</h2>
                 <h3>Users</h3>
-                <div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Last login</th><th></th></tr></thead><tbody>
-                    <tr v-for="account in admin.users" :key="account.uuid"><td>{{ account.name }}</td><td>{{ account.email }}</td><td>{{ account.lastLogin ? new Date(account.lastLogin).toLocaleString() : 'Never' }}</td><td><button
+                <div class="table-wrap settings-scroll-area"><table><thead><tr><th>Name</th><th>Email</th><th>Last login</th><th></th></tr></thead><tbody>
+                    <tr v-for="account in admin.users" :key="account.uuid"><td>{{ account.name }}</td><td class="settings-break-word">{{ account.email }}</td><td>{{ account.lastLogin ? new Date(account.lastLogin).toLocaleString() : 'Never' }}</td><td><button
                                 v-if="!account.isAdmin"
                                 class="danger small user-remove-button"
                                 :class="{ confirming: pendingUserRemoval === account.uuid }"
@@ -262,15 +298,22 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                             </button></td></tr>
                 </tbody></table></div>
                 <h3>Latest feeds</h3>
-                <div class="table-wrap"><table><thead><tr><th>Name</th><th>URL</th><th>Updated</th></tr></thead><tbody>
-                    <tr v-for="feed in admin.feeds" :key="feed.uuid"><td>{{ feed.name }}</td><td class="break-all">{{ feed.url }}</td><td>{{ new Date(feed.updatedAt).toLocaleString() }}</td></tr>
+                <div class="table-wrap settings-scroll-area"><table><thead><tr><th>Name</th><th>URL</th><th>Updated</th></tr></thead><tbody>
+                    <tr v-for="feed in admin.feeds" :key="feed.uuid"><td>{{ feed.name }}</td><td class="settings-break-word">{{ feed.url }}</td><td>{{ new Date(feed.updatedAt).toLocaleString() }}</td></tr>
                 </tbody></table></div>
                 <h3>Error log</h3>
-                <div class="table-wrap"><table><thead><tr><th>Type</th><th>Occurrences</th><th>Feed</th><th>Message</th></tr></thead><tbody>
-                    <tr v-for="entry in admin.errors" :key="`${entry.type}-${entry.updatedAt}-${entry.message}`"><td>{{ entry.type }}</td><td>{{ entry.occurrences }}</td><td>{{ entry.feed || '—' }}</td><td class="break-all">{{ entry.message }}</td></tr>
+                <div class="table-wrap settings-scroll-area"><table><thead><tr><th>Type</th><th>Occurrences</th><th>Feed</th><th>Message</th></tr></thead><tbody>
+                    <tr v-for="entry in admin.errors" :key="`${entry.type}-${entry.updatedAt}-${entry.message}`"><td>{{ entry.type }}</td><td>{{ entry.occurrences }}</td><td>{{ entry.feed || '—' }}</td><td class="settings-break-word">{{ entry.message }}</td></tr>
                 </tbody></table></div>
             </section>
         </div>
+        <FeedPreviewDialog
+            :feed="previewFeed"
+            :preview="previewData"
+            :loading="previewLoading"
+            @close="closeFeedPreview"
+            @subscribe="follow"
+        />
         <div v-if="message" class="toast-notification" role="status">{{ message }}</div>
         <div v-if="error" class="toast-notification error" role="alert">{{ error }}</div>
     </section>
@@ -279,8 +322,6 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 <style scoped>
 .subscription-list {
     max-height: min(620px, 65vh);
-    overflow-y: auto;
-    overscroll-behavior: contain;
     padding-right: .25rem;
 }
 

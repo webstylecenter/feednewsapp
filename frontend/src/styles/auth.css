@@ -1,0 +1,58 @@
+.auth-layout {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(320px, 1.1fr) minmax(360px, .9fr);
+}
+
+.auth-brand {
+    display: grid;
+    align-content: center;
+    padding: clamp(3rem, 8vw, 8rem);
+    background: linear-gradient(135deg, rgb(18 63 132 / 86%), rgb(51 125 255 / 72%)), url('/images/background.jpg') center/cover;
+    color: #fff;
+}
+
+.auth-brand img {
+    width: min(330px, 75%);
+    margin-bottom: 2rem;
+}
+
+.auth-brand h1 {
+    font-size: clamp(2rem, 5vw, 4.6rem);
+    line-height: 1;
+    margin: 0 0 1.3rem;
+    max-width: 12ch;
+}
+
+.auth-brand p {
+    max-width: 44rem;
+    font-size: 1.15rem;
+}
+
+.auth-panel {
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+}
+
+.auth-card {
+    width: min(430px, 100%);
+    padding: 2rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.auth-card h2 {
+    margin: 0 0 .5rem;
+    font-size: 2rem;
+}
+
+.oauth-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .7rem;
+}
+
+.auth-switch {
+    margin-top: .5rem;
+}

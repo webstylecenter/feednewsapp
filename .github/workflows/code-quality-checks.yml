@@ -3,26 +3,20 @@ name: Code Quality Checks
 on:
   push:
 
-
 jobs:
-  condig-standards:
+  coding-standards:
     name: "Coding Standards"
-
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
-
       matrix:
         php-version:
           - "8.5"
-
         dependencies:
           - "locked"
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: "Install PHP with extensions"
         uses: "shivammathur/setup-php@v2"
@@ -45,19 +39,38 @@ jobs:
 
       - name: Install Composer dependencies
         working-directory: backend
-        run: |
-          composer install --no-progress --prefer-dist --optimize-autoloader
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: PHP Code Sniffer
         working-directory: backend
-        run: |
-          php vendor/bin/phpcs
+        run: php vendor/bin/phpcs
 
       - name: PHPStan Static Analysis
         working-directory: backend
-        run: |
-          php vendor/bin/phpstan
+        run: php vendor/bin/phpstan
+
       - name: PHPUnit
         working-directory: backend
-        run: |
-          php bin/phpunit
+        run: php bin/phpunit
+
+  frontend-quality:
+    name: "Frontend Quality"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: ESLint and production build
+        working-directory: frontend
+        run: npm run quality

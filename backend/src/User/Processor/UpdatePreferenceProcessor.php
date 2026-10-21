@@ -20,6 +20,8 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 /** @implements ProcessorInterface<PreferenceRequest, StatusResponse> */
 final readonly class UpdatePreferenceProcessor implements ProcessorInterface
 {
+    private const int WEATHER_LOCATION_MAX_LENGTH = 120;
+
     public function __construct(
         private CurrentUser $currentUser,
         private UserSettingRepository $repository,
@@ -36,17 +38,19 @@ final readonly class UpdatePreferenceProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): StatusResponse
     {
         $setting = UriVariable::nonEmptyString($uriVariables, 'setting');
-        if (!in_array($setting, ['theme', 'google_calendar'], true)) {
+        if (!in_array($setting, ['google_calendar', 'weather_location'], true)) {
             throw new NotFoundHttpException('Unknown preference.');
         }
 
         $value = trim($data->value);
-        if ($setting === 'theme' && !in_array($value, ['auto', 'light', 'dark'], true)) {
-            throw new UnprocessableEntityHttpException('Theme must be auto, light or dark.');
-        }
         if ($setting === 'google_calendar' && $value !== '' && !self::isValidGoogleCalendarUrl($value)) {
             throw new UnprocessableEntityHttpException(
                 'Google Calendar must use an HTTPS calendar.google.com URL.',
+            );
+        }
+        if ($setting === 'weather_location' && mb_strlen($value) > self::WEATHER_LOCATION_MAX_LENGTH) {
+            throw new UnprocessableEntityHttpException(
+                sprintf('Weather location may not exceed %d characters.', self::WEATHER_LOCATION_MAX_LENGTH),
             );
         }
 

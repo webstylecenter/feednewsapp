@@ -51,7 +51,7 @@ final class UserFeedRepository extends ServiceEntityRepository
          * }> $rows
          */
         $rows = $this->createQueryBuilder('userFeed')
-            ->select('feed.uuid AS uuid')
+            ->select('userFeed.uuid AS uuid')
             ->addSelect('feed.name AS name')
             ->addSelect('feed.url AS url')
             ->addSelect('userFeed.color AS subscriptionColor')

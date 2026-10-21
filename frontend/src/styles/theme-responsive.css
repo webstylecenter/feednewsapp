@@ -1,0 +1,358 @@
+@media (prefers-color-scheme: dark) {
+    :root {
+        --surface: #171a20;
+        --surface-soft: #101319;
+        --text: #edf1f7;
+        --muted: #9aa5b4;
+        --border: #2a303a;
+        --shadow: 0 14px 40px rgb(0 0 0 / 22%);
+    }
+
+    label {
+        color: #bec6d2;
+    }
+
+    .content-pane {
+        background: #0c0e12;
+    }
+
+    .dashboard {
+        background: linear-gradient(rgb(12 15 20 / 88%), rgb(12 15 20 / 94%)), url('/images/background.jpg') center/cover fixed;
+    }
+
+    .secondary {
+        background: #252d3a;
+        color: #dce6f7;
+    }
+
+    .danger {
+        background: #3b2020;
+        color: #ffb4b4;
+    }
+
+    .alert.error {
+        background: #3a2020;
+        color: #ffc0c0;
+    }
+
+    .alert.success {
+        background: #183324;
+        color: #a9eabc;
+    }
+
+    .intro-page {
+        background: #101319;
+    }
+}
+
+@media (max-width: 800px) {
+    .auth-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-brand {
+        min-height: 34vh;
+        padding: 2rem;
+        align-content: end;
+    }
+
+    .auth-brand h1 {
+        font-size: 2.4rem;
+    }
+
+    .auth-brand p {
+        display: none;
+    }
+
+    .auth-panel {
+        padding: 1rem;
+    }
+
+    .reader-shell {
+        grid-template: 58px calc(100vh - 58px) / 1fr;
+    }
+
+    .app-header {
+        grid-column: 1;
+    }
+
+    .feed-sidebar {
+        grid-row: 2;
+        grid-column: 1;
+    }
+
+    .content-pane {
+        position: fixed;
+        inset: 58px 0 0;
+        z-index: 15;
+        transform: translateX(100%);
+        transition: transform .2s ease;
+    }
+
+    .content-pane.has-content {
+        transform: translateX(0);
+    }
+
+    .content-pane > .dashboard {
+        display: none;
+    }
+
+    .widget-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-widget {
+        height: min(420px, 60vh);
+    }
+
+    .notes-workspace {
+        grid-template-columns: 120px minmax(0, 1fr);
+    }
+
+    .span-two {
+        grid-column: 1;
+    }
+
+    .settings-add-grid, .preference-grid, .subscription-row {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-add-grid .wide, .preference-grid .wide {
+        grid-column: auto;
+    }
+
+    .page-header {
+        grid-template-columns: auto 1fr auto;
+    }
+
+    .page-header h1 {
+        font-size: 1rem;
+    }
+
+    .screensaver {
+        padding: 2rem;
+    }
+}
+
+.weather-button {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    padding: .35rem .45rem;
+}
+
+.weather-button img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.header-overlay {
+    position: fixed;
+    z-index: 50;
+    top: 70px;
+    right: 1rem;
+    width: min(520px, calc(100vw - 2rem));
+    max-height: calc(100vh - 90px);
+    overflow: auto;
+    box-shadow: 0 24px 80px rgb(0 0 0 / 28%);
+}
+
+.header-overlay > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem .9rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.weather-overlay {
+    padding-bottom: .8rem;
+}
+
+.weather-current {
+    display: flex;
+    align-items: baseline;
+    gap: .7rem;
+    padding: 1rem;
+    text-transform: capitalize;
+}
+
+.weather-current strong {
+    font-size: 2.6rem;
+}
+
+.weather-days {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 0 .75rem 1rem;
+    gap: .35rem;
+}
+
+.weather-days > div {
+    display: grid;
+    justify-items: center;
+    gap: .2rem;
+    font-size: .82rem;
+}
+
+.weather-days img {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+}
+
+.weather-days small {
+    color: var(--muted);
+}
+
+.radar-image {
+    display: block;
+    width: calc(100% - 1.5rem);
+    margin: 0 .75rem;
+    border-radius: 8px;
+}
+
+.calendar-overlay {
+    width: min(850px, calc(100vw - 2rem));
+    height: min(680px, calc(100vh - 90px));
+    overflow: hidden;
+}
+
+.calendar-overlay iframe {
+    width: 100%;
+    height: calc(100% - 50px);
+    border: 0;
+}
+
+@media (max-width: 800px) {
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .weather-button {
+        display: none;
+    }
+}
+
+.offline-card {
+    max-width: 460px;
+    padding: 2rem;
+    text-align: center;
+}
+
+.offline-card img {
+    max-width: 210px;
+    margin-bottom: 1rem;
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+    --surface: #fff;
+    --surface-soft: #f5f7fb;
+    --text: #1e2632;
+    --muted: #6c7684;
+    --border: #dde3ec;
+    --shadow: 0 14px 40px rgb(20 40 80 / 10%);
+}
+
+:root[data-theme="light"] label {
+    color: #4f5968;
+}
+
+:root[data-theme="light"] .content-pane {
+    background: #e8edf5;
+}
+
+:root[data-theme="light"] .dashboard {
+    background: linear-gradient(rgb(242 246 252 / 86%), rgb(242 246 252 / 94%)), url('/images/background.jpg') center/cover fixed;
+}
+
+:root[data-theme="light"] .secondary {
+    background: #edf2fb;
+    color: #253754;
+}
+
+:root[data-theme="light"] .danger {
+    background: #fff0f0;
+    color: var(--danger);
+}
+
+:root[data-theme="light"] .alert.error {
+    background: #fff1f1;
+    color: #8e2323;
+}
+
+:root[data-theme="light"] .alert.success {
+    background: #edf9f0;
+    color: #246839;
+}
+
+:root[data-theme="light"] .intro-page {
+    background: #f8faff;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #171a20;
+    --surface-soft: #101319;
+    --text: #edf1f7;
+    --muted: #9aa5b4;
+    --border: #2a303a;
+    --shadow: 0 14px 40px rgb(0 0 0 / 22%);
+}
+
+:root[data-theme="dark"] label {
+    color: #bec6d2;
+}
+
+:root[data-theme="dark"] .content-pane {
+    background: #0c0e12;
+}
+
+:root[data-theme="dark"] .dashboard {
+    background: linear-gradient(rgb(12 15 20 / 88%), rgb(12 15 20 / 94%)), url('/images/background.jpg') center/cover fixed;
+}
+
+:root[data-theme="dark"] .secondary {
+    background: #252d3a;
+    color: #dce6f7;
+}
+
+:root[data-theme="dark"] .danger {
+    background: #3b2020;
+    color: #ffb4b4;
+}
+
+:root[data-theme="dark"] .alert.error {
+    background: #3a2020;
+    color: #ffc0c0;
+}
+
+:root[data-theme="dark"] .alert.success {
+    background: #183324;
+    color: #a9eabc;
+}
+
+:root[data-theme="dark"] .intro-page {
+    background: #101319;
+}
+
+.frame-check-setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.frame-check-setting p {
+    margin: .35rem 0 0;
+    max-width: 70ch;
+}

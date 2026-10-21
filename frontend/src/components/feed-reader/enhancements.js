@@ -1,7 +1,10 @@
+import { api } from '../../api.js';
+import { getTheme, toggleTheme } from '../../theme.js';
+
 const icons = {
     recent: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6"/><path d="M12 8v4l2.8 1.8"/></svg>',
     history: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14v12H5z"/><path d="M8 3.5h8M8 10h8M8 14h5"/></svg>',
-    tags: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5V11l8.4 8.4a1.8 1.8 0 0 0 2.6 0l4.4-4.4a1.8 1.8 0 0 0 0-2.6L11 4H5.5A1.5 1.5 0 0 0 4 5.5Z"/><circle cx="8" cy="8" r="1.2"/></svg>',
+    filter: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
     add: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
     search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 4.2 4.2"/></svg>',
 };
@@ -33,9 +36,44 @@ function tagColor(shell, option) {
 }
 
 function closePanels(sidebar, except = '') {
-    for (const className of ['glass-search-open', 'glass-tags-open', 'glass-add-open']) {
+    for (const className of ['glass-search-open', 'glass-filter-open', 'glass-add-open']) {
         if (className !== except) sidebar.classList.remove(className);
     }
+}
+
+function openFeed(source) {
+    const path = `/feed/${encodeURIComponent(source)}`;
+    if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+    }
+    window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+function ensureThemeToggle(shell) {
+    const headerActions = shell.querySelector('.header-actions');
+    if (!headerActions) return;
+
+    let button = headerActions.querySelector('[data-theme-toggle]');
+    if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'icon-button theme-toggle';
+        button.dataset.themeToggle = 'true';
+        headerActions.insertBefore(button, headerActions.querySelector('.profile-wrap'));
+        button.addEventListener('click', () => {
+            toggleTheme();
+            syncThemeToggle(button);
+        });
+    }
+
+    syncThemeToggle(button);
+}
+
+function syncThemeToggle(button) {
+    const theme = getTheme();
+    button.textContent = theme === 'dark' ? '☀' : '☾';
+    button.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    button.setAttribute('aria-label', button.title);
 }
 
 function ensureActiveTagBar(sidebar, select) {
@@ -65,7 +103,7 @@ function syncTagState(sidebar, select, button, shell) {
 
     button.classList.toggle('active', hasTag);
     button.setAttribute('aria-pressed', hasTag ? 'true' : 'false');
-    button.title = hasTag && selectedOption ? `Tag: ${tagName(selectedOption)}` : 'Tags';
+    button.title = hasTag && selectedOption ? `Tag: ${tagName(selectedOption)}` : 'Filter';
     sidebar.classList.toggle('glass-tag-active', hasTag);
     activeBar.classList.toggle('visible', hasTag);
 
@@ -114,9 +152,90 @@ function renderTagOptions(sidebar, select, panel, shell) {
         button.addEventListener('click', () => {
             select.value = button.dataset.value || '';
             select.dispatchEvent(new Event('change', { bubbles: true }));
-            sidebar.classList.remove('glass-tags-open');
+            sidebar.classList.remove('glass-filter-open');
         });
     }
+}
+
+function activateFilterTab(panel, tab) {
+    panel.dataset.activeTab = tab;
+    for (const button of panel.querySelectorAll('.glass-filter-tabs button')) {
+        const active = button.dataset.filterTab === tab;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+    }
+}
+
+async function renderFeedOptions(panel, sidebar) {
+    const feedPanel = panel.querySelector('.glass-feed-filter-list');
+    if (!feedPanel || feedPanel.dataset.loading === 'true') return;
+
+    feedPanel.dataset.loading = 'true';
+    try {
+        const dashboard = await api('/api/dashboard');
+        const feeds = dashboard.feeds || [];
+        const signature = feeds.map((feed) => `${feed.source}:${feed.name}:${feed.color}`).join('|');
+        if (feedPanel.dataset.feedSignature === signature) return;
+
+        feedPanel.dataset.feedSignature = signature;
+        feedPanel.replaceChildren(...feeds.map((feed) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'glass-feed-filter-option';
+            button.style.setProperty('--feed-color', feed.color || 'var(--blue)');
+            button.innerHTML = '<span class="feed-dot"></span><strong></strong>';
+            button.querySelector('strong').textContent = feed.name;
+            button.addEventListener('click', () => {
+                sidebar.classList.remove('glass-filter-open');
+                openFeed(feed.source);
+            });
+            return button;
+        }));
+
+        if (feeds.length === 0) {
+            const empty = document.createElement('span');
+            empty.className = 'glass-tag-empty';
+            empty.textContent = 'No feeds configured';
+            feedPanel.append(empty);
+        }
+    } catch {
+        feedPanel.textContent = 'Feeds could not be loaded.';
+    } finally {
+        feedPanel.dataset.loading = 'false';
+    }
+}
+
+function createFilterPanel(sidebar, select, shell) {
+    let panel = sidebar.querySelector('.glass-filter-panel');
+    if (panel) return panel;
+
+    panel = document.createElement('div');
+    panel.className = 'glass-filter-panel';
+    panel.dataset.activeTab = 'tags';
+    panel.innerHTML = `
+        <div class="glass-filter-tabs" role="tablist" aria-label="Filter type">
+            <button type="button" class="active" data-filter-tab="tags" role="tab" aria-selected="true">Tags</button>
+            <button type="button" data-filter-tab="feeds" role="tab" aria-selected="false">Feeds</button>
+        </div>
+        <div class="glass-filter-content">
+            <div class="glass-tag-options" data-filter-content="tags"></div>
+            <div class="glass-feed-filter-list" data-filter-content="feeds"></div>
+        </div>
+    `;
+    sidebar.append(panel);
+
+    const tagPanel = panel.querySelector('.glass-tag-options');
+    renderTagOptions(sidebar, select, tagPanel, shell);
+
+    for (const button of panel.querySelectorAll('.glass-filter-tabs button')) {
+        button.addEventListener('click', () => {
+            const tab = button.dataset.filterTab || 'tags';
+            activateFilterTab(panel, tab);
+            if (tab === 'feeds') renderFeedOptions(panel, sidebar);
+        });
+    }
+
+    return panel;
 }
 
 function findOriginalAddForm(shell) {
@@ -225,27 +344,12 @@ function ensureReaderLoadingAction(shell) {
     loading.append(button);
 }
 
-function enhancePointerTracking(shell) {
-    for (const item of shell.querySelectorAll('.feed-item:not([data-glass-pointer-bound])')) {
-        item.dataset.glassPointerBound = 'true';
-        item.addEventListener('pointermove', (event) => {
-            if (event.pointerType === 'touch') return;
-
-            const bounds = item.getBoundingClientRect();
-            item.style.setProperty('--pointer-x', `${event.clientX - bounds.left}px`);
-            item.style.setProperty('--pointer-y', `${event.clientY - bounds.top}px`);
-            item.classList.add('glass-pointer-active');
-        });
-        item.addEventListener('pointerleave', () => item.classList.remove('glass-pointer-active'));
-    }
-}
-
 function enhanceFeedReader() {
     const shell = document.querySelector('.reader-shell');
     if (!shell) return;
 
     ensureReaderLoadingAction(shell);
-    enhancePointerTracking(shell);
+    ensureThemeToggle(shell);
 
     const sidebar = shell.querySelector('.feed-sidebar');
     const tabBar = sidebar?.querySelector('.tab-bar');
@@ -281,13 +385,13 @@ function enhanceFeedReader() {
         }, true);
     }
 
-    let tagButton = tabBar.querySelector('[data-glass-action="tags"]');
-    if (!tagButton) {
-        tagButton = document.createElement('button');
-        tagButton.type = 'button';
-        tagButton.setAttribute('aria-label', 'Tags');
-        decorateButton(tagButton, 'tags', 'Tags');
-        tabBar.insertBefore(tagButton, searchButton);
+    let filterButton = tabBar.querySelector('[data-glass-action="filter"]');
+    if (!filterButton) {
+        filterButton = document.createElement('button');
+        filterButton.type = 'button';
+        filterButton.setAttribute('aria-label', 'Filter');
+        decorateButton(filterButton, 'filter', 'Filter');
+        tabBar.insertBefore(filterButton, searchButton);
     }
 
     let addButton = tabBar.querySelector('[data-glass-action="add"]');
@@ -299,30 +403,21 @@ function enhanceFeedReader() {
         tabBar.insertBefore(addButton, searchButton);
     }
 
-    let tagPanel = sidebar.querySelector('.glass-tag-panel');
-    if (!tagPanel) {
-        tagPanel = document.createElement('div');
-        tagPanel.className = 'glass-tag-panel';
-        tagPanel.setAttribute('aria-label', 'Filter by tag');
-        sidebar.append(tagPanel);
-    }
-
+    const filterPanel = createFilterPanel(sidebar, tagSelect, shell);
+    const tagPanel = filterPanel.querySelector('.glass-tag-options');
     const addPanel = createAddPanel(sidebar, shell);
     renderTagOptions(sidebar, tagSelect, tagPanel, shell);
-    syncTagState(sidebar, tagSelect, tagButton, shell);
+    syncTagState(sidebar, tagSelect, filterButton, shell);
 
-    if (tagButton.dataset.glassToggleBound !== 'true') {
-        tagButton.dataset.glassToggleBound = 'true';
-        tagButton.addEventListener('click', () => {
-            if (tagSelect.value !== '' && !sidebar.classList.contains('glass-tags-open')) {
-                tagSelect.value = '';
-                tagSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                return;
+    if (filterButton.dataset.glassToggleBound !== 'true') {
+        filterButton.dataset.glassToggleBound = 'true';
+        filterButton.addEventListener('click', () => {
+            const opening = !sidebar.classList.contains('glass-filter-open');
+            closePanels(sidebar, opening ? 'glass-filter-open' : '');
+            sidebar.classList.toggle('glass-filter-open', opening);
+            if (opening && filterPanel.dataset.activeTab === 'feeds') {
+                renderFeedOptions(filterPanel, sidebar);
             }
-
-            const opening = !sidebar.classList.contains('glass-tags-open');
-            closePanels(sidebar, opening ? 'glass-tags-open' : '');
-            sidebar.classList.toggle('glass-tags-open', opening);
         });
     }
 
@@ -341,7 +436,7 @@ function enhanceFeedReader() {
 
     if (tagSelect.dataset.glassSyncBound !== 'true') {
         tagSelect.dataset.glassSyncBound = 'true';
-        tagSelect.addEventListener('change', () => syncTagState(sidebar, tagSelect, tagButton, shell));
+        tagSelect.addEventListener('change', () => syncTagState(sidebar, tagSelect, filterButton, shell));
     }
 }
 

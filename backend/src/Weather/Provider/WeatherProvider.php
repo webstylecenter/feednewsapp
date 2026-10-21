@@ -8,14 +8,14 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Weather\Dto\Response\WeatherResponse;
 use App\Weather\Mapper\WeatherMapper;
-use App\Weather\Service\WeatherService;
+use App\Weather\Service\UserWeatherService;
 use Override;
 
 /** @implements ProviderInterface<WeatherResponse> */
 final readonly class WeatherProvider implements ProviderInterface
 {
     public function __construct(
-        private WeatherService $service,
+        private UserWeatherService $service,
         private WeatherMapper $mapper,
     ) {
     }
@@ -27,7 +27,6 @@ final readonly class WeatherProvider implements ProviderInterface
     #[Override]
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): WeatherResponse
     {
-        $forecast = $this->service->current() ?? $this->service->update();
-        return new WeatherResponse($this->mapper->toResponse($forecast));
+        return new WeatherResponse($this->mapper->toResponse($this->service->forecast()));
     }
 }

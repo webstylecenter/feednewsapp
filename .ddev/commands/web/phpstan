@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+## Description: Run PHPStan for the Symfony backend
+## Usage: phpstan [args...]
+## Example: ddev phpstan
+
+set -e
+cd "$DDEV_APPROOT/backend"
+exec php vendor/bin/phpstan "$@"

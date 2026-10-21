@@ -1,0 +1,146 @@
+.settings-content {
+    width: min(1180px, calc(100% - 2rem));
+    min-width: 0;
+    margin: 1.5rem auto 3rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.settings-section {
+    min-width: 0;
+    max-width: 100%;
+    padding: 1.2rem;
+    overflow: hidden;
+}
+
+.settings-section h2 {
+    margin: 0 0 .7rem;
+}
+
+.settings-section h3 {
+    margin-top: 1.6rem;
+}
+
+.settings-add-grid,
+.preference-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr .6fr 1fr;
+    gap: .8rem;
+    align-items: end;
+}
+
+.settings-add-grid .wide,
+.preference-grid .wide {
+    grid-column: span 2;
+}
+
+.settings-feed-url {
+    grid-column: 1 / -1;
+}
+
+.subscription-row {
+    display: grid;
+    grid-template-columns: 32px minmax(220px, 1fr) 54px 100px auto auto;
+    gap: .65rem;
+    align-items: center;
+    padding: .75rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.subscription-row small {
+    display: block;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.subscription-row input[type="color"] {
+    padding: .18rem;
+    height: 38px;
+}
+
+.settings-feed-icon {
+    justify-self: center;
+}
+
+.icon-input {
+    text-align: center;
+}
+
+.available-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: .6rem;
+}
+
+.available-feed {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .7rem;
+    text-align: left;
+    padding: .75rem;
+    background: var(--surface-soft);
+}
+
+.available-feed small {
+    display: block;
+    color: var(--muted);
+}
+
+.settings-scroll-area {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    max-height: min(560px, 62vh);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.table-wrap {
+    overflow: auto;
+}
+
+.table-wrap table {
+    min-width: 680px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+}
+
+th,
+td {
+    padding: .65rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.settings-break-word,
+.break-all {
+    max-width: 28rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (max-width: 800px) {
+    .settings-content {
+        width: min(100% - 1rem, 1180px);
+        margin-top: .75rem;
+    }
+
+    .settings-section {
+        padding: .9rem;
+    }
+
+    .settings-scroll-area {
+        max-height: min(480px, 58vh);
+    }
+
+    .available-grid {
+        grid-template-columns: 1fr;
+    }
+}

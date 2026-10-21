@@ -5,7 +5,7 @@ import { isIP } from 'node:net';
 import { dirname } from 'node:path';
 import { chromium } from 'playwright';
 
-const host = '127.0.0.1';
+const host = process.env.HOST || '127.0.0.1';
 const port = Number.parseInt(process.env.PORT || '3010', 10);
 const storageStatePath = process.env.STORAGE_STATE_PATH || './storage-state.json';
 const headless = process.env.BROWSER_HEADLESS !== '0';

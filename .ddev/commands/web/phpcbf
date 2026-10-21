@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+## Description: Run PHP_CodeSniffer fixer for the Symfony backend
+## Usage: phpcbf [args...]
+## Example: ddev phpcbf
+
+set -e
+cd "$DDEV_APPROOT/backend"
+exec php vendor/bin/phpcbf "$@"

@@ -1,0 +1,245 @@
+.dashboard {
+    min-height: 100%;
+    padding: clamp(1.2rem, 3vw, 2.5rem);
+    background: linear-gradient(rgb(242 246 252 / 86%), rgb(242 246 252 / 94%)), url('/images/background.jpg') center/cover fixed;
+}
+
+.dashboard-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.4rem;
+}
+
+.dashboard-hero h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--blue);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+}
+
+.weather-now {
+    display: grid;
+    grid-template-columns: 42px auto;
+    align-items: center;
+    column-gap: .6rem;
+}
+
+.weather-now img {
+    width: 42px;
+}
+
+.weather-now strong {
+    font-size: 2.1rem;
+}
+
+.weather-now span {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    text-align: right;
+    font-size: .8rem;
+}
+
+.widget-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.widget {
+    padding: 1rem;
+    min-width: 0;
+}
+
+.widget header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.widget h2 {
+    margin: 0 0 .8rem;
+}
+
+.dashboard-widget {
+    height: min(430px, 48vh);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.span-two {
+    grid-column: 1 / -1;
+}
+
+.notes-workspace {
+    min-height: 0;
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(140px, 30%) minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.notes-list {
+    min-width: 0;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    background: var(--surface-soft);
+}
+
+.notes-list button {
+    width: 100%;
+    display: block;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    padding: .7rem .75rem;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.notes-list button:hover {
+    background: color-mix(in srgb, var(--blue) 7%, transparent);
+}
+
+.notes-list button.active {
+    background: color-mix(in srgb, var(--blue) 13%, var(--surface));
+    color: var(--blue);
+    box-shadow: inset 3px 0 var(--blue);
+}
+
+.note-editor {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: .6rem;
+    padding: .7rem;
+}
+
+.note-editor textarea {
+    min-height: 0;
+    height: 100%;
+    resize: none;
+}
+
+.note-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.inline-form {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+}
+
+.inline-form input[type="color"] {
+    width: 46px;
+    padding: .2rem;
+}
+
+.todo-list {
+    min-height: 0;
+    flex: 1;
+    margin-top: .5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.todo-row {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    padding: .6rem .2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.todo-row input {
+    width: auto;
+}
+
+.done {
+    text-decoration: line-through;
+    color: var(--muted);
+}
+
+.feeds-widget {
+    max-height: 390px;
+    overflow: hidden;
+}
+
+.feed-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .6rem;
+    max-height: 310px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.feed-pill {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: .25rem .55rem;
+    align-items: center;
+    padding: .7rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+}
+
+.feed-pill:hover {
+    border-color: color-mix(in srgb, var(--feed-color, var(--blue)) 60%, var(--border));
+    background: color-mix(in srgb, var(--feed-color, var(--blue)) 7%, var(--surface));
+}
+
+.feed-pill strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feed-pill small {
+    grid-column: 2;
+    color: var(--muted);
+}
+
+.feed-source-icon {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+}
+
+.feed-source-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.feed-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--feed-color, var(--blue));
+    display: inline-block;
+}

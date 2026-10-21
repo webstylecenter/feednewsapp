@@ -1,0 +1,395 @@
+.reader-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template: 62px calc(100vh - 62px) / 400px 1fr;
+    overflow: hidden;
+}
+
+.app-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blue);
+    color: #fff;
+    padding: 0 1rem;
+    z-index: 20;
+    box-shadow: 0 2px 12px rgb(0 0 0 / 15%);
+}
+
+.brand-button {
+    border: 0;
+    background: transparent;
+    padding: .4rem;
+}
+
+.brand-button img {
+    display: block;
+    max-height: 44px;
+    object-fit: contain;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.profile-wrap {
+    position: relative;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    padding: .55rem;
+}
+
+.profile-button img, .profile-button > span {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: grid;
+    place-items: center;
+    background: rgb(255 255 255 / 18%);
+}
+
+.profile-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + .4rem);
+    width: 210px;
+    padding: .4rem;
+    z-index: 40;
+}
+
+.profile-menu button {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: .7rem .8rem;
+}
+
+.profile-menu button:hover {
+    background: var(--surface-soft);
+}
+
+.feed-sidebar {
+    min-width: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: grid;
+    grid-template-rows: auto 1fr 54px;
+    overflow: hidden;
+}
+
+.sidebar-tools {
+    padding: .8rem;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    gap: .6rem;
+}
+
+.search-form {
+    display: grid;
+    grid-template-columns: 1fr 42px;
+}
+
+.search-form input {
+    border-radius: 7px 0 0 7px;
+}
+
+.search-form button {
+    border-radius: 0 7px 7px 0;
+    background: var(--surface-soft);
+}
+
+.feed-source-filter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .45rem .65rem;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface-soft);
+    color: var(--text);
+    font-size: .82rem;
+}
+
+.feed-source-filter strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feed-source-filter button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    padding: 0 .2rem;
+}
+
+.feed-list {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.feed-item {
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    border-left: 4px solid var(--feed-color, var(--blue));
+    background: var(--surface);
+    touch-action: pan-y;
+}
+
+.feed-item.pinned {
+    background: color-mix(in srgb, var(--feed-color, var(--blue)) 7%, var(--surface));
+}
+
+.feed-item.striped:not(.pinned):not(.active) {
+    background: color-mix(in srgb, var(--surface) 96%, var(--text));
+}
+
+.feed-item.active {
+    background: color-mix(in srgb, var(--feed-color, var(--blue)) 15%, var(--surface));
+    box-shadow: inset 0 0 24px color-mix(in srgb, var(--feed-color, var(--blue)) 18%, transparent);
+}
+
+.feed-main {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: .65rem;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    padding: .9rem 3.2rem .55rem .75rem;
+    color: inherit;
+}
+
+.feed-main strong,
+.feed-main small {
+    display: block;
+}
+
+.feed-copy {
+    min-width: 0;
+}
+
+.feed-main strong {
+    min-width: 0;
+    max-width: 100%;
+    line-height: 1.28;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.feed-main small {
+    color: var(--muted);
+    margin-top: .32rem;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.feed-main .feed-copy > small {
+    display: -webkit-box;
+    max-height: 4.2em;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
+.feed-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+}
+
+.feed-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.feed-icon .feed-dot {
+    width: 9px;
+    height: 9px;
+}
+
+.feed-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .15rem;
+    padding: 0 .55rem .4rem;
+    opacity: .45;
+    transition: opacity .15s ease;
+}
+
+.feed-item:hover .feed-actions, .feed-item:focus-within .feed-actions {
+    opacity: 1;
+}
+
+.feed-actions button {
+    border: 0;
+    background: transparent;
+    padding: .25rem .45rem;
+    color: var(--muted);
+}
+
+.feed-actions button:hover {
+    color: var(--blue);
+}
+
+.feed-pin {
+    position: absolute;
+    z-index: 2;
+    top: .65rem;
+    right: .65rem;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    opacity: .55;
+}
+
+.feed-pin:hover,
+.feed-pin:focus-visible,
+.feed-pin.active {
+    background: color-mix(in srgb, var(--feed-color, var(--blue)) 14%, transparent);
+    color: var(--feed-color, var(--blue));
+    opacity: 1;
+}
+
+.feed-pin svg {
+    width: 19px;
+    height: 19px;
+    fill: currentColor;
+}
+
+.tag-action.active {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    max-width: 65%;
+    padding: .18rem .48rem;
+    border: 1px solid color-mix(in srgb, var(--tag-color) 55%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tag-color) 12%, transparent);
+    color: var(--text);
+    font-size: .72rem;
+    line-height: 1.25;
+    opacity: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tag-action.active:hover {
+    background: color-mix(in srgb, var(--tag-color) 20%, transparent);
+    color: var(--text);
+}
+
+.feed-tag-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--tag-color);
+}
+
+.tab-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border);
+}
+
+.tab-bar button {
+    border: 0;
+    border-radius: 0;
+    background: var(--surface);
+    color: var(--muted);
+}
+
+.tab-bar button.active {
+    color: var(--blue);
+    box-shadow: inset 0 3px var(--blue);
+}
+
+.sentinel {
+    height: 1px;
+}
+
+.loading-row, .empty-state {
+    padding: 1rem;
+    text-align: center;
+}
+
+.content-pane {
+    min-width: 0;
+    position: relative;
+    overflow: auto;
+    background: #e8edf5;
+}
+
+.content-pane iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+}
+
+.content-toolbar {
+    height: 42px;
+    position: sticky;
+    z-index: 5;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 .9rem;
+    background: rgb(31 41 55 / 92%);
+    color: #fff;
+    backdrop-filter: blur(10px);
+}
+
+.content-toolbar strong {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.content-toolbar button {
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+.content-toolbar + iframe {
+    height: calc(100% - 42px);
+}
