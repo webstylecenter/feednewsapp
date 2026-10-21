@@ -73,16 +73,45 @@ final readonly class WeatherService
             $forecast->setCurrentWeather($this->mapCode($currentCode));
         }
 
-        foreach ($forecast->getForecastDays()->toArray() as $day) {
-            $forecast->removeForecastDay($day);
-            $this->entityManager->remove($day);
+        $this->syncForecastDays(
+            $forecast,
+            $this->numericList($daily, 'temperature_2m_max'),
+            $this->numericList($daily, 'temperature_2m_min'),
+            $this->integerList($daily, 'weather_code'),
+        );
+        $this->entityManager->flush();
+
+        return $forecast;
+    }
+
+    /**
+     * @param list<float> $maxTemperatures
+     * @param list<float> $minTemperatures
+     * @param list<int> $codes
+     */
+    private function syncForecastDays(
+        WeatherForecast $forecast,
+        array $maxTemperatures,
+        array $minTemperatures,
+        array $codes,
+    ): void {
+        /** @var array<int, WeatherForecastDay> $existingDays */
+        $existingDays = [];
+        foreach ($forecast->getForecastDays() as $day) {
+            $existingDays[$day->getDayOffset()] = $day;
         }
 
-        $maxTemperatures = $this->numericList($daily, 'temperature_2m_max');
-        $minTemperatures = $this->numericList($daily, 'temperature_2m_min');
-        $codes = $this->integerList($daily, 'weather_code');
         $length = min(count($maxTemperatures), count($minTemperatures), count($codes), 6);
         for ($index = 0; $index < $length; ++$index) {
+            $day = $existingDays[$index] ?? null;
+            if ($day instanceof WeatherForecastDay) {
+                $day->setTempMax($maxTemperatures[$index]);
+                $day->setTempMin($minTemperatures[$index]);
+                $day->setWeather($this->mapCode($codes[$index]));
+                unset($existingDays[$index]);
+                continue;
+            }
+
             $day = new WeatherForecastDay(
                 $forecast,
                 $index,
@@ -94,9 +123,10 @@ final readonly class WeatherService
             $this->entityManager->persist($day);
         }
 
-        $this->entityManager->flush();
-
-        return $forecast;
+        foreach ($existingDays as $day) {
+            $forecast->removeForecastDay($day);
+            $this->entityManager->remove($day);
+        }
     }
 
     /** @return array{float, float} */
