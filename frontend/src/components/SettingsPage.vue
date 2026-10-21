@@ -208,6 +208,21 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                 </div>
             </section>
 
+            <section class="settings-section card extension-settings">
+                <div class="extension-settings-header">
+                    <div>
+                        <h2>Chrome extension</h2>
+                        <p class="muted">Save the page you are viewing directly to Feednews. The extension fills in the URL, title and description and stores the item pinned.</p>
+                    </div>
+                    <a class="primary button-link extension-download" href="/api/settings/chrome-extension" download>Download extension</a>
+                </div>
+                <ol class="extension-install-steps muted">
+                    <li>Download and extract the ZIP file.</li>
+                    <li>Open <strong>chrome://extensions</strong> and enable Developer mode.</li>
+                    <li>Choose <strong>Load unpacked</strong> and select the extracted folder.</li>
+                </ol>
+            </section>
+
             <section class="settings-section card">
                 <h2>Add a feed</h2>
                 <p class="muted">Paste an RSS/Atom URL, a website containing feed discovery metadata, or a YouTube channel URL.</p>
@@ -320,6 +335,33 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 </template>
 
 <style scoped>
+.extension-settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+}
+
+.extension-settings-header h2 {
+    margin-bottom: .35rem;
+}
+
+.extension-settings-header p {
+    max-width: 760px;
+    margin: 0;
+}
+
+.extension-download {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.extension-install-steps {
+    margin: 1rem 0 0;
+    padding-left: 1.25rem;
+    line-height: 1.7;
+}
+
 .subscription-list {
     max-height: min(620px, 65vh);
     padding-right: .25rem;
@@ -384,6 +426,15 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 }
 
 @media (max-width: 800px) {
+    .extension-settings-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .extension-download {
+        align-self: flex-start;
+    }
+
     .subscription-list {
         display: grid;
         gap: .55rem;
