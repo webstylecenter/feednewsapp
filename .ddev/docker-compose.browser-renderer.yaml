@@ -3,9 +3,6 @@ services:
     container_name: ddev-${DDEV_SITENAME}-browser-renderer
     image: mcr.microsoft.com/playwright:v1.56.1-noble
     working_dir: /var/www/html/browser-renderer
-    network_mode: "service:web"
-    depends_on:
-      - web
     volumes:
       - ..:/var/www/html:cached
       - browser_renderer_node_modules:/var/www/html/browser-renderer/node_modules
@@ -14,16 +11,19 @@ services:
       bash -lc "npm install --omit=dev && xvfb-run -a npm start"
     environment:
       - NODE_ENV=development
+      - HOST=0.0.0.0
       - PORT=3010
       - BROWSER_HEADLESS=0
       - STORAGE_STATE_PATH=/var/lib/feednews-browser/storage-state.json
+    expose:
+      - "3010"
     labels:
       com.ddev.site-name: ${DDEV_SITENAME}
       com.ddev.approot: ${DDEV_APPROOT}
 
   web:
     environment:
-      - READER_RENDERER_URL=http://127.0.0.1:3010/render
+      - READER_RENDERER_URL=http://browser-renderer:3010/render
       - READER_BROWSER_HOSTS=tweakers.net,neowin.net
 
 volumes:
