@@ -23,6 +23,10 @@ final readonly class ChromeExtensionArchiveService
     /** @throws JsonException */
     public function create(string $origin): string
     {
+        if (class_exists(ZipArchive::class) === false) {
+            throw new RuntimeException('The PHP ZIP extension is required to download the Chrome extension.');
+        }
+
         $archivePath = tempnam(sys_get_temp_dir(), 'feednews-extension-');
         if ($archivePath === false) {
             throw new RuntimeException('Could not create a temporary extension archive.');
@@ -45,10 +49,11 @@ final readonly class ChromeExtensionArchiveService
             $this->addResource($archive, 'popup.js');
             $this->addIcon($archive);
 
-            if ($archive->close() === false) {
+            $closed = $archive->close();
+            $archiveIsOpen = false;
+            if ($closed === false) {
                 throw new RuntimeException('Could not finish the extension archive.');
             }
-            $archiveIsOpen = false;
 
             $contents = file_get_contents($archivePath);
             if ($contents === false) {
@@ -130,7 +135,7 @@ final readonly class ChromeExtensionArchiveService
     private function addIcon(ZipArchive $archive): void
     {
         $path = $this->iconPath();
-        if (!is_file($path)) {
+        if (is_file($path) === false) {
             return;
         }
 
