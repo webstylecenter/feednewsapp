@@ -9,6 +9,7 @@ use App\Weather\Entity\WeatherForecast;
 use App\Weather\Entity\WeatherForecastDay;
 use App\Weather\Enum\WeatherType;
 use App\Weather\Repository\WeatherForecastRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use RuntimeException;
@@ -18,6 +19,7 @@ final readonly class WeatherService
     private const string DEFAULT_LOCATION = 'Eindhoven,NL';
     private const float DEFAULT_LATITUDE = 51.4416;
     private const float DEFAULT_LONGITUDE = 5.4697;
+    private const string CACHE_MAX_AGE = '-35 minutes';
 
     public function __construct(
         private NativeHttpClient $httpClient,
@@ -26,37 +28,37 @@ final readonly class WeatherService
     ) {
     }
 
-    public function current(): ?WeatherForecast
+    public function current(?string $location = null): ?WeatherForecast
     {
-        $location = $this->envString('WEATHER_LOCATION', self::DEFAULT_LOCATION);
-        return $this->repository->findOneBy(['location' => $location]);
+        return $this->repository->findOneBy(['location' => $this->location($location)]);
     }
 
-    public function update(): WeatherForecast
+    public function forecast(?string $location = null): WeatherForecast
     {
-        $location = $this->envString('WEATHER_LOCATION', self::DEFAULT_LOCATION);
-        $latitude = $this->envFloat('WEATHER_LATITUDE', self::DEFAULT_LATITUDE);
-        $longitude = $this->envFloat('WEATHER_LONGITUDE', self::DEFAULT_LONGITUDE);
+        $location = $this->location($location);
+        $forecast = $this->current($location);
+
+        if (
+            $forecast instanceof WeatherForecast
+            && $forecast->getUpdatedAt() >= new DateTimeImmutable(self::CACHE_MAX_AGE)
+        ) {
+            return $forecast;
+        }
+
+        return $this->update($location);
+    }
+
+    public function update(?string $location = null): WeatherForecast
+    {
+        $location = $this->location($location);
+        [$latitude, $longitude] = $this->coordinates($location);
         $url = sprintf(
             'https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=6&timezone=auto',
             rawurlencode((string) $latitude),
             rawurlencode((string) $longitude),
         );
 
-        $response = $this->httpClient->get($url, ['Accept' => 'application/json']);
-        if ($response->statusCode < 200 || $response->statusCode >= 300) {
-            throw new RuntimeException(sprintf('Weather API returned HTTP %d.', $response->statusCode));
-        }
-
-        try {
-            $data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $exception) {
-            throw new RuntimeException('Weather API returned invalid JSON.', previous: $exception);
-        }
-        if (!is_array($data)) {
-            throw new RuntimeException('Weather API returned an invalid response.');
-        }
-
+        $data = $this->jsonResponse($url, 'Weather API');
         $current = $this->stringKeyedArray($data['current'] ?? null, 'current');
         $daily = $this->stringKeyedArray($data['daily'] ?? null, 'daily');
 
@@ -93,7 +95,57 @@ final readonly class WeatherService
         }
 
         $this->entityManager->flush();
+
         return $forecast;
+    }
+
+    /** @return array{float, float} */
+    private function coordinates(string $location): array
+    {
+        $defaultLocation = $this->envString('WEATHER_LOCATION', self::DEFAULT_LOCATION);
+        if ($location === $defaultLocation) {
+            return [
+                $this->envFloat('WEATHER_LATITUDE', self::DEFAULT_LATITUDE),
+                $this->envFloat('WEATHER_LONGITUDE', self::DEFAULT_LONGITUDE),
+            ];
+        }
+
+        $url = sprintf(
+            'https://geocoding-api.open-meteo.com/v1/search?name=%s&count=1&language=en&format=json',
+            rawurlencode($location),
+        );
+        $data = $this->jsonResponse($url, 'Weather location API');
+        $results = $data['results'] ?? null;
+        if (!is_array($results) || !isset($results[0])) {
+            throw new RuntimeException(sprintf('Weather location "%s" could not be found.', $location));
+        }
+
+        $result = $this->stringKeyedArray($results[0], 'results[0]');
+
+        return [
+            $this->number($result, 'latitude'),
+            $this->number($result, 'longitude'),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function jsonResponse(string $url, string $service): array
+    {
+        $response = $this->httpClient->get($url, ['Accept' => 'application/json']);
+        if ($response->statusCode < 200 || $response->statusCode >= 300) {
+            throw new RuntimeException(sprintf('%s returned HTTP %d.', $service, $response->statusCode));
+        }
+
+        try {
+            $data = json_decode($response->body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new RuntimeException(sprintf('%s returned invalid JSON.', $service), previous: $exception);
+        }
+        if (!is_array($data)) {
+            throw new RuntimeException(sprintf('%s returned an invalid response.', $service));
+        }
+
+        return $this->stringKeyedArray($data, $service);
     }
 
     /** @return array<string, mixed> */
@@ -122,6 +174,7 @@ final readonly class WeatherService
         if (!is_int($value) && !is_float($value)) {
             throw new RuntimeException(sprintf('Weather field "%s" is missing.', $key));
         }
+
         return (float) $value;
     }
 
@@ -132,6 +185,7 @@ final readonly class WeatherService
         if (!is_int($value) && !is_float($value)) {
             throw new RuntimeException(sprintf('Weather field "%s" is missing.', $key));
         }
+
         return (int) $value;
     }
 
@@ -152,6 +206,7 @@ final readonly class WeatherService
             }
             $result[] = (float) $value;
         }
+
         return $result;
     }
 
@@ -172,6 +227,7 @@ final readonly class WeatherService
             }
             $result[] = (int) $value;
         }
+
         return $result;
     }
 
@@ -188,15 +244,24 @@ final readonly class WeatherService
         };
     }
 
+    private function location(?string $location): string
+    {
+        $location = trim((string) $location);
+
+        return $location !== '' ? $location : $this->envString('WEATHER_LOCATION', self::DEFAULT_LOCATION);
+    }
+
     private function envString(string $key, string $default): string
     {
         $value = $_ENV[$key] ?? null;
+
         return is_string($value) && trim($value) !== '' ? trim($value) : $default;
     }
 
     private function envFloat(string $key, float $default): float
     {
         $value = $_ENV[$key] ?? null;
+
         return is_numeric($value) ? (float) $value : $default;
     }
 }
