@@ -32,6 +32,10 @@ final readonly class YouTubeVideoFilter
 
     public function isShort(string $url): bool
     {
+        if ($this->isExplicitShortUrl($url)) {
+            return true;
+        }
+
         $videoId = $this->videoId($url);
         if ($videoId === null) {
             return false;
@@ -66,6 +70,17 @@ final readonly class YouTubeVideoFilter
         } catch (Throwable) {
             return false;
         }
+    }
+
+    private function isExplicitShortUrl(string $url): bool
+    {
+        $host = parse_url($url, PHP_URL_HOST);
+        $path = parse_url($url, PHP_URL_PATH);
+
+        return is_string($host)
+            && is_string($path)
+            && ($host === 'youtube.com' || str_ends_with($host, '.youtube.com'))
+            && preg_match('~^/shorts/[A-Za-z0-9_-]{6,20}/?$~', $path) === 1;
     }
 
     private function videoId(string $url): ?string
