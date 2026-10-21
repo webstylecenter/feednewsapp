@@ -23,7 +23,7 @@ jobs:
         with:
           php-version: "${{ matrix.php-version }}"
           tools: phpunit-bridge
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pgsql
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pgsql, zip
           coverage: none
 
       - name: Get composer cache directory
