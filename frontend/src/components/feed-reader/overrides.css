@@ -3,3 +3,180 @@
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
+
+.feed-item::before {
+    display: none;
+}
+
+.theme-toggle {
+    min-width: 42px;
+    min-height: 42px;
+    display: grid;
+    place-items: center;
+    line-height: 1;
+}
+
+.glass-filter-panel {
+    position: absolute;
+    z-index: 13;
+    left: var(--glass-side-gap);
+    bottom: 92px;
+    width: calc(100% - (var(--glass-side-gap) * 2));
+    max-width: calc(100% - (var(--glass-side-gap) * 2));
+    max-height: min(55vh, 430px);
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: .5rem;
+    padding: .55rem;
+    border: 1px solid rgb(255 255 255 / 36%);
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgb(255 255 255 / 20%), transparent 52%),
+        color-mix(in srgb, var(--surface) 70%, transparent);
+    box-shadow:
+        0 18px 42px rgb(15 30 55 / 20%),
+        inset 0 1px rgb(255 255 255 / 44%);
+    backdrop-filter: blur(26px) saturate(180%);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateY(10px) scale(.985);
+    transform-origin: center bottom;
+    transition: opacity .16s ease, transform .16s ease;
+}
+
+.glass-feed-ready.glass-filter-open .glass-filter-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.glass-feed-ready.glass-filter-open .tab-bar [data-glass-action="filter"] {
+    background:
+        linear-gradient(180deg, rgb(255 255 255 / 26%), transparent 70%),
+        color-mix(in srgb, var(--blue) 16%, transparent);
+    color: var(--blue);
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--blue) 24%, transparent),
+        0 4px 14px color-mix(in srgb, var(--blue) 14%, transparent);
+}
+
+.glass-filter-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .35rem;
+    padding: .2rem;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+}
+
+.glass-filter-tabs button {
+    border: 0;
+    padding: .55rem .7rem;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--muted);
+}
+
+.glass-filter-tabs button.active {
+    background: color-mix(in srgb, var(--blue) 14%, var(--surface));
+    color: var(--blue);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--blue) 24%, transparent);
+}
+
+.glass-filter-content {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.glass-filter-content > [data-filter-content] {
+    display: none;
+    max-height: min(43vh, 330px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.glass-filter-panel[data-active-tab="tags"] [data-filter-content="tags"],
+.glass-filter-panel[data-active-tab="feeds"] [data-filter-content="feeds"] {
+    display: grid;
+}
+
+.glass-tag-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .4rem;
+}
+
+.glass-feed-filter-list {
+    gap: .4rem;
+}
+
+.glass-feed-filter-option {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    align-items: center;
+    gap: .65rem;
+    width: 100%;
+    padding: .7rem .8rem;
+    border: 1px solid color-mix(in srgb, var(--feed-color) 42%, var(--border));
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--feed-color) 7%, var(--surface));
+    color: var(--text);
+    text-align: left;
+}
+
+.glass-feed-filter-option strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.glass-feed-filter-option:hover,
+.glass-feed-filter-option:focus-visible {
+    background: color-mix(in srgb, var(--feed-color) 14%, var(--surface));
+    border-color: color-mix(in srgb, var(--feed-color) 70%, var(--border));
+}
+
+@media (max-width: 800px) {
+    .weather-button {
+        display: flex;
+        padding: .2rem .3rem;
+        font-size: .9rem;
+    }
+
+    .weather-button img {
+        width: 26px;
+        height: 26px;
+    }
+
+    .theme-toggle {
+        min-width: 36px;
+        min-height: 36px;
+        padding: .25rem;
+        font-size: 1.2rem;
+    }
+
+    .glass-filter-panel {
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        max-height: min(52vh, 390px);
+    }
+
+    .glass-tag-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 360px) {
+    .glass-filter-panel {
+        bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .glass-filter-panel {
+        transition: none;
+    }
+}
