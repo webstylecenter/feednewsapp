@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Save to Feednews</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <main class="popup-card">
+        <header class="popup-header">
+            <div>
+                <span class="eyebrow">Feednews</span>
+                <h1>Save a link</h1>
+            </div>
+            <img class="logo" src="icon.png" alt="" onerror="this.hidden = true">
+        </header>
+
+        <div id="page-error" class="notice error" role="alert" hidden></div>
+
+        <div id="auth-notice" class="notice auth" role="alert" hidden>
+            <strong>Login required</strong>
+            <span>Your Feednews session is no longer valid. Log in and try again.</span>
+            <button id="login-button" class="secondary" type="button">Open Feednews login</button>
+        </div>
+
+        <form id="save-form">
+            <label>
+                URL
+                <input id="url" name="url" type="url" maxlength="2048" required>
+            </label>
+            <label>
+                Title
+                <input id="title" name="title" type="text" maxlength="255">
+            </label>
+            <label>
+                Description
+                <textarea id="description" name="description" rows="4" maxlength="500"></textarea>
+            </label>
+
+            <div id="save-error" class="form-error" role="alert" hidden></div>
+
+            <button id="save-button" class="primary" type="submit">
+                <span class="button-label">Save</span>
+                <span class="button-spinner" aria-hidden="true"></span>
+            </button>
+        </form>
+
+        <section id="success" class="success-state" aria-live="polite" hidden>
+            <span class="success-check" aria-hidden="true">
+                <svg viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="23"></circle>
+                    <path d="M15 27.5 22.5 35 38 18.5"></path>
+                </svg>
+            </span>
+            <strong>Saved</strong>
+        </section>
+    </main>
+
+    <script src="popup.js"></script>
+</body>
+</html>
