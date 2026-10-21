@@ -17,11 +17,20 @@ final readonly class UserWeatherService
     ) {
     }
 
+    public function current(): ?WeatherForecast
+    {
+        return $this->weatherService->current($this->location());
+    }
+
     public function forecast(): WeatherForecast
     {
-        $user = $this->currentUser->get();
-        $location = $this->settingRepository->findForUserAndKey($user, 'weather_location')?->getValue();
+        return $this->weatherService->forecast($this->location());
+    }
 
-        return $this->weatherService->forecast($location);
+    private function location(): ?string
+    {
+        $user = $this->currentUser->get();
+
+        return $this->settingRepository->findForUserAndKey($user, 'weather_location')?->getValue();
     }
 }
