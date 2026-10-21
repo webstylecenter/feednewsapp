@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+## Description: Run PHP_CodeSniffer for the Symfony backend
+## Usage: phpcs [args...]
+## Example: ddev phpcs
+
+set -e
+cd "$DDEV_APPROOT/backend"
+exec php vendor/bin/phpcs "$@"
