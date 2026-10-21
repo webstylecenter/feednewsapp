@@ -18,7 +18,7 @@ use App\User\Entity\UserNote;
 use App\User\Repository\UserChecklistItemRepository;
 use App\User\Repository\UserNoteRepository;
 use App\Weather\Mapper\WeatherMapper;
-use App\Weather\Service\WeatherService;
+use App\Weather\Service\UserWeatherService;
 use Override;
 
 /** @implements ProviderInterface<DashboardResponse> */
@@ -30,7 +30,7 @@ final readonly class DashboardProvider implements ProviderInterface
         private UserChecklistItemRepository $checklistRepository,
         private UserFeedRepository $feedRepository,
         private UserFeedItemRepository $feedItemRepository,
-        private WeatherService $weatherService,
+        private UserWeatherService $weatherService,
         private WeatherMapper $weatherMapper,
     ) {
     }
@@ -85,13 +85,11 @@ final readonly class DashboardProvider implements ProviderInterface
             );
         }
 
-        $weather = $this->weatherService->current();
-
         return new DashboardResponse(
             notes: $notes,
             todos: $todos,
             feeds: $feeds,
-            weather: $weather !== null ? $this->weatherMapper->toResponse($weather) : null,
+            weather: $this->weatherMapper->toResponse($this->weatherService->forecast()),
         );
     }
 }
