@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+## Description: Run npm from the frontend directory
+## Usage: npm [args...]
+## Example: ddev npm install\nddev npm run build
+
+set -e
+cd "$DDEV_APPROOT/frontend"
+exec npm "$@"
