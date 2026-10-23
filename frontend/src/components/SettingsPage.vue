@@ -2,6 +2,8 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { api } from '../api.js';
 import { faviconUrl } from '../presentation.js';
+import AdminCategoryManager from './AdminCategoryManager.vue';
+import AdminFeedManager from './AdminFeedManager.vue';
 import FeedPreviewDialog from './FeedPreviewDialog.vue';
 
 const props = defineProps({ user: { type: Object, required: true } });
@@ -286,9 +288,17 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                     </div>
                 </div>
                 <p v-if="state.subscriptions.length === 0" class="muted">No feeds followed yet.</p>
+                <AdminFeedManager
+                    v-if="props.user.isAdmin"
+                    :feeds="state.availableFeeds"
+                    :categories="state.categories"
+                    @changed="load"
+                    @notify="notify"
+                    @preview="openFeedPreview"
+                />
             </section>
 
-            <section v-if="state.availableFeeds.length" class="settings-section card">
+            <section v-if="!props.user.isAdmin && state.availableFeeds.length" class="settings-section card">
                 <h2>Available feeds</h2>
                 <div class="available-grid settings-scroll-area">
                     <button v-for="feed in state.availableFeeds" :key="feed.uuid" class="available-feed" @click="openFeedPreview(feed)">
@@ -301,6 +311,11 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
 
             <section v-if="props.user.isAdmin && admin" class="settings-section card admin-section">
                 <h2>Administration</h2>
+                <AdminCategoryManager
+                    :categories="state.categories"
+                    @changed="load"
+                    @notify="notify"
+                />
                 <h3>Users</h3>
                 <div class="table-wrap settings-scroll-area"><table><thead><tr><th>Name</th><th>Email</th><th>Last login</th><th></th></tr></thead><tbody>
                     <tr v-for="account in admin.users" :key="account.uuid"><td>{{ account.name }}</td><td class="settings-break-word">{{ account.email }}</td><td>{{ account.lastLogin ? new Date(account.lastLogin).toLocaleString() : 'Never' }}</td><td><button
@@ -311,10 +326,6 @@ onBeforeUnmount(() => window.clearTimeout(notificationTimer));
                             >
                                 {{ pendingUserRemoval === account.uuid ? 'Are you sure?' : 'Remove' }}
                             </button></td></tr>
-                </tbody></table></div>
-                <h3>Latest feeds</h3>
-                <div class="table-wrap settings-scroll-area"><table><thead><tr><th>Name</th><th>URL</th><th>Updated</th></tr></thead><tbody>
-                    <tr v-for="feed in admin.feeds" :key="feed.uuid"><td>{{ feed.name }}</td><td class="settings-break-word">{{ feed.url }}</td><td>{{ new Date(feed.updatedAt).toLocaleString() }}</td></tr>
                 </tbody></table></div>
                 <h3>Error log</h3>
                 <div class="table-wrap settings-scroll-area"><table><thead><tr><th>Type</th><th>Occurrences</th><th>Feed</th><th>Message</th></tr></thead><tbody>
