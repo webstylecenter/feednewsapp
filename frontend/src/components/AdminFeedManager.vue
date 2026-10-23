@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { api } from '../api.js';
 import { faviconUrl } from '../presentation.js';
 
-const props = defineProps({
+defineProps({
     feeds: { type: Array, required: true },
     categories: { type: Array, required: true },
 });
