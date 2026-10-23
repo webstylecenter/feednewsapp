@@ -25,6 +25,7 @@ final readonly class FeedSettingsMapper
             url: $feed->getUrl(),
             color: $feed->getColor(),
             category: $feed->getCategory()?->getName(),
+            categoryUuid: $feed->getCategory()?->getUuid()->toRfc4122(),
             lastItemAt: $lastItemAt,
             httpErrorStatus: $httpErrorStatus,
             httpErrorMessage: $httpErrorMessage,
