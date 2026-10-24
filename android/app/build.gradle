@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+def generatedBrandResDir = layout.buildDirectory.dir('generated/feednews-brand/res').get().asFile
+def prepareFeedNewsBrandAssets = tasks.register('prepareFeedNewsBrandAssets', Copy) {
+    into(new File(generatedBrandResDir, 'drawable-nodpi'))
+
+    from(new File(rootProject.projectDir.parentFile, 'backend/public/images/FeedNews-Logo.png')) {
+        rename { 'feednews_logo.png' }
+    }
+    from(new File(rootProject.projectDir.parentFile, 'backend/public/images/launcher-icon-8x.png')) {
+        rename { 'feednews_launcher.png' }
+    }
+}
+
+android {
+    namespace 'nl.petervdam.feednews'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'nl.petervdam.feednews'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            res.srcDir generatedBrandResDir
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn prepareFeedNewsBrandAssets
+}

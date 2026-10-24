@@ -39,6 +39,11 @@ frontend/.vite/
 browser-renderer/storage-state.json
 browser-renderer/storage-state.json.tmp
 
+# Android
+android/.gradle/
+android/local.properties
+android/**/build/
+
 # DDEV generated/local state
 .ddev/.ddev-docker-*.yaml
 .ddev/.downloads/
