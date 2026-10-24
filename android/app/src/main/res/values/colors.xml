@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="feednews_accent">#337DFF</color>
+    <color name="feednews_system_bar">#2868D8</color>
     <color name="feednews_surface">#F5F7FB</color>
     <color name="feednews_white">#FFFFFF</color>
 </resources>
