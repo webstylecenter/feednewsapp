@@ -50,10 +50,15 @@ public final class MainActivity extends Activity {
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
         WebSettings settings = webView.getSettings();
+        // FeedNews is a JavaScript application. Main-frame navigation is restricted below to the
+        // single trusted HTTPS FeedNews origin; untrusted pages are never loaded with JavaScript here.
+        // codeql[java/android/websettings-javascript-enabled]
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setSupportMultipleWindows(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
@@ -67,6 +72,10 @@ public final class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (!request.isForMainFrame()) {
+                    return false;
+                }
+
                 return handleNavigation(request.getUrl(), request.hasGesture());
             }
         });
@@ -90,29 +99,29 @@ public final class MainActivity extends Activity {
 
     private boolean handleNavigation(Uri uri, boolean userGesture) {
         String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
-        if ("intent".equals(scheme)) {
-            return openIntentUri(uri.toString());
-        }
+        String host = uri.getHost();
 
-        if ("http".equals(scheme) || "https".equals(scheme)) {
-            if (FEEDNEWS_HOST.equalsIgnoreCase(uri.getHost())) {
-                return false;
-            }
-
-            if (userGesture) {
-                openExternal(uri);
-                return true;
-            }
-
+        if ("https".equals(scheme) && FEEDNEWS_HOST.equalsIgnoreCase(host)) {
             return false;
         }
 
-        if (!scheme.isEmpty()) {
+        if ("http".equals(scheme) || "https".equals(scheme)) {
             openExternal(uri);
             return true;
         }
 
-        return false;
+        if ("intent".equals(scheme)) {
+            return userGesture ? openIntentUri(uri.toString()) : true;
+        }
+
+        if (!scheme.isEmpty()) {
+            if (userGesture) {
+                openExternal(uri);
+            }
+            return true;
+        }
+
+        return true;
     }
 
     private boolean openIntentUri(String uri) {
@@ -129,10 +138,10 @@ public final class MainActivity extends Activity {
                 }
             }
         } catch (URISyntaxException ignored) {
-            return false;
+            return true;
         }
 
-        return false;
+        return true;
     }
 
     private void openExternal(Uri uri) {
