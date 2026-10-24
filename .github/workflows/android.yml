@@ -24,37 +24,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Inspect FeedNews TLS certificate chain
-        run: |
-          echo | openssl s_client \
-            -connect feednews.petervdam.nl:443 \
-            -servername feednews.petervdam.nl \
-            -showcerts 2>/dev/null \
-            | awk '
-              /BEGIN CERTIFICATE/ {
-                count++
-                file = "/tmp/feednews-cert-" count ".pem"
-                in_certificate = 1
-              }
-              in_certificate {
-                print > file
-              }
-              /END CERTIFICATE/ {
-                close(file)
-                in_certificate = 0
-              }
-            '
-
-          for certificate in /tmp/feednews-cert-*.pem; do
-            openssl x509 -in "$certificate" -noout -subject -issuer -dates
-            printf 'SPKI SHA-256: '
-            openssl x509 -in "$certificate" -pubkey -noout \
-              | openssl pkey -pubin -outform der \
-              | openssl dgst -sha256 -binary \
-              | openssl base64 -A
-            printf '\n\n'
-          done
-
       - name: Install Android SDK 35
         run: /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
 
