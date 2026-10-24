@@ -62,7 +62,7 @@ public final class MainActivity extends Activity {
         WebView.setWebContentsDebuggingEnabled(
             (getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
         );
-        WebView.enableSafeBrowsing(this, null);
+        WebView.startSafeBrowsing(this, null);
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
