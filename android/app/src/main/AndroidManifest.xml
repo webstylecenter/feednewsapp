@@ -4,9 +4,9 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/ic_feednews"
+        android:icon="@drawable/feednews_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_feednews"
+        android:roundIcon="@drawable/feednews_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
