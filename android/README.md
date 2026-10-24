@@ -22,6 +22,8 @@ The configured SPKI pins are intentionally CA-root pins rather than the short-li
 - ISRG Root X1 is the backup pin for a possible Let's Encrypt RSA trust path.
 - The pin set expires on `2028-10-25` to avoid permanently breaking older app versions if the server's TLS infrastructure changes later.
 
+JavaScript remains enabled because the FeedNews frontend requires it. The WebView therefore only permits the trusted FeedNews HTTPS origin as a main-frame destination. External pages are delegated to Android instead of running inside the privileged WebView context.
+
 Before changing certificate authorities or before the pin-set expiration date, update `app/src/main/res/xml/network_security_config.xml` and ship a new app version first.
 
 To inspect the currently served certificate chain and derive an SPKI SHA-256 pin:
