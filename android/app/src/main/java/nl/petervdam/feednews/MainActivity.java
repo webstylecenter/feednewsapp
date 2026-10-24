@@ -127,14 +127,21 @@ public final class MainActivity extends Activity {
     private boolean openIntentUri(String uri) {
         try {
             Intent intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
+            intent.setComponent(null);
+            intent.setSelector(null);
+
             try {
                 startActivity(intent);
                 return true;
             } catch (ActivityNotFoundException exception) {
                 String fallbackUrl = intent.getStringExtra("browser_fallback_url");
                 if (fallbackUrl != null && !fallbackUrl.trim().isEmpty()) {
-                    openExternal(Uri.parse(fallbackUrl));
-                    return true;
+                    Uri fallbackUri = Uri.parse(fallbackUrl);
+                    String fallbackScheme = fallbackUri.getScheme();
+                    if ("http".equalsIgnoreCase(fallbackScheme) || "https".equalsIgnoreCase(fallbackScheme)) {
+                        openExternal(fallbackUri);
+                    }
                 }
             }
         } catch (URISyntaxException ignored) {
