@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@mozilla/readability": "0.6.0",
-    "dompurify": "3.4.16",
+    "dompurify": "^3.4.17",
     "vue": "3.5.44"
   },
   "devDependencies": {

@@ -23,6 +23,7 @@ backend/.phpcs-cache
 backend/phpstan.neon
 backend/phpcs.xml
 backend/phpunit.xml
+backend/public/index.html
 
 # Frontend
 frontend/node_modules/
