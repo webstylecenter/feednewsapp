@@ -48,7 +48,11 @@ final readonly class ApiCsrfSubscriber implements EventSubscriberInterface
         }
 
         $event->setResponse(new JsonResponse(
-            ['status' => 'error', 'message' => 'Invalid or missing CSRF token.'],
+            [
+                'status' => 'error',
+                'code' => 'invalid_csrf_token',
+                'message' => 'Invalid or missing CSRF token.',
+            ],
             Response::HTTP_FORBIDDEN,
         ));
     }
