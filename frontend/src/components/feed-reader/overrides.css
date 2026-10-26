@@ -190,3 +190,54 @@
         transition: none;
     }
 }
+
+.glass-feed-ready .tab-bar {
+    left: 0;
+    right: 0;
+    margin-inline: auto;
+    background:
+        linear-gradient(180deg, rgb(255 255 255 / 24%), rgb(255 255 255 / 4%) 48%, transparent),
+        color-mix(in srgb, var(--surface) 76%, transparent);
+    transform: none;
+}
+
+.glass-feed-ready .search-form,
+.glass-tag-panel,
+.glass-add-panel {
+    background:
+        linear-gradient(180deg, rgb(255 255 255 / 20%), transparent 52%),
+        color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.glass-filter-panel {
+    background:
+        linear-gradient(180deg, rgb(255 255 255 / 20%), transparent 52%),
+        color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.glass-active-tag {
+    background:
+        radial-gradient(circle at 8% 20%, color-mix(in srgb, var(--tag-color) 25%, transparent), transparent 58%),
+        color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.glass-feed-ready .search-form input {
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.glass-feed-ready .search-form,
+.glass-tag-panel,
+.glass-add-panel,
+.glass-active-tag,
+.glass-filter-panel,
+.glass-feed-ready.glass-search-open .search-form,
+.glass-feed-ready.glass-tags-open .glass-tag-panel,
+.glass-feed-ready.glass-add-open .glass-add-panel,
+.glass-feed-ready.glass-filter-open .glass-filter-panel,
+.glass-active-tag.visible,
+.glass-search-open .glass-active-tag,
+.glass-tags-open .glass-active-tag,
+.glass-add-open .glass-active-tag,
+.glass-filter-open .glass-active-tag {
+    transform: none;
+}
