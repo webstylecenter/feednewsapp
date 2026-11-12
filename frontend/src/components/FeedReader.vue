@@ -12,6 +12,14 @@ const props = defineProps({
 });
 const emit = defineEmits(['navigate', 'logout']);
 
+function openScreensaver() {
+    if (document.fullscreenEnabled && !document.fullscreenElement) {
+        void document.documentElement.requestFullscreen().catch(() => {});
+    }
+
+    emit('navigate', '/screensaver');
+}
+
 const items = ref([]);
 const pinnedItems = ref([]);
 const pinnedCount = ref(0);
@@ -727,7 +735,7 @@ onBeforeUnmount(() => {
                 <button v-if="currentItem" class="icon-button hide-mobile" title="Open floating reader" @click="openCurrentPopup">▣</button>
                 <button v-if="currentItem" class="icon-button hide-mobile" title="Open new tab" @click="openCurrentExternal">↗</button>
                 <button class="icon-button" title="Add saved link" @click="addDialog?.showModal()">＋</button>
-                <button class="icon-button hide-mobile" title="Screensaver" @click="emit('navigate', '/screensaver')">◫</button>
+                <button class="icon-button hide-mobile" title="Screensaver" @click="openScreensaver">◫</button>
                 <div class="profile-wrap">
                     <button class="profile-button" @click="menuOpen = !menuOpen">
                         <img v-if="props.user.avatar" :src="props.user.avatar" alt="">
