@@ -38,6 +38,7 @@ The application is the modernized successor to the original Laravel Feednews app
 - Admin functionality protected by `ROLE_ADMIN`.
 - Light, dark and automatic themes.
 - Responsive mobile interface.
+- OLED-aware fullscreen screensaver with rotating landscape photos, weather, clock and news.
 - Installable PWA with manifest, app icons and service worker.
 
 ## Technology
@@ -278,6 +279,16 @@ git rm --cached backend/public/sw.js
 Remove any other generated PWA files from the index if they are currently tracked, then commit the `.gitignore` change.
 
 Do not use `git stash` as the normal deployment strategy for generated frontend files.
+
+## Screensaver
+
+Use the screensaver button in the feed reader to enter fullscreen mode where the browser allows it. Clicking the screensaver closes it and exits fullscreen mode. Escape also leaves the browser's fullscreen mode.
+
+The screensaver loads random 16:9 landscape wallpapers from [Lorem Picsum](https://picsum.photos/), rotating every **2 minutes** with a soft blurred transition. Images are preloaded before the background changes; if loading fails, the previous image remains visible. No API key is needed.
+
+The clock, weather and news gently shift within their respective areas to help reduce OLED image retention. The news cycles every 9 seconds, and news/weather data is refreshed every 5 minutes. Bright static UI is kept to a minimum. Motion follows the browser's reduced-motion setting.
+
+**Note:** Pixel shifting and background rotation can reduce burn-in risk but do not eliminate it. Use the display's own automatic screen-off and OLED protection features for long sessions.
 
 ## PWA
 
