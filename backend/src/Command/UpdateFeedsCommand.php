@@ -8,10 +8,11 @@ use App\Feed\Enum\FeedErrorType;
 use App\Feed\Repository\FeedRepository;
 use App\Feed\Service\FeedErrorService;
 use App\Feed\Service\FeedService;
-use RuntimeException;
+use App\Shared\Http\ParallelFeedHttpClient;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 use Time\Duration;
@@ -25,44 +26,78 @@ final class UpdateFeedsCommand extends Command
         private readonly FeedRepository $feedRepository,
         private readonly FeedService $feedService,
         private readonly FeedErrorService $errorService,
+        private readonly ParallelFeedHttpClient $httpClient,
     ) {
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->addOption('concurrency', null, InputOption::VALUE_REQUIRED, 'Concurrent feed downloads (1-10)', '5');
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $option = $input->getOption('concurrency');
+        $concurrency = is_string($option) || is_int($option)
+            ? filter_var($option, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => ParallelFeedHttpClient::MAX_CONCURRENCY]])
+            : false;
+        if ($concurrency === false) {
+            $output->writeln('<error>Concurrency must be an integer between 1 and 10.</error>');
+            return self::INVALID;
+        }
+
         $startedAt = self::monotonicTime();
         $total = 0;
         $failed = 0;
 
-        foreach ($this->feedRepository->findOldestUpdatedFirst() as $feed) {
-            $feedStartedAt = self::monotonicTime();
-            try {
-                $newItems = $this->feedService->parseFeed($feed);
-                $total += $newItems;
-                $feedDuration = self::monotonicTime()->sub($feedStartedAt);
+        foreach (array_chunk($this->feedRepository->findOldestUpdatedFirst(), $concurrency) as $feeds) {
+            $requests = [];
+            foreach ($feeds as $key => $feed) {
+                $requests[$key] = [
+                    'url' => $feed->getUrl(),
+                    'headers' => $this->feedService->feedRequestHeaders($feed),
+                ];
+            }
 
-                if (
-                    $newItems > 0
-                    || $output->isVerbose()
-                    || $feedDuration >= Duration::fromSeconds(self::SLOW_FEED_SECONDS)
-                ) {
+            $downloads = $this->httpClient->getMany($requests);
+
+            foreach ($feeds as $key => $feed) {
+                $download = $downloads[$key];
+                $processingStartedAt = self::monotonicTime();
+                try {
+                    if ($download['response'] instanceof Throwable) {
+                        throw $download['response'];
+                    }
+
+                    $newItems = $this->feedService->applyFeedResponse($feed, $download['response']);
+                    $total += $newItems;
+                    $feedDuration = $download['seconds']
+                        + self::durationSeconds(self::monotonicTime()->sub($processingStartedAt));
+
+                    if (
+                        $newItems > 0
+                        || $output->isVerbose()
+                        || $feedDuration >= self::SLOW_FEED_SECONDS
+                    ) {
+                        $output->writeln(sprintf(
+                            '%s: %d new item(s) in %.2fs',
+                            $feed->getName(),
+                            $newItems,
+                            $feedDuration,
+                        ));
+                    }
+                } catch (Throwable $throwable) {
+                    ++$failed;
+                    $this->errorService->report(FeedErrorType::ERROR, $throwable->getMessage(), null, $feed);
                     $output->writeln(sprintf(
-                        '%s: %d new item(s) in %.2fs',
+                        '<error>%s failed after %.2fs: %s</error>',
                         $feed->getName(),
-                        $newItems,
-                        self::durationSeconds($feedDuration),
+                        $download['seconds']
+                            + self::durationSeconds(self::monotonicTime()->sub($processingStartedAt)),
+                        $throwable->getMessage(),
                     ));
                 }
-            } catch (Throwable $throwable) {
-                ++$failed;
-                $this->errorService->report(FeedErrorType::ERROR, $throwable->getMessage(), null, $feed);
-                $output->writeln(sprintf(
-                    '<error>%s failed after %.2fs: %s</error>',
-                    $feed->getName(),
-                    self::durationSeconds(self::monotonicTime()->sub($feedStartedAt)),
-                    $throwable->getMessage(),
-                ));
             }
         }
 
@@ -79,10 +114,6 @@ final class UpdateFeedsCommand extends Command
     private static function monotonicTime(): Duration
     {
         $time = hrtime();
-        if ($time === false) {
-            throw new RuntimeException('Monotonic clock is unavailable.');
-        }
-
         return Duration::fromSeconds($time[0], $time[1]);
     }
 

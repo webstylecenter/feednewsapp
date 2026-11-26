@@ -45,7 +45,7 @@ The application is the modernized successor to the original Laravel Feednews app
 
 ### Backend
 
-- PHP 8.6+
+- PHP 8.6+ with the cURL extension
 - Symfony 7.4
 - API Platform 4
 - Doctrine ORM / DBAL
@@ -212,6 +212,8 @@ Feeds are updated with:
 ```bash
 APP_ENV=prod php bin/console feed:update --no-interaction
 ```
+
+Feed downloads run concurrently in batches of five by default. Parsing and database writes remain sequential. To change the download concurrency (1–10), use `php bin/console feed:update --concurrency=3`. A value of `1` downloads sequentially. Conditional requests, per-request timeouts and response limits are retained. Redirects are validated and DNS is pinned to public addresses; conditional headers are cleared when redirecting to a different URL. Keep the existing cron lock to prevent overlapping update processes.
 
 Weather is updated with:
 
