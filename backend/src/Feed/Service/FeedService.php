@@ -15,6 +15,7 @@ use App\Feed\Repository\FeedItemRepository;
 use App\Feed\Repository\FeedRepository;
 use App\Feed\Repository\UserFeedItemRepository;
 use App\Feed\Repository\UserFeedRepository;
+use App\Shared\Http\HttpResponse;
 use App\Shared\Http\NativeHttpClient;
 use App\Shared\Http\PublicUrlGuard;
 use App\User\Entity\User;
@@ -131,7 +132,15 @@ final readonly class FeedService
 
     public function parseFeed(Feed $feed): int
     {
-        $parsedFeed = $this->downloadAndParseFeed($feed);
+        return $this->applyFeedResponse(
+            $feed,
+            $this->httpClient->get($feed->getUrl(), $this->feedRequestHeaders($feed)),
+        );
+    }
+
+    public function applyFeedResponse(Feed $feed, HttpResponse $response): int
+    {
+        $parsedFeed = $this->parseFeedResponse($feed, $response);
         if ($parsedFeed === null) {
             $feed->setUpdatedAt(new DateTime());
             $this->entityManager->flush();
@@ -199,7 +208,7 @@ final readonly class FeedService
         bool $manualOnly = false,
     ): array {
         $page = max(0, $page);
-        $limit = max(1, min(100, $limit));
+        $limit = clamp($limit, 1, 100);
         $items = $this->userFeedItemRepository->findRecentForUser(
             $user,
             $limit,
@@ -274,7 +283,8 @@ final readonly class FeedService
         return $this->feedParser->parse($response->body);
     }
 
-    private function downloadAndParseFeed(Feed $feed): ?ParsedFeed
+    /** @return array<string, string> */
+    public function feedRequestHeaders(Feed $feed): array
     {
         $headers = [
             'Accept' => 'application/rss+xml,application/atom+xml,application/xml,text/xml;q=0.9,*/*;q=0.1',
@@ -290,7 +300,11 @@ final readonly class FeedService
             $headers['If-Modified-Since'] = $lastModified;
         }
 
-        $response = $this->httpClient->get($feed->getUrl(), $headers);
+        return $headers;
+    }
+
+    private function parseFeedResponse(Feed $feed, HttpResponse $response): ?ParsedFeed
+    {
         if ($response->statusCode === 304) {
             $responseEtag = $this->normalizeHeader($response->firstHeader('etag'), 2_000);
             if ($responseEtag !== null) {

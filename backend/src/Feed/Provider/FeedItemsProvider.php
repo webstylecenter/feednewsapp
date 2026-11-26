@@ -40,7 +40,7 @@ final readonly class FeedItemsProvider implements ProviderInterface
     {
         $request = $this->requestStack->getCurrentRequest();
         $page = max(0, $request?->query->getInt('page') ?? 0);
-        $limit = max(1, min(100, $request?->query->getInt('limit', 50) ?? 50));
+        $limit = clamp($request?->query->getInt('limit', 50) ?? 50, 1, 100);
         $user = $this->currentUser->get();
         $source = trim($request?->query->getString('feed') ?? '');
         $manualOnly = $source === 'manual';

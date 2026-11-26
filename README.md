@@ -1,6 +1,6 @@
 # Feednews
 
-Feednews is a personal RSS/Atom news reader built with **Symfony 7.4**, **API Platform**, **PHP 8.5**, **Vue 3** and **Vite**.
+Feednews is a personal RSS/Atom news reader built with **Symfony 7.4**, **API Platform**, **PHP 8.6**, **Vue 3** and **Vite**.
 
 The application is the modernized successor to the original Laravel Feednews application. The backend exposes DTO-based API Platform resources and the frontend is a Vue single-page application. Public API identifiers use UUIDs; internal Doctrine integer IDs remain persistence details.
 
@@ -45,7 +45,7 @@ The application is the modernized successor to the original Laravel Feednews app
 
 ### Backend
 
-- PHP 8.5+
+- PHP 8.6+ with the cURL extension
 - Symfony 7.4
 - API Platform 4
 - Doctrine ORM / DBAL
@@ -65,7 +65,7 @@ The application is the modernized successor to the original Laravel Feednews app
 
 ### Development
 
-- DDEV
+- DDEV 1.25.6 or newer
 - Node.js 22
 - MariaDB 11.8
 
@@ -99,6 +99,8 @@ backend/public
 The Vite production build is written directly into `backend/public`.
 
 ## Local development with DDEV
+
+Use DDEV 1.25.6 or newer for the stable PHP 8.6 runtime. After updating an existing checkout, run `ddev restart` and `ddev composer install`.
 
 Start the project:
 
@@ -210,6 +212,8 @@ Feeds are updated with:
 ```bash
 APP_ENV=prod php bin/console feed:update --no-interaction
 ```
+
+Feed downloads run concurrently in batches of five by default. Parsing and database writes remain sequential. To change the download concurrency (1–10), use `php bin/console feed:update --concurrency=3`. A value of `1` downloads sequentially. Conditional requests, per-request timeouts and response limits are retained. Redirects are validated and DNS is pinned to public addresses; conditional headers are cleared when redirecting to a different URL. Keep the existing cron lock to prevent overlapping update processes.
 
 Weather is updated with:
 
