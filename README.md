@@ -1,6 +1,6 @@
 # Feednews
 
-Feednews is a personal RSS/Atom news reader built with **Symfony 7.4**, **API Platform**, **PHP 8.5**, **Vue 3** and **Vite**.
+Feednews is a personal RSS/Atom news reader built with **Symfony 7.4**, **API Platform**, **PHP 8.6**, **Vue 3** and **Vite**.
 
 The application is the modernized successor to the original Laravel Feednews application. The backend exposes DTO-based API Platform resources and the frontend is a Vue single-page application. Public API identifiers use UUIDs; internal Doctrine integer IDs remain persistence details.
 
@@ -45,7 +45,7 @@ The application is the modernized successor to the original Laravel Feednews app
 
 ### Backend
 
-- PHP 8.5+
+- PHP 8.6+
 - Symfony 7.4
 - API Platform 4
 - Doctrine ORM / DBAL
@@ -65,7 +65,7 @@ The application is the modernized successor to the original Laravel Feednews app
 
 ### Development
 
-- DDEV
+- DDEV 1.25.6 or newer
 - Node.js 22
 - MariaDB 11.8
 
@@ -99,6 +99,8 @@ backend/public
 The Vite production build is written directly into `backend/public`.
 
 ## Local development with DDEV
+
+Use DDEV 1.25.6 or newer for the stable PHP 8.6 runtime. After updating an existing checkout, run `ddev restart` and `ddev composer install`.
 
 Start the project:
 
