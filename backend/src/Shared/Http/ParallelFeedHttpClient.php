@@ -71,7 +71,12 @@ final readonly class ParallelFeedHttpClient
                     }
 
                     while (($info = curl_multi_info_read($multi)) !== false) {
-                        $id = spl_object_id($info['handle']);
+                        $completedHandle = $info['handle'] ?? null;
+                        if (!$completedHandle instanceof CurlHandle) {
+                            throw new RuntimeException('Invalid cURL completion handle.');
+                        }
+
+                        $id = spl_object_id($completedHandle);
                         $entry = $active[$id];
                         $key = $entry['key'];
                         $handle = $entry['handle'];

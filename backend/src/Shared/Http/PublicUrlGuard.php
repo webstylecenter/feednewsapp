@@ -51,7 +51,7 @@ final class PublicUrlGuard
 
         $addresses = $this->publicAddresses($host);
         $port = $parts['port'] ?? ($scheme === 'https' ? 443 : 80);
-        if ($port < 1 || $port > 65535) {
+        if ($port < 1) {
             throw new InvalidArgumentException('Invalid URL port.');
         }
 
