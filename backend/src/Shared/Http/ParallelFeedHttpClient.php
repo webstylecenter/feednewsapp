@@ -167,7 +167,7 @@ final readonly class ParallelFeedHttpClient
             throw new RuntimeException('Unable to initialize feed request.');
         }
 
-        if (!curl_setopt_array($handle, [
+        $configured = curl_setopt_array($handle, [
             CURLOPT_HTTPHEADER => $headerLines,
             CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_PROTOCOLS_STR => 'HTTP,HTTPS',
@@ -180,7 +180,8 @@ final readonly class ParallelFeedHttpClient
             CURLOPT_ENCODING => '',
             CURLOPT_HEADERFUNCTION => $transfer->receiveHeader(...),
             CURLOPT_WRITEFUNCTION => $transfer->receiveBody(...),
-        ])) {
+        ]);
+        if (!$configured) {
             throw new RuntimeException('Unable to configure feed request.');
         }
 
